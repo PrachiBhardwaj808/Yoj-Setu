@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PARENT — Spring Boot BOM (Bill of Materials)
+         ───────────────────────────────────────────────────────────────
+         By declaring spring-boot-starter-parent as our parent POM,
+         we inherit a curated "bill of materials" — a list of thousands
+         of pre-tested, compatible library versions managed by the
+         Spring team.
+
+         Benefit: you NEVER have to write <version> inside any
+         <dependency> block below (except for things Spring doesn't
+         manage). Spring Boot guarantees all these versions work
+         together without conflicts.
+
+         3.5.4 is the latest stable release as of August 2026.
+         No SNAPSHOT, M1, or RC suffixes — those are pre-release.
+    ═══════════════════════════════════════════════════════════════ -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.4</version>
+        <relativePath/> <!-- tells Maven: fetch this from Maven Central,
+                              not from a local parent directory -->
+    </parent>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PROJECT COORDINATES — your project's unique identity in the
+         Maven ecosystem. Think of it as: groupId = your organisation,
+         artifactId = this module's name.
+    ═══════════════════════════════════════════════════════════════ -->
+    <groupId>com.yojsetu</groupId>
+    <artifactId>backend</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>backend</name>
+    <description>Yojsetu — AI-powered Indian government welfare scheme discovery platform</description>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PROPERTIES — project-wide constants.
+         java.version=21 ensures Maven compiles your source files
+         targeting Java 21. If this were wrong (e.g. 17) you'd get
+         "invalid source/target release" errors if you used any Java 21
+         language feature.
+    ═══════════════════════════════════════════════════════════════ -->
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ─────────────────────────────────────────────────────────
+             SPRING WEB
+             Pulls in Spring MVC + an embedded Tomcat server.
+             "Embedded" means Tomcat is bundled inside your JAR —
+             you don't install or configure a separate web server.
+             Just run `java -jar backend.jar` and your HTTP server
+             starts immediately on port 8080.
+
+             Without this: @RestController, @GetMapping, and the
+             entire HTTP layer simply would not exist.
+        ───────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- ─────────────────────────────────────────────────────────
+             SPRING JDBC
+             This is the deliberate, explicit alternative to JPA/Hibernate.
+             It gives you:
+               • JdbcTemplate — a thin, safe wrapper around raw JDBC
+                 that handles connection borrowing/returning, statement
+                 creation, and ResultSet closing for you automatically.
+               • NamedParameterJdbcTemplate — same, but lets you write
+                 SQL with :paramName placeholders instead of ?
+             You write 100% plain SQL. No ORM magic, no proxy objects,
+             no "N+1 query" surprises — full transparency.
+
+             Note: this also pulls in HikariCP (connection pool) and
+             spring-tx (transaction support) transitively.
+        ───────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- ─────────────────────────────────────────────────────────
+             MYSQL DRIVER (runtime scope)
+             This is the JDBC driver jar — the piece of code that
+             actually knows how to speak the MySQL wire protocol.
+             Spring's JdbcTemplate uses JDBC API (interfaces), and
+             at runtime the MySQL driver is the concrete implementation.
+
+             scope=runtime: your Java code never directly imports this
+             driver class — you only reference standard java.sql.*
+             interfaces. Maven therefore excludes it from compilation
+             but includes it in the final JAR. This is correct and
+             intentional.
+        ───────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ─────────────────────────────────────────────────────────
+             SPRING SECURITY
+             Adds the Spring Security framework. The moment this jar
+             is on your classpath, Spring Boot's auto-configuration
+             activates and locks down every HTTP endpoint by default —
+             you'll get a 401/403 on every request unless you explicitly
+             configure otherwise.
+
+             This seems annoying now, but it's the "secure by default"
+             philosophy: you opt-IN to open endpoints, not opt-OUT of
+             security. We deal with this immediately via SecurityConfig.
+        ───────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- ─────────────────────────────────────────────────────────
+             LOMBOK
+             A compile-time annotation processor that generates
+             boilerplate Java code for you.
+             Examples: @Getter/@Setter, @AllArgsConstructor,
+             @Builder, @Slf4j (adds a log field automatically).
+
+             optional=true: Lombok is only needed by developers who
+             have it installed in their IDE. It does NOT go into
+             the final JAR — all its generated code is inlined at
+             compile time and Lombok itself disappears.
+        ───────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- ─────────────────────────────────────────────────────────
+             SPRING BOOT DEVTOOLS
+             Developer convenience only — NEVER goes into production.
+             Key features:
+               • Automatic restart: saves a .java file → app restarts
+                 in ~1 second (much faster than a cold start)
+               • LiveReload: optionally auto-refreshes browsers on
+                 static resource changes
+
+             scope=runtime + optional=true: Maven will not bundle
+             this into the final JAR when you run `mvn package`.
+             Spring Boot itself detects when it's running in a
+             packaged JAR and disables DevTools even if it were present.
+        ───────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- ─────────────────────────────────────────────────────────
+             SPRING BOOT TEST STARTER
+             Brings in JUnit 5, Mockito, AssertJ, and Spring's
+             test-context framework all in one go.
+             scope=test: only available when running `mvn test`,
+             never packaged into the production JAR.
+        ───────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ─────────────────────────────────────────────────────────
+             SPRING SECURITY TEST
+             Test utilities like @WithMockUser that let you simulate
+             authenticated/unauthenticated requests in tests without
+             spinning up a real auth server or real JWT tokens.
+             scope=test: never goes into production.
+        ───────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         BUILD PLUGINS
+         The spring-boot-maven-plugin does two important things:
+           1. `mvn spring-boot:run` — starts your app directly from
+              Maven without needing to package it first (used during dev)
+           2. `mvn package` — repackages the regular JAR into a
+              "fat JAR" (also called an "uber JAR") that contains your
+              code + ALL dependency JARs bundled inside. This single
+              self-contained file can run anywhere with `java -jar`.
+
+         The <excludes> block tells the plugin to NOT include Lombok
+         in the final fat JAR — Lombok's job is done at compile time,
+         so including it at runtime would just waste space.
+    ═══════════════════════════════════════════════════════════════ -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

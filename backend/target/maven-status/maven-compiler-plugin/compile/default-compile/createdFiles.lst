@@ -1,0 +1,3 @@
+com\yojsetu\backend\controller\PingController.class
+com\yojsetu\backend\config\SecurityConfig.class
+com\yojsetu\backend\BackendApplication.class
