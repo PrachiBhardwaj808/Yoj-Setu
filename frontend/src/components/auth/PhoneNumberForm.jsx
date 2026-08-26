@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { sendOtp } from '../../services/otpService';
+import { Button } from '@/components/ui/button';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PhoneNumberForm.jsx — Step 1 of the registration flow
@@ -212,16 +213,11 @@ export default function PhoneNumberForm({ onOtpSent }) {
         </div>
 
         {/* Submit button */}
-        <button
+        <Button
           id="send-otp-btn"
           type="submit"
           disabled={status === 'loading'}
-          className={`w-full py-3 px-4 rounded-lg font-semibold text-white text-sm
-            transition-all duration-150 shadow-sm
-            ${status === 'loading'
-              ? 'bg-orange-400 cursor-not-allowed'
-              : 'bg-orange-500 hover:bg-orange-600 active:scale-95 hover:shadow'
-            }`}
+          className="w-full"
         >
           {status === 'loading' ? (
             <span className="flex items-center justify-center gap-2">
@@ -236,7 +232,7 @@ export default function PhoneNumberForm({ onOtpSent }) {
           ) : (
             'Send OTP'
           )}
-        </button>
+        </Button>
 
       </form>
 
