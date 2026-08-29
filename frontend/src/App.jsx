@@ -5,6 +5,8 @@ import PhoneVerificationPage from './pages/auth/PhoneVerificationPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import LoginPage from './pages/auth/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
+import SchemesListPage from "@/pages/schemes/SchemesListPage"
+import SchemeDetailPage from "@/pages/schemes/SchemeDetailPage"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // App.jsx — the routing configuration for Yojsetu
@@ -46,8 +48,12 @@ const router = createBrowserRouter([
         element: <LoginPage />,
       },
       {
-        path: 'schemes',       // matches '/schemes'
-        element: <SchemesPlaceholder />,
+        path: 'schemes',
+        element: <SchemesListPage />,
+      },
+      {
+        path: 'schemes/:id',
+        element: <SchemeDetailPage />,
       },
       {
         path: '*',             // catch-all route for 404
@@ -62,3 +68,4 @@ const router = createBrowserRouter([
 export default function App() {
   return <RouterProvider router={router} />;
 }
+
