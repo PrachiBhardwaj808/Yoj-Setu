@@ -7,20 +7,10 @@ import LoginPage from './pages/auth/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import SchemesListPage from "@/pages/schemes/SchemesListPage"
 import SchemeDetailPage from "@/pages/schemes/SchemeDetailPage"
-
+import ProfilePage from "@/pages/profile/profilePage";
 // ─────────────────────────────────────────────────────────────────────────────
 // App.jsx — the routing configuration for Yojsetu
 // ─────────────────────────────────────────────────────────────────────────────
-
-function SchemesPlaceholder() {
-  return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-      <div className="text-5xl mb-4">📋</div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">Browse Schemes</h1>
-      <p className="text-slate-500 text-sm">Scheme directory — coming soon (separate task).</p>
-    </div>
-  );
-}
 
 // ── Route tree ───────────────────────────────────────────────────────────────
 
@@ -56,7 +46,11 @@ const router = createBrowserRouter([
         element: <SchemeDetailPage />,
       },
       {
-        path: '*',             // catch-all route for 404
+        path: 'profile',       // matches '/profile'
+        element: <ProfilePage />,
+      },
+      {
+        path: '*',             // catch-all route for 404 — MUST stay last
         element: <NotFoundPage />,
       },
     ],
@@ -68,4 +62,3 @@ const router = createBrowserRouter([
 export default function App() {
   return <RouterProvider router={router} />;
 }
-
