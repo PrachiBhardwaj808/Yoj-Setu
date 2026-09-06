@@ -1,69 +1,59 @@
 # app/dao/otp_dao.py
 #
-# Raw SQL functions for the otp_verifications table.
-#
-# SPRING BOOT EQUIVALENT: This is your DAO layer. Instead of
-# JdbcTemplate or NamedParameterJdbcTemplate, we use
-# mysql-connector-python's cursor directly.
-#
-# SQL INJECTION SAFETY — CRITICAL:
-#   Always use parameterized queries: cursor.execute("... WHERE x = %s", (value,))
-#   The %s placeholder is filled in by the driver AFTER the SQL structure
-#   is already sent to MySQL — user data can never be interpreted as SQL.
-#   NEVER do: cursor.execute(f"... WHERE x = '{value}'")  ← SQL injection risk!
-#
-#   This is identical in concept to Java's PreparedStatement / JdbcTemplate:
-#     jdbcTemplate.queryForObject("SELECT ... WHERE x = ?", String.class, value)
-#   The ? and %s are both "bind parameters" — different syntax, same safety.
+# Raw SQL functions for the `otp_verifications` table.
 
 from datetime import datetime
 from app.db import get_connection
 
 
-def insert_otp(phone_number: str, otp_code: str, expires_at: datetime) -> None:
+def insert_otp(phone: str, otp_hash: str, purpose: str, expires_at: datetime) -> int:
     """
     Inserts a new OTP record into otp_verifications.
-
-    Called by otp_service.send_otp() after generating a fresh OTP code.
-    Each send creates a new row — we don't overwrite the previous one,
-    because get_latest_otp() always fetches the most recent row anyway.
     """
     conn = get_connection()
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         sql = """
-            INSERT INTO otp_verifications (phone_number, otp_code, expires_at)
-            VALUES (%s, %s, %s)
+            INSERT INTO otp_verifications (phone, otp_hash, purpose, expires_at, attempts, verified)
+            VALUES (%s, %s, %s, %s, 0, FALSE)
         """
-        cursor.execute(sql, (phone_number, otp_code, expires_at))
-        conn.commit()   # INSERT/UPDATE/DELETE require an explicit commit
+        cursor.execute(sql, (phone, otp_hash, purpose, expires_at))
+        conn.commit()
+        return cursor.lastrowid
     finally:
-        conn.close()    # always runs — connection is returned even on exception
+        conn.close()
 
 
-def get_latest_otp(phone_number: str) -> dict | None:
+def get_latest_otp(phone: str, purpose: str) -> dict | None:
     """
-    Returns the most recently created OTP row for this phone number,
-    or None if no record exists.
-
-    We use dictionary=True on the cursor so each row comes back as a
-    plain Python dict ({"id": 1, "phone_number": "...", ...}) rather
-    than a positional tuple. Easier to work with by column name.
-
-    Spring Boot equivalent: jdbcTemplate.queryForMap(...) / RowMapper
+    Returns the most recently created OTP record for this phone & purpose.
     """
     conn = get_connection()
     try:
-        cursor = conn.cursor(dictionary=True)   # rows as dicts, not tuples
+        cursor = conn.cursor(dictionary=True)
         sql = """
-            SELECT id, phone_number, otp_code, expires_at, verified
+            SELECT id, phone, otp_hash, purpose, expires_at, attempts, verified, created_at
             FROM otp_verifications
-            WHERE phone_number = %s
-            ORDER BY created_at DESC
+            WHERE phone = %s AND purpose = %s
+            ORDER BY created_at DESC, id DESC
             LIMIT 1
         """
-        cursor.execute(sql, (phone_number,))    # note: comma makes it a tuple
-        return cursor.fetchone()                # dict or None
+        cursor.execute(sql, (phone, purpose))
+        return cursor.fetchone()
+    finally:
+        conn.close()
+
+
+def increment_attempts(otp_id: int) -> None:
+    """
+    Increments the attempt counter for an OTP row.
+    """
+    conn = get_connection()
+    try:
+        cursor = conn.cursor(dictionary=True)
+        sql = "UPDATE otp_verifications SET attempts = attempts + 1 WHERE id = %s"
+        cursor.execute(sql, (otp_id,))
+        conn.commit()
     finally:
         conn.close()
 
@@ -71,14 +61,10 @@ def get_latest_otp(phone_number: str) -> dict | None:
 def mark_verified(otp_id: int) -> None:
     """
     Sets verified = TRUE for the given OTP row.
-
-    Called by otp_service.verify_otp() after all checks pass.
-    Marking verified prevents the same OTP being used twice
-    (replay attack protection).
     """
     conn = get_connection()
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         sql = "UPDATE otp_verifications SET verified = TRUE WHERE id = %s"
         cursor.execute(sql, (otp_id,))
         conn.commit()

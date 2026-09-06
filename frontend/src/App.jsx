@@ -1,9 +1,11 @@
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Schemes from './pages/Schemes';
 import SchemeDetails from './pages/SchemeDetails';
@@ -29,14 +31,64 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
-      { path: 'dashboard', element: <Dashboard /> },
+      {
+        path: 'onboarding',
+        element: (
+          <ProtectedRoute requireOnboarding={false}>
+            <Onboarding />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'dashboard',
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
+      },
       { path: 'schemes', element: <Schemes /> },
       { path: 'schemes/:id', element: <SchemeDetails /> },
-      { path: 'applications', element: <Applications /> },
-      { path: 'documents', element: <Documents /> },
-      { path: 'notifications', element: <Notifications /> },
-      { path: 'profile', element: <Profile /> },
-      { path: 'assistant', element: <Assistant /> },
+      {
+        path: 'applications',
+        element: (
+          <ProtectedRoute>
+            <Applications />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'documents',
+        element: (
+          <ProtectedRoute>
+            <Documents />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'notifications',
+        element: (
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'assistant',
+        element: (
+          <ProtectedRoute>
+            <Assistant />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ]);

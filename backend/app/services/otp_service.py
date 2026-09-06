@@ -1,103 +1,116 @@
 # app/services/otp_service.py
 #
-# OTP business logic — the service layer.
-#
-# SPRING BOOT EQUIVALENT: This is your @Service class. It orchestrates
-# the flow: generate OTP → save to DB (via DAO) → send SMS (via service).
-# It knows about business rules (expiry, already-verified) but knows
-# nothing about HTTP — it doesn't touch request/response objects.
-#
-# WHY secrets.token_digits (NOT random.randint):
-#   Python's `random` module is a pseudo-random number generator seeded
-#   from the system clock. With a known approximate seed, an attacker
-#   could brute-force the sequence. `secrets` uses the OS's
-#   cryptographically secure RNG (BCryptGenRandom on Windows,
-#   /dev/urandom on Linux) — output is unpredictable by design.
-#   Rule: use `random` for games/simulations, `secrets` for security tokens.
+# OTP business logic layer handling secure 6-digit generation, hashing,
+# 60s cooldown enforcement, 5-min expiration, 5-attempt limits, and verification.
 
 import secrets
+import hashlib
 from datetime import datetime, timedelta, timezone
 
+from app.config import (
+    OTP_EXPIRY_SECONDS,
+    OTP_RESEND_COOLDOWN_SECONDS,
+    OTP_MAX_ATTEMPTS,
+    OTP_DEV_MODE,
+)
 from app.dao import otp_dao
 from app.services import sms_service
 
 
-# OTP is valid for 5 minutes from the moment it's generated.
-OTP_EXPIRY_MINUTES = 5
+def _hash_otp(phone: str, otp_code: str) -> str:
+    """Hashes the OTP code combined with phone number for secure storage."""
+    salt = "yojsetu_otp_salt_2026"
+    raw = f"{phone}:{otp_code}:{salt}"
+    return hashlib.sha256(raw.encode('utf-8')).hexdigest()
 
 
-def send_otp(phone_number: str) -> None:
+def format_phone(phone: str) -> str:
+    """Standardizes phone number format to 10 digits or +91XXXXXXXXXX."""
+    cleaned = ''.join(c for c in phone if c.isdigit())
+    if len(cleaned) == 10:
+        return f"+91{cleaned}"
+    elif len(cleaned) == 12 and cleaned.startswith("91"):
+        return f"+{cleaned}"
+    elif len(cleaned) == 12 or len(cleaned) == 13:
+        return phone
+    return phone
+
+
+def generate_and_send_otp(phone: str, purpose: str = "REGISTER") -> dict:
     """
-    Generates a fresh 6-digit OTP, saves it to the DB, and
-    calls the SMS service (mock or real) to dispatch it.
-
-    Steps:
-      1. Generate cryptographically secure 6-digit code
-      2. Calculate expiry timestamp (now + 5 minutes, UTC)
-      3. Persist to otp_verifications via DAO
-      4. Dispatch via sms_service (currently mock)
+    Generates a fresh 6-digit cryptographically secure OTP, hashes it,
+    persists it via DAO, and dispatches via SMS service.
+    Enforces a 60-second resend cooldown.
     """
-    # secrets.randbelow(900000) gives a number in [0, 900000)
-    # Adding 100000 ensures we always get a 6-digit number.
+    formatted_phone = format_phone(phone)
+    now_utc = datetime.now(timezone.utc)
+    now_naive_utc = now_utc.replace(tzinfo=None)
+
+    # Check resend cooldown
+    latest_record = otp_dao.get_latest_otp(formatted_phone, purpose)
+    if latest_record:
+        created_at = latest_record["created_at"]
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at)
+        elapsed_seconds = (now_naive_utc - created_at).total_seconds()
+        if elapsed_seconds < OTP_RESEND_COOLDOWN_SECONDS:
+            remaining = int(OTP_RESEND_COOLDOWN_SECONDS - elapsed_seconds)
+            raise ValueError(f"Please wait {remaining} seconds before requesting a new OTP.")
+
+    # Generate 6-digit cryptographically secure OTP
     otp_code = str(100000 + secrets.randbelow(900000))
+    otp_hash = _hash_otp(formatted_phone, otp_code)
+    expires_at = now_naive_utc + timedelta(seconds=OTP_EXPIRY_SECONDS)
 
-    # Use UTC so the expiry comparison in verify_otp() is timezone-safe.
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    # Persist in DB
+    otp_dao.insert_otp(formatted_phone, otp_hash, purpose, expires_at)
 
-    # Persist — the DAO strips timezone info before storing because
-    # MySQL DATETIME columns don't carry timezone. We compare in UTC
-    # consistently on both ends.
-    otp_dao.insert_otp(phone_number, otp_code, expires_at.replace(tzinfo=None))
+    # Dispatch via SMS service (logs to console in dev mode)
+    sms_service.send_otp(formatted_phone, otp_code, purpose)
 
-    # Dispatch (currently just prints to terminal)
-    sms_service.send_otp(phone_number, otp_code)
+    response = {
+        "message": "OTP sent successfully",
+        "expires_in": OTP_EXPIRY_SECONDS,
+        "cooldown": OTP_RESEND_COOLDOWN_SECONDS,
+    }
+    if OTP_DEV_MODE:
+        response["dev_otp"] = otp_code
+    return response
 
 
-def verify_otp(phone_number: str, submitted_otp: str) -> dict:
+def verify_otp(phone: str, submitted_otp: str, purpose: str = "REGISTER") -> dict:
     """
-    Verifies the submitted OTP code for the given phone number.
-
-    Checks (in order):
-      1. Does a record exist for this phone number?
-      2. Does the submitted code match the stored code?
-      3. Has the OTP expired (older than 5 minutes)?
-      4. Has this OTP already been used?
-
-    Returns:
-      {"success": True, "message": "OTP verified successfully."}
-
-    Raises:
-      ValueError with a human-readable message on any failure.
-      The router catches ValueError and returns HTTP 400.
-
-    WHY ValueError, not HTTPException?
-      The service layer shouldn't know about HTTP. Raising a plain
-      ValueError keeps the service reusable (e.g., if you later call
-      this from a CLI tool or a background job). The router converts
-      it to the appropriate HTTP status code.
+    Verifies submitted OTP code against stored hash.
+    Checks: existence, verification status, attempt limits, expiration, and hash match.
     """
-    record = otp_dao.get_latest_otp(phone_number)
+    formatted_phone = format_phone(phone)
+    record = otp_dao.get_latest_otp(formatted_phone, purpose)
 
-    # Check 1: record exists
     if record is None:
-        raise ValueError("No OTP found for this phone number. Please request a new one.")
+        raise ValueError("No OTP request found for this phone number. Please request a new code.")
 
-    # Check 2: code matches
-    if record["otp_code"] != submitted_otp:
-        raise ValueError("Incorrect OTP. Please try again.")
-
-    # Check 3: not expired
-    # The stored expires_at has no timezone info (plain MySQL DATETIME).
-    # datetime.now(timezone.utc).replace(tzinfo=None) gives naive UTC too.
-    now_naive_utc = datetime.now(timezone.utc).replace(tzinfo=None)
-    if now_naive_utc > record["expires_at"]:
-        raise ValueError("OTP has expired. Please request a new one.")
-
-    # Check 4: not already verified (replay attack prevention)
     if record["verified"]:
-        raise ValueError("OTP has already been used. Please request a new one.")
+        raise ValueError("This OTP has already been verified. Please request a new code.")
 
-    # All checks passed — mark as verified so it can't be reused
+    if record["attempts"] >= OTP_MAX_ATTEMPTS:
+        raise ValueError("Too many failed attempts. Please request a new OTP.")
+
+    now_naive_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    expires_at = record["expires_at"]
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+
+    if now_naive_utc > expires_at:
+        raise ValueError("This OTP has expired. Request a new code.")
+
+    expected_hash = _hash_otp(formatted_phone, submitted_otp)
+    if record["otp_hash"] != expected_hash:
+        otp_dao.increment_attempts(record["id"])
+        remaining_attempts = OTP_MAX_ATTEMPTS - (record["attempts"] + 1)
+        if remaining_attempts <= 0:
+            raise ValueError("Too many failed attempts. Please request a new OTP.")
+        raise ValueError(f"Incorrect OTP. {remaining_attempts} attempt(s) remaining.")
+
+    # All checks passed — mark as verified
     otp_dao.mark_verified(record["id"])
-
-    return {"success": True, "message": "OTP verified successfully."}
+    return {"verified": True, "message": "OTP verified successfully."}

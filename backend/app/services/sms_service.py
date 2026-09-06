@@ -1,29 +1,26 @@
 # app/services/sms_service.py
 #
-# Mock SMS service — prints to terminal instead of calling a real SMS API.
-#
-# DESIGN:
-#   This is a single function with the exact signature a real SMS
-#   service would need. When you later integrate Twilio, MSG91, or
-#   Bhashini, you only replace the body of this function. The OTP
-#   service (otp_service.py) calls `sms_service.send_otp(...)` and
-#   doesn't need to change at all.
-#
-#   Java equivalent: a MockSmsServiceImpl that implements an SmsService
-#   interface. Python doesn't require the interface declaration — you
-#   just write a function with the right name and parameters.
+# SMS Service Abstraction — handles sending OTP via SMS provider or mock output.
+
+from app.config import SMS_PROVIDER, SMS_API_KEY, SMS_SENDER_ID, OTP_DEV_MODE
 
 
-def send_otp(phone_number: str, otp_code: str) -> None:
+def send_otp(phone: str, otp_code: str, purpose: str = "AUTHENTICATION") -> None:
     """
-    Simulates sending an OTP SMS.
-
-    In production, replace the print() call with a real SMS API call
-    (e.g., Twilio client.messages.create(...) or MSG91's REST API).
-
-    The output is clearly formatted so it's easy to spot in the
-    backend terminal during development/testing.
+    Dispatches an OTP SMS using the configured SMS provider.
+    In development mode or when SMS_PROVIDER='development', logs to backend console.
     """
-    print(f"\n{'='*55}")
-    print(f"  [MOCK SMS] Sending OTP {otp_code} to +91-{phone_number}")
-    print(f"{'='*55}\n")
+    if SMS_PROVIDER == "development" or OTP_DEV_MODE:
+        print("\n" + "=" * 48)
+        print("         YOJSETU DEVELOPMENT OTP LOG         ")
+        print("=" * 48)
+        print(f"  Phone:   {phone}")
+        print(f"  Purpose: {purpose}")
+        print(f"  OTP:     {otp_code}")
+        print(f"  Expiry:  5 minutes")
+        print("=" * 48 + "\n")
+        return
+
+    # Real SMS integration placeholder (Twilio / MSG91 / Bhashini / Fast2SMS)
+    # E.g.: msg91_client.send_sms(to=phone, template=purpose, otp=otp_code, api_key=SMS_API_KEY)
+    pass

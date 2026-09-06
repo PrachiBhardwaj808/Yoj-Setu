@@ -1,92 +1,127 @@
-/**
- * AuthContext.jsx
- *
- * Exposes: user, isAuthenticated, loading, login(), logout()
- * Persists auth state to localStorage under key 'yojsetu_auth'.
- *
- * MOCK ONLY — replace login() body with:
- *   const data = await authService.loginUser({ phone, password });
- *   setUser(data.user);
- * when the FastAPI backend is ready.
- */
-
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import * as authService from '../services/authService';
 
 const AuthContext = createContext(null);
 
-const STORAGE_KEY = 'yojsetu_auth';
-
-// ─── Mock credentials ───────────────────────────────────────────────────────
-const MOCK_USERS = [
-  { id: 'usr_001', name: 'Rahul Sharma', phone: '9876543210', password: 'pass123', email: 'rahul@example.com', role: 'citizen', onboardingComplete: false },
-  { id: 'usr_002', name: 'Admin User',   phone: '9999999999', password: 'admin123', email: 'admin@yojsetu.in', role: 'admin',   onboardingComplete: true  },
-];
+const TOKEN_KEY = 'yojsetu_token';
+const USER_KEY = 'yojsetu_user';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // true while hydrating from localStorage
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Hydrate from localStorage on first mount
+  // Hydrate auth state on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setUser(JSON.parse(saved));
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    } finally {
+    async function initAuth() {
+      const savedToken = localStorage.getItem(TOKEN_KEY);
+      const savedUser = localStorage.getItem(USER_KEY);
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+        try {
+          setUser(JSON.parse(savedUser));
+          // Verify token validity with backend asynchronously
+          const freshUser = await authService.getCurrentUser();
+          setUser(freshUser);
+          localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
+        } catch (err) {
+          // Token expired or invalid
+          console.warn("Session expired:", err);
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          setToken(null);
+          setUser(null);
+        }
+      }
       setLoading(false);
+    }
+    initAuth();
+  }, []);
+
+  const saveSession = (access_token, user_data) => {
+    setToken(access_token);
+    setUser(user_data);
+    localStorage.setItem(TOKEN_KEY, access_token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user_data));
+  };
+
+  const login = useCallback(async (identifier, password) => {
+    try {
+      const data = await authService.loginUser({ identifier, password });
+      saveSession(data.access_token, data.user);
+      return data.user;
+    } catch (err) {
+      const message = err.response?.data?.detail || 'Failed to sign in. Please check your credentials.';
+      throw new Error(message);
     }
   }, []);
 
-  /**
-   * login(phone, password) → resolves with user object on success,
-   *                          throws Error with message on failure.
-   *
-   * MOCK: Replace with real API call when backend is ready.
-   */
-  const login = useCallback(async (phone, password) => {
-    // Simulate network delay
-    await new Promise(r => setTimeout(r, 1000));
-
-    const found = MOCK_USERS.find(u => u.phone === phone && u.password === password);
-    if (!found) throw new Error('Incorrect mobile number or password. Please try again.');
-
-    const { password: _, ...safeUser } = found; // never store password
-    setUser(safeUser);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
-    return safeUser;
+  const loginWithOTP = useCallback(async (phone, otp) => {
+    try {
+      const data = await authService.verifyLoginOTP(phone, otp);
+      saveSession(data.access_token, data.user);
+      return data.user;
+    } catch (err) {
+      const message = err.response?.data?.detail || 'Invalid or expired OTP. Please try again.';
+      throw new Error(message);
+    }
   }, []);
 
-  /**
-   * logout() — clears auth state and localStorage.
-   * Does NOT clear profile data (user may want to resume later).
-   */
+  const register = useCallback(async (registrationData) => {
+    try {
+      const data = await authService.registerUser(registrationData);
+      saveSession(data.access_token, data.user);
+      return data.user;
+    } catch (err) {
+      const message = err.response?.data?.detail || 'Failed to complete registration.';
+      throw new Error(message);
+    }
+  }, []);
+
   const logout = useCallback(() => {
+    setToken(null);
     setUser(null);
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   }, []);
 
-  /**
-   * markOnboardingComplete() — called after user finishes onboarding wizard.
-   * Updates both state and localStorage without requiring a full re-login.
-   */
   const markOnboardingComplete = useCallback(() => {
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, onboardingComplete: true };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
       return updated;
     });
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const freshUser = await authService.getCurrentUser();
+      setUser(freshUser);
+      localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
+      return freshUser;
+    } catch (err) {
+      return null;
+    }
+  }, []);
+
   const value = {
     user,
-    isAuthenticated: !!user,
+    token,
+    isAuthenticated: !!user && !!token,
     loading,
     login,
+    loginWithOTP,
+    register,
     logout,
     markOnboardingComplete,
-    setUser, // escape hatch for mock registration
+    refreshUser,
+    requestRegisterOTP: authService.requestRegisterOTP,
+    verifyRegisterOTP: authService.verifyRegisterOTP,
+    requestLoginOTP: authService.requestLoginOTP,
+    requestForgotPasswordOTP: authService.requestForgotPasswordOTP,
+    verifyForgotPasswordOTP: authService.verifyForgotPasswordOTP,
+    resetPassword: authService.resetPassword,
   };
 
   return (

@@ -1,48 +1,81 @@
 # app/db.py
 #
 # Raw database connection helper — no ORM, no connection pool.
-#
-# HOW IT WORKS:
-#   `get_connection()` opens a brand-new MySQL connection using the
-#   credentials from app/config.py and returns it to the caller.
-#   The caller is responsible for closing it (see the try/finally
-#   pattern used in every DAO function).
-#
-# WHY NOT A GLOBAL CONNECTION?
-#   1. MySQL closes idle connections after ~8 hours (wait_timeout).
-#      A global opened at startup would die overnight and crash the
-#      next request with "Lost connection to MySQL server".
-#   2. A single connection isn't safe to use from two requests at
-#      the same time — you'd get interleaved queries.
-#   Opening a connection per call avoids both problems cleanly.
-#
-# Spring Boot equivalent: DataSource / JdbcTemplate handled all this
-# automatically. Here we do it explicitly — which also means you can
-# see exactly what's happening.
+# Supports MySQL with graceful fallback to local SQLite (yojsetu.db)
+# if MySQL connection fails or credentials are not configured.
 
+import os
+import sqlite3
 import mysql.connector
 from app.config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+
+# SQLite database file path in backend directory
+SQLITE_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "yojsetu.db")
+
+
+class SQLiteDictCursor:
+    """Wrapper to make SQLite cursor behave like mysql.connector dictionary cursor."""
+    def __init__(self, cursor):
+        self.cursor = cursor
+
+    def execute(self, sql, params=None):
+        # Convert MySQL %s placeholders to SQLite ? placeholders
+        sql_sqlite = sql.replace("%s", "?")
+        if params is None:
+            return self.cursor.execute(sql_sqlite)
+        return self.cursor.execute(sql_sqlite, params)
+
+    def fetchone(self):
+        row = self.cursor.fetchone()
+        if row is None:
+            return None
+        return dict(row)
+
+    def fetchall(self):
+        rows = self.cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    @property
+    def lastrowid(self):
+        return self.cursor.lastrowid
+
+    @property
+    def rowcount(self):
+        return self.cursor.rowcount
+
+
+class SQLiteConnectionWrapper:
+    """Wrapper to give SQLite connection an API compatible with mysql-connector."""
+    def __init__(self, conn):
+        self.conn = conn
+
+    def cursor(self, dictionary=True):
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        return SQLiteDictCursor(cur)
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
 
 
 def get_connection():
     """
-    Opens and returns a new MySQL connection.
-
-    Usage pattern in every DAO:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT ...", (param,))
-            result = cursor.fetchone()
-            conn.commit()          # needed for INSERT/UPDATE/DELETE
-            return result
-        finally:
-            conn.close()           # always runs, even if an exception occurs
+    Opens and returns a new DB connection.
+    Attempts MySQL first; falls back to SQLite if MySQL is unavailable.
     """
-    return mysql.connector.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        database=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    try:
+        return mysql.connector.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            connect_timeout=3,
+        )
+    except Exception as e:
+        # Fallback to local SQLite database
+        sqlite_conn = sqlite3.connect(SQLITE_DB_PATH)
+        return SQLiteConnectionWrapper(sqlite_conn)
