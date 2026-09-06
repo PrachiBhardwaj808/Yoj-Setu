@@ -1,13 +1,3 @@
-/**
- * ProfileContext.jsx
- *
- * Manages the 19-field onboarding profile.
- * Persists to localStorage under 'yojsetu_profile'.
- *
- * FUTURE: Replace updateProfile() body with:
- *   await profileService.updateProfile(updatedData);
- */
-
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ProfileContext = createContext(null);
@@ -15,31 +5,65 @@ const ProfileContext = createContext(null);
 const STORAGE_KEY = 'yojsetu_profile';
 
 export const EMPTY_PROFILE = {
+  // 1. Personal
   full_name: '',
   date_of_birth: '',
+  age: '',
   gender: '',
+  phone: '',
+  email: '',
+
+  // 2. Location
   state: '',
   district: '',
-  city: '',
-  rural_urban: '',
+  block: '',
+  village_city: '',
+  pin_code: '',
+  rural_urban: 'Rural',
+
+  // 3. Work & Income
   occupation: '',
   employment_status: '',
+  annual_personal_income: '',
   annual_household_income: '',
+  land_ownership: '',
+  land_holding: '',
+
+  // 4. Social & Eligibility
   social_category: '',
-  disability_status: '',
+  disability_status: 'No',
   disability_percentage: '',
-  minority_status: '',
+  minority_status: 'No',
+  bpl_status: 'No',
+  tribal_status: 'No',
+
+  // 5. Household
   marital_status: '',
-  family_size: '',
-  children_count: '',
-  senior_citizen_in_household: '',
-  pregnant_woman_in_household: '',
+  family_size: '4',
+  children_count: '2',
+  children_below_5: '0',
+  senior_citizen_in_household: 'No',
+  disability_in_household: 'No',
+  pregnant_woman_in_household: 'No',
   housing_status: '',
+  electricity_connection: 'Yes',
+  cooking_fuel: 'LPG',
+
+  // 6. Documents & Preferences
+  has_aadhaar: 'Yes',
+  has_bank_account: 'Yes',
+  has_ration_card: 'Yes',
+  has_income_certificate: 'Not sure',
+  has_caste_certificate: 'Not applicable',
+  has_disability_certificate: 'Not applicable',
+  has_land_document: 'Not applicable',
+  preferred_language: 'English',
+  notification_preferences: 'SMS & Email',
 };
 
 export function ProfileProvider({ children }) {
   const [profile, setProfile] = useState(EMPTY_PROFILE);
-  const [onboardingStep, setOnboardingStep] = useState(1); // persisted step for resume
+  const [onboardingStep, setOnboardingStep] = useState(1);
 
   // Hydrate from localStorage
   useEffect(() => {
@@ -47,7 +71,7 @@ export function ProfileProvider({ children }) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        setProfile(parsed.profile ?? EMPTY_PROFILE);
+        setProfile(parsed.profile ? { ...EMPTY_PROFILE, ...parsed.profile } : EMPTY_PROFILE);
         setOnboardingStep(parsed.step ?? 1);
       }
     } catch {
@@ -59,7 +83,6 @@ export function ProfileProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ profile: updatedProfile, step }));
   }, []);
 
-  /** Merge partial updates into profile (single-field or full object) */
   const updateProfile = useCallback((changes) => {
     setProfile(prev => {
       const updated = { ...prev, ...changes };
@@ -68,23 +91,25 @@ export function ProfileProvider({ children }) {
     });
   }, [onboardingStep, persist]);
 
-  /** Save current step so user can resume */
   const saveStep = useCallback((step) => {
     setOnboardingStep(step);
     persist(profile, step);
   }, [profile, persist]);
 
-  /** Reset profile (e.g. on logout) */
   const clearProfile = useCallback(() => {
     setProfile(EMPTY_PROFILE);
     setOnboardingStep(1);
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  /** Completion % based on filled fields */
-  const completionPercent = Math.round(
-    (Object.values(profile).filter(v => v !== '' && v !== null && v !== undefined).length /
-      Object.keys(EMPTY_PROFILE).length) * 100
+  // Calculate completion percentage based on answered fields
+  const filledFieldsCount = Object.values(profile).filter(
+    v => v !== '' && v !== null && v !== undefined
+  ).length;
+
+  const completionPercent = Math.min(
+    100,
+    Math.round((filledFieldsCount / Object.keys(EMPTY_PROFILE).length) * 100)
   );
 
   const value = {

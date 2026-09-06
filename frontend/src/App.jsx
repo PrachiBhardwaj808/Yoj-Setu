@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ProfileProvider } from './context/ProfileContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 import Home from './pages/Home';
@@ -18,7 +19,9 @@ import Assistant from './pages/Assistant';
 function RootLayout() {
   return (
     <AuthProvider>
-      <Outlet />
+      <ProfileProvider>
+        <Outlet />
+      </ProfileProvider>
     </AuthProvider>
   );
 }
