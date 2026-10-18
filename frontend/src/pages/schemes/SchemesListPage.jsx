@@ -1,13 +1,17 @@
-import SchemeList from "@/components/schemes/SchemeList"
+import SchemeList from "@/components/schemes/SchemeList";
 
 export default function SchemesListPage() {
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-1">Government schemes</h1>
-            <p className="text-gray-600 mb-6">
-                Browse schemes you may be eligible for.
-            </p>
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-[#0F1B3D] tracking-tight">
+                    Government Schemes Catalog
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                    Explore active Central and State welfare initiatives, verify eligibility criteria, and discover benefits.
+                </p>
+            </div>
             <SchemeList />
         </div>
-    )
+    );
 }

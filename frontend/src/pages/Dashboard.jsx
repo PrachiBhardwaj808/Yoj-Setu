@@ -1,27 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../context/ProfileContext';
+import { getEligibilityResults } from '../services/eligibilityService';
 
 // ─── Outline Icons ────────────────────────────────────────────────────────────
 
-function LogoMark({ className = "w-7 h-7" }) {
-  return (
-    <svg viewBox="0 0 32 32" fill="none" className={className}>
-      <rect width="32" height="32" rx="8" fill="#0F1B3D" />
-      <path d="M9 16L14 21L23 10" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="23" cy="10" r="2.5" fill="#2563EB" />
-    </svg>
-  );
-}
-
-function BellIcon({ className = "w-5 h-5" }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.75">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-    </svg>
-  );
-}
 
 function SearchIcon({ className = "w-5 h-5" }) {
   return (
@@ -110,146 +94,95 @@ function GradHatIcon({ className = "w-5 h-5" }) {
   );
 }
 
-// ─── Data Definitions ────────────────────────────────────────────────────────
+function CheckIcon({ className = "w-4 h-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
 
-const RECOMMENDED_SCHEMES = [
-  {
-    id: 'pm-kisan',
-    name: 'PM Kisan Samman Nidhi',
-    category: 'Agriculture',
-    description: 'Direct annual income support of ₹6,000 for small and marginal landholding farmers.',
-    matchReason: 'Matches your occupation (Farmer) and landholding criteria.',
-    benefit: 'Up to ₹6,000/year',
-    icon: SproutIcon
-  },
-  {
-    id: 'ayushman-bharat',
-    name: 'Ayushman Bharat (PM-JAY)',
-    category: 'Health',
-    description: 'Health insurance cover of ₹5 Lakhs per family per year for hospitalization care.',
-    matchReason: 'Matches your annual household income range (< ₹2.5 Lakhs).',
-    benefit: '₹5 Lakhs health cover',
-    icon: HeartPulseIcon
-  },
-  {
-    id: 'pm-surya-ghar',
-    name: 'PM Surya Ghar: Muft Bijli Yojana',
-    category: 'Housing & Solar',
-    description: 'Subsidized rooftop solar system providing up to 300 units free electricity per month.',
-    matchReason: 'Matches your housing status and electricity connection details.',
-    benefit: 'Up to ₹78,000 subsidy',
-    icon: SunIcon
-  },
-  {
-    id: 'post-matric-scholarship',
-    name: 'Post-Matric Scholarship Scheme',
-    category: 'Education',
-    description: 'Financial assistance for higher secondary and university education.',
-    matchReason: 'Matches household demographic profile.',
-    benefit: '100% tuition coverage',
-    icon: GradHatIcon
-  }
-];
+function WarningIcon({ className = "w-4 h-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  );
+}
+
+// Map categories to icons
+const CATEGORY_ICONS = {
+  Agriculture: SproutIcon,
+  Health: HeartPulseIcon,
+  Healthcare: HeartPulseIcon,
+  Education: GradHatIcon,
+  Housing: SunIcon,
+  'Solar Energy': SunIcon,
+};
+
+const CATEGORIES = ['All', 'Agriculture', 'Education', 'Health', 'Housing', 'Financial Support'];
 
 const RECENT_NOTIFICATIONS = [
-  { id: 1, title: 'New scheme matches your profile', time: '2 hours ago', text: 'PM Surya Ghar scheme has been added to your recommendations.' },
-  { id: 2, title: 'Profile updated successfully', time: 'Yesterday', text: 'Your location and household details were saved.' },
-  { id: 3, title: 'Application status update', time: '3 days ago', text: 'Your Ayushman Bharat verification is currently under review.' }
+  { id: 1, title: 'AI Scheme Engine evaluated profile', time: 'Just now', text: 'Matched 5+ verified central and state schemes with deterministic rules.' },
+  { id: 2, title: 'DigiLocker Integration Ready', time: '1 hour ago', text: 'Document provider initialized in Mock Development Mode.' },
+  { id: 3, title: 'Profile details saved', time: 'Yesterday', text: 'Your location and demographic profile were normalized.' }
 ];
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { profile, completionPercent } = useProfile();
 
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSchemeModal, setSelectedSchemeModal] = useState(null);
 
   const userName = profile?.full_name || user?.full_name || 'Rahul';
   const firstName = userName.split(' ')[0];
 
-  // Dynamic greeting based on time of day
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    let isMounted = true;
+    async function loadRecommendations() {
+      setLoading(true);
+      try {
+        const results = await getEligibilityResults(profile || {});
+        if (isMounted) {
+          setRecommendations(results || []);
+        }
+      } catch (err) {
+        console.error('Failed to load scheme recommendations:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    loadRecommendations();
+    return () => { isMounted = false; };
+  }, [profile]);
+
+  const filteredRecommendations = selectedCategory === 'All'
+    ? recommendations
+    : recommendations.filter(r => (r.category || '').toLowerCase().includes(selectedCategory.toLowerCase()));
+
+  const eligibleCount = recommendations.filter(r => r.status === 'ELIGIBLE').length;
+  const reviewCount = recommendations.filter(r => r.status === 'INSUFFICIENT_INFORMATION').length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#111827] flex flex-col font-sans">
-      
-      {/* ─── DASHBOARD TOP NAVIGATION BAR ────────────────────────────────────── */}
-      <header className="bg-white border-b border-[#E2E8F0] px-6 h-16 flex items-center justify-between sticky top-0 z-40">
-        
-        {/* Left: Logo + Desktop Links */}
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2.5">
-            <LogoMark className="w-7 h-7" />
-            <span className="font-semibold text-lg text-[#0F1B3D] tracking-tight">Yojsetu</span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/dashboard" className="text-sm font-medium text-[#2563EB]">
-              Dashboard
-            </Link>
-            <Link to="/schemes" className="text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors">
-              Schemes
-            </Link>
-            <Link to="/onboarding" className="text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors">
-              Eligibility
-            </Link>
-            <Link to="/applications" className="text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors">
-              Applications
-            </Link>
-            <Link to="/assistant" className="text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors">
-              Assistant
-            </Link>
-          </nav>
-        </div>
-
-        {/* Right Actions */}
-        <div className="flex items-center gap-4">
-          
-          <Link to="/notifications" className="relative p-2 text-[#64748B] hover:text-[#111827] transition-colors">
-            <BellIcon className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#2563EB] rounded-full"></span>
-          </Link>
-
-          <div className="flex items-center gap-3 pl-3 border-l border-[#E2E8F0]">
-            <div className="w-8 h-8 rounded-full bg-[#0F1B3D] text-white flex items-center justify-center text-xs font-semibold">
-              {firstName[0]}
-            </div>
-            <div className="hidden sm:block text-left">
-              <p className="text-xs font-semibold text-[#0F1B3D] leading-none">{userName}</p>
-              <p className="text-[11px] text-[#64748B] mt-0.5">{profile?.state || 'Maharashtra'}</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-xs font-medium text-[#64748B] hover:text-red-600 ml-2 transition-colors cursor-pointer"
-            >
-              Logout
-            </button>
-          </div>
-
-        </div>
-      </header>
-
-      {/* ─── MAIN DASHBOARD CONTENT ──────────────────────────────────────────── */}
-      <main className="max-w-[1240px] mx-auto w-full px-6 py-10 space-y-8 flex-1">
-        
-        {/* Dashboard Greeting Header */}
-        <div className="space-y-1">
+    <div className="space-y-8 pb-10 font-sans">
+      {/* Dashboard Greeting Header */}
+      <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] tracking-tight">
             {greeting}, {firstName}
           </h1>
           <p className="text-sm text-[#64748B]">
-            Here are some government schemes that may be relevant to you.
+            Here are your AI-discovered government schemes matched deterministically with your profile.
           </p>
         </div>
 
-        {/* Profile Completion Banner (Shown if completion < 100%) */}
+        {/* Profile Completion Banner */}
         {completionPercent < 100 && (
           <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
             <div className="space-y-1 flex-1">
@@ -260,7 +193,7 @@ export default function Dashboard() {
                 </span>
               </div>
               <p className="text-xs text-[#64748B]">
-                Add a few more details to improve accuracy of your scheme recommendations.
+                Add details like landholding and family income to unlock 100% accurate eligibility matching.
               </p>
               <div className="w-full max-w-md bg-[#F8FAFC] border border-[#E2E8F0] h-1.5 rounded-full mt-2 overflow-hidden">
                 <div className="bg-[#2563EB] h-1.5 rounded-full transition-all duration-500" style={{ width: `${completionPercent}%` }} />
@@ -276,92 +209,192 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Main Recommendation Section */}
+        {/* ─── MAIN RECOMMENDATION SECTION ───────────────────────────────────── */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#0F1B3D] tracking-tight">Recommended for you</h2>
-            <Link to="/schemes" className="text-xs font-medium text-[#2563EB] hover:underline">
-              View all schemes →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {RECOMMENDED_SCHEMES.map(scheme => {
-              const IconComp = scheme.icon;
-              return (
-                <div
-                  key={scheme.id}
-                  className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col justify-between hover:border-blue-300 transition-all shadow-xs group"
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-[#0F1B3D] tracking-tight">Recommended Schemes For You</h2>
+              <p className="text-xs text-[#64748B]">Evaluated by deterministic rule engine & ranked by AI Recommendation Agent</p>
+            </div>
+            
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-xl border transition-all cursor-pointer shrink-0 ${
+                    selectedCategory === cat
+                      ? 'bg-[#0F1B3D] text-white border-[#0F1B3D]'
+                      : 'bg-white text-[#64748B] border-[#E2E8F0] hover:border-gray-300'
+                  }`}
                 >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F1B3D] group-hover:text-[#2563EB] group-hover:bg-blue-50 transition-colors flex items-center justify-center">
-                        <IconComp className="w-5 h-5" />
-                      </div>
-                      <span className="text-xs font-medium text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
-                        {scheme.benefit}
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-semibold text-[#0F1B3D] group-hover:text-[#2563EB] transition-colors">
-                      {scheme.name}
-                    </h3>
-                    
-                    <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
-                      {scheme.description}
-                    </p>
-
-                    <div className="mt-4 p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[11px] text-[#64748B] flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] shrink-0"></span>
-                      <span>{scheme.matchReason}</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-5 mt-4 border-t border-[#E2E8F0] flex items-center justify-between">
-                    <span className="text-xs text-[#64748B]">Category: {scheme.category}</span>
-                    <button
-                      onClick={() => setSelectedSchemeModal(scheme)}
-                      className="text-xs font-medium text-[#2563EB] hover:text-blue-700 flex items-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <span>View scheme</span>
-                      <ArrowRightIcon className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Scheme Cards Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map(n => (
+                <div key={n} className="bg-white border border-[#E2E8F0] rounded-2xl p-6 h-64 animate-pulse space-y-4">
+                  <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+                  <div className="h-5 bg-slate-100 rounded w-3/4" />
+                  <div className="h-4 bg-slate-100 rounded w-1/2" />
+                  <div className="h-12 bg-slate-100 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : filteredRecommendations.length === 0 ? (
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 text-center space-y-3">
+              <SearchIcon className="w-8 h-8 text-[#64748B] mx-auto" />
+              <p className="text-sm font-semibold text-[#0F1B3D]">No schemes match this filter</p>
+              <button
+                onClick={() => setSelectedCategory('All')}
+                className="text-xs font-medium text-[#2563EB] hover:underline"
+              >
+                Reset category filter
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredRecommendations.map((scheme, idx) => {
+                const IconComp = CATEGORY_ICONS[scheme.category] || TargetIcon;
+                const isEligible = scheme.status === 'ELIGIBLE';
+                const isNeedsReview = scheme.status === 'INSUFFICIENT_INFORMATION';
+
+                return (
+                  <div
+                    key={scheme.scheme_id || scheme.external_scheme_id || idx}
+                    className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col justify-between hover:border-blue-300 transition-all shadow-xs group relative overflow-hidden"
+                  >
+                    {/* Status accent top bar */}
+                    <div className={`absolute top-0 left-0 right-0 h-1 ${isEligible ? 'bg-emerald-500' : isNeedsReview ? 'bg-amber-500' : 'bg-rose-500'}`} />
+
+                    <div>
+                      {/* Top Header Row */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F1B3D] group-hover:text-[#2563EB] group-hover:bg-blue-50 transition-colors flex items-center justify-center">
+                          <IconComp className="w-5 h-5" />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
+                            isEligible
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : isNeedsReview
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-rose-50 text-rose-700 border-rose-200'
+                          }`}>
+                            {scheme.match_score || 90}% Match
+                          </span>
+                          <span className="text-xs font-medium text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
+                            {scheme.benefit}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Scheme Title & Description */}
+                      <h3 className="text-base font-semibold text-[#0F1B3D] group-hover:text-[#2563EB] transition-colors">
+                        {scheme.scheme_name}
+                      </h3>
+                      
+                      <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed line-clamp-2">
+                        {scheme.reason || scheme.description}
+                      </p>
+
+                      {/* Why You Qualify Grounded Box */}
+                      <div className="mt-4 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-[#0F1B3D] flex items-center gap-1.5">
+                            {isEligible ? (
+                              <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <WarningIcon className="w-3.5 h-3.5 text-amber-600" />
+                            )}
+                            Why you qualify:
+                          </span>
+                          <span className="text-[10px] text-[#64748B]">State: {scheme.state || 'All India'}</span>
+                        </div>
+                        <p className="text-[11px] text-[#64748B] leading-normal">
+                          {scheme.reason}
+                        </p>
+                      </div>
+
+                      {/* Document Readiness Pill Row */}
+                      {scheme.documents && scheme.documents.length > 0 && (
+                        <div className="mt-3 flex items-center gap-2 overflow-x-auto text-[11px]">
+                          <span className="text-[#64748B] font-medium shrink-0">Docs:</span>
+                          {scheme.documents.slice(0, 3).map((d, i) => (
+                            <span
+                              key={i}
+                              className={`px-2 py-0.5 rounded-full border text-[10px] shrink-0 ${
+                                d.is_available
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {d.is_available ? '✓' : '⚠'} {d.name}
+                            </span>
+                          ))}
+                          {scheme.documents.length > 3 && (
+                            <span className="text-[10px] text-[#64748B]">+{scheme.documents.length - 3} more</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer Card Row */}
+                    <div className="pt-4 mt-4 border-t border-[#E2E8F0] flex items-center justify-between">
+                      <span className="text-xs text-[#64748B]">
+                        Govt: <strong className="text-[#0F1B3D]">{scheme.government_level || 'Central'}</strong>
+                      </span>
+                      <button
+                        onClick={() => setSelectedSchemeModal(scheme)}
+                        className="text-xs font-medium text-[#2563EB] hover:text-blue-700 flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <span>View scheme details</span>
+                        <ArrowRightIcon className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* 2-Column Section: Eligibility Summary + Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          {/* Eligibility Summary */}
+          {/* Deterministic Engine Summary */}
           <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">Your eligibility</h3>
-              <span className="text-xs text-[#64748B]">Potential matches based on your profile</span>
+              <h3 className="text-base font-semibold text-[#0F1B3D]">Deterministic Eligibility Summary</h3>
+              <span className="text-xs text-[#64748B]">Calculated by rule engine</span>
             </div>
 
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
-                <span className="text-2xl font-bold text-[#0F1B3D]">12</span>
-                <p className="text-xs text-[#64748B] mt-1">Potential matches</p>
+                <span className="text-2xl font-bold text-[#0F1B3D]">{recommendations.length}</span>
+                <p className="text-xs text-[#64748B] mt-1">Total Evaluated</p>
               </div>
 
               <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
-                <span className="text-2xl font-bold text-[#16A34A]">4</span>
-                <p className="text-xs text-[#16A34A] font-medium mt-1">High confidence</p>
+                <span className="text-2xl font-bold text-[#16A34A]">{eligibleCount}</span>
+                <p className="text-xs text-[#16A34A] font-medium mt-1">Eligible Schemes</p>
               </div>
 
-              <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
-                <span className="text-2xl font-bold text-[#2563EB]">8</span>
-                <p className="text-xs text-[#64748B] mt-1">More to explore</p>
+              <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                <span className="text-2xl font-bold text-amber-600">{reviewCount}</span>
+                <p className="text-xs text-amber-700 font-medium mt-1">Needs Information</p>
               </div>
             </div>
 
-            <p className="text-[11px] text-[#64748B] pt-2">
-              Eligibility criteria are matched dynamically with central and state schemes. Recommendations are potential matches based on submitted profile data.
+            <p className="text-[11px] text-[#64748B] pt-2 border-t border-[#E2E8F0]">
+              🔒 <strong>AI Principle Enforced:</strong> Rule evaluations are 100% deterministic code based on official scheme attributes. The AI agent only formats and ranks grounded explanations.
             </p>
           </div>
 
@@ -370,13 +403,12 @@ export default function Dashboard() {
             <h3 className="text-base font-semibold text-[#0F1B3D]">Quick actions</h3>
 
             <div className="grid grid-cols-2 gap-3">
-              
               <Link
                 to="/schemes"
                 className="p-3.5 bg-[#F8FAFC] hover:bg-blue-50 border border-[#E2E8F0] hover:border-blue-200 rounded-xl flex flex-col justify-between transition-colors group"
               >
                 <SearchIcon className="w-5 h-5 text-[#0F1B3D] group-hover:text-[#2563EB]" />
-                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Find schemes</span>
+                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Discover all schemes</span>
               </Link>
 
               <Link
@@ -384,7 +416,7 @@ export default function Dashboard() {
                 className="p-3.5 bg-[#F8FAFC] hover:bg-blue-50 border border-[#E2E8F0] hover:border-blue-200 rounded-xl flex flex-col justify-between transition-colors group"
               >
                 <TargetIcon className="w-5 h-5 text-[#0F1B3D] group-hover:text-[#2563EB]" />
-                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Check eligibility</span>
+                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Update profile</span>
               </Link>
 
               <Link
@@ -392,7 +424,7 @@ export default function Dashboard() {
                 className="p-3.5 bg-[#F8FAFC] hover:bg-blue-50 border border-[#E2E8F0] hover:border-blue-200 rounded-xl flex flex-col justify-between transition-colors group"
               >
                 <BotIcon className="w-5 h-5 text-[#0F1B3D] group-hover:text-[#2563EB]" />
-                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Ask Yojsetu</span>
+                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Ask AI Assistant</span>
               </Link>
 
               <Link
@@ -400,9 +432,8 @@ export default function Dashboard() {
                 className="p-3.5 bg-[#F8FAFC] hover:bg-blue-50 border border-[#E2E8F0] hover:border-blue-200 rounded-xl flex flex-col justify-between transition-colors group"
               >
                 <FileTextIcon className="w-5 h-5 text-[#0F1B3D] group-hover:text-[#2563EB]" />
-                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Track applications</span>
+                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">My Applications</span>
               </Link>
-
             </div>
           </div>
 
@@ -410,8 +441,6 @@ export default function Dashboard() {
 
         {/* 2-Column Section: Applications Overview + Recent Updates */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Applications Overview */}
           <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
               <h3 className="text-base font-semibold text-[#0F1B3D]">Your applications</h3>
@@ -423,8 +452,8 @@ export default function Dashboard() {
             <div className="p-8 text-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
               <FileTextIcon className="w-8 h-8 text-[#64748B] mx-auto" />
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-[#0F1B3D]">No applications submitted yet</p>
-                <p className="text-xs text-[#64748B]">Start by exploring schemes that match your profile.</p>
+                <p className="text-sm font-semibold text-[#0F1B3D]">No active applications yet</p>
+                <p className="text-xs text-[#64748B]">Select an eligible scheme above to start auto-fill & document verification.</p>
               </div>
               <Link
                 to="/schemes"
@@ -435,7 +464,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Recent Updates */}
           <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
               <h3 className="text-base font-semibold text-[#0F1B3D]">Recent updates</h3>
@@ -456,7 +484,6 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-
         </div>
 
         {/* Persistent AI Assistant Callout */}
@@ -466,8 +493,8 @@ export default function Dashboard() {
               <BotIcon className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Need help finding or applying for a scheme?</h4>
-              <p className="text-xs text-slate-300">Ask Yojsetu in your preferred language via voice or text.</p>
+              <h4 className="text-sm font-semibold text-white">Have questions about eligibility or required documents?</h4>
+              <p className="text-xs text-slate-300">Yojsetu AI Assistant can explain rules and guide document uploads.</p>
             </div>
           </div>
 
@@ -476,64 +503,113 @@ export default function Dashboard() {
             className="bg-[#2563EB] hover:bg-blue-600 text-white font-medium text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
           >
             <MicIcon className="w-4 h-4" />
-            <span>Ask Yojsetu</span>
+            <span>Ask Yojsetu AI</span>
           </button>
         </div>
 
-      </main>
-
-      {/* ─── SCHEME DETAILS MODAL ────────────────────────────────────────────── */}
+      {/* ─── RICH SCHEME DETAILS MODAL ────────────────────────────────────────── */}
       {selectedSchemeModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-lg relative">
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-lg relative max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">{selectedSchemeModal.name}</h3>
+              <div>
+                <h3 className="text-base font-semibold text-[#0F1B3D]">{selectedSchemeModal.scheme_name}</h3>
+                <span className="text-xs text-[#64748B]">{selectedSchemeModal.department || 'Government Department'}</span>
+              </div>
               <button
                 onClick={() => setSelectedSchemeModal(null)}
-                className="text-[#64748B] hover:text-[#111827] text-lg font-bold cursor-pointer"
+                className="text-[#64748B] hover:text-[#111827] text-lg font-bold cursor-pointer p-1"
               >
                 ×
               </button>
             </div>
 
-            <div className="space-y-3">
-              <span className="text-xs font-semibold text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 inline-block">
-                Benefit: {selectedSchemeModal.benefit}
-              </span>
-              <p className="text-xs text-[#64748B] leading-relaxed">{selectedSchemeModal.description}</p>
-              
-              <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-xs space-y-1">
-                <span className="font-semibold text-[#0F1B3D] block">Why this matches your profile:</span>
-                <p className="text-[#64748B]">{selectedSchemeModal.matchReason}</p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-blue-50 border border-blue-100 p-3 rounded-xl">
+                <div>
+                  <span className="text-[10px] text-[#2563EB] font-semibold uppercase tracking-wider block">Benefit</span>
+                  <span className="text-sm font-bold text-[#0F1B3D]">{selectedSchemeModal.benefit}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider block">Match Score</span>
+                  <span className="text-sm font-bold text-emerald-700">{selectedSchemeModal.match_score}% Match</span>
+                </div>
               </div>
+
+              <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-xs space-y-1">
+                <span className="font-semibold text-[#0F1B3D] block">Why you qualify:</span>
+                <p className="text-[#64748B] leading-relaxed">{selectedSchemeModal.reason}</p>
+              </div>
+
+              {/* Passed & Evaluated Rules */}
+              {selectedSchemeModal.passed_conditions && selectedSchemeModal.passed_conditions.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-[#0F1B3D] block">Passed Conditions:</span>
+                  <div className="space-y-1.5">
+                    {selectedSchemeModal.passed_conditions.map((cond, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs p-2 bg-emerald-50/60 border border-emerald-100 rounded-lg">
+                        <span className="text-emerald-900 font-medium">✓ {cond.description}</span>
+                        <span className="text-[11px] text-emerald-700 font-mono">Your profile: {String(cond.user_value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Document Readiness Checklist */}
+              {selectedSchemeModal.documents && selectedSchemeModal.documents.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-[#0F1B3D] block">Required Documents:</span>
+                  <div className="space-y-1.5">
+                    {selectedSchemeModal.documents.map((doc, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg">
+                        <span className="text-[#0F1B3D]">{doc.name} {doc.is_mandatory && <span className="text-red-500">*</span>}</span>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
+                          doc.is_available
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {doc.is_available ? '✓ Ready' : '⚠ Action Required'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-end gap-3">
-              <button
-                onClick={() => setSelectedSchemeModal(null)}
-                className="px-4 py-2 border border-[#E2E8F0] rounded-xl text-xs font-medium text-[#0F1B3D] hover:bg-slate-50 cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedSchemeModal(null);
-                  navigate(`/schemes/${selectedSchemeModal.id}`);
-                }}
-                className="px-5 py-2 bg-[#2563EB] text-white rounded-xl text-xs font-medium hover:bg-blue-700 cursor-pointer"
-              >
-                Apply / View Details →
-              </button>
+            <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between gap-3">
+              {selectedSchemeModal.source_url && (
+                <a
+                  href={selectedSchemeModal.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-[#64748B] hover:text-[#0F1B3D] underline"
+                >
+                  Official Source Portal ↗
+                </a>
+              )}
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  onClick={() => setSelectedSchemeModal(null)}
+                  className="px-4 py-2 border border-[#E2E8F0] rounded-xl text-xs font-medium text-[#0F1B3D] hover:bg-slate-50 cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedSchemeModal(null);
+                    navigate(`/schemes/${selectedSchemeModal.scheme_id || selectedSchemeModal.external_scheme_id}`);
+                  }}
+                  className="px-5 py-2 bg-[#2563EB] text-white rounded-xl text-xs font-semibold hover:bg-blue-700 cursor-pointer"
+                >
+                  Apply Now →
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-[#E2E8F0] py-6 text-center text-xs text-[#64748B] mt-auto">
-        © Yojsetu. All rights reserved.
-      </footer>
-
     </div>
   );
 }

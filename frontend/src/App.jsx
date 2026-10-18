@@ -2,19 +2,21 @@ import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProfileProvider } from './context/ProfileContext';
 import ProtectedRoute from './routes/ProtectedRoute';
+import AppLayout from './layouts/AppLayout';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
-import Schemes from './pages/Schemes';
-import SchemeDetails from './pages/SchemeDetails';
+import SchemesListPage from './pages/schemes/SchemesListPage';
+import SchemeDetailPage from './pages/schemes/SchemeDetailPage';
 import Applications from './pages/Applications';
 import Documents from './pages/Documents';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Assistant from './pages/Assistant';
+import NotFoundPage from './pages/NotFoundPage';
 
 function RootLayout() {
   return (
@@ -43,55 +45,61 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: 'dashboard',
-        element: (
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        ),
+        element: <AppLayout />,
+        children: [
+          {
+            path: 'dashboard',
+            element: (
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            ),
+          },
+          { path: 'schemes', element: <SchemesListPage /> },
+          { path: 'schemes/:id', element: <SchemeDetailPage /> },
+          {
+            path: 'applications',
+            element: (
+              <ProtectedRoute>
+                <Applications />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'documents',
+            element: (
+              <ProtectedRoute>
+                <Documents />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'notifications',
+            element: (
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'profile',
+            element: (
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'assistant',
+            element: (
+              <ProtectedRoute>
+                <Assistant />
+              </ProtectedRoute>
+            ),
+          },
+        ],
       },
-      { path: 'schemes', element: <Schemes /> },
-      { path: 'schemes/:id', element: <SchemeDetails /> },
-      {
-        path: 'applications',
-        element: (
-          <ProtectedRoute>
-            <Applications />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'documents',
-        element: (
-          <ProtectedRoute>
-            <Documents />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'notifications',
-        element: (
-          <ProtectedRoute>
-            <Notifications />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'profile',
-        element: (
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'assistant',
-        element: (
-          <ProtectedRoute>
-            <Assistant />
-          </ProtectedRoute>
-        ),
-      },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ]);

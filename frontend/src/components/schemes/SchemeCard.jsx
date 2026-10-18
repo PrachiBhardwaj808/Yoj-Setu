@@ -1,24 +1,40 @@
-import { Link } from "react-router-dom"
+import { Link } from "react-router-dom";
 
 export default function SchemeCard({ scheme }) {
+    if (!scheme) return null;
+
+    const title = scheme.title || scheme.name || scheme.scheme_name || "Government Scheme";
+    const benefits = scheme.benefitAmount || scheme.benefits || scheme.benefit || "Financial & welfare support";
+    const deadline = scheme.deadline || scheme.government_level || "Active";
+    const schemeId = scheme.id || scheme.scheme_id || scheme.external_scheme_id;
+
     return (
         <Link
-            to={`/schemes/${scheme.id}`}
-            className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-400 transition-colors"
+            to={`/schemes/${schemeId}`}
+            className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-all shadow-xs hover:shadow-sm group"
         >
-            <span className="inline-block bg-blue-50 text-blue-800 text-xs font-medium px-3 py-1 rounded">
-                {scheme.category}
-            </span>
+            <div className="flex items-center justify-between gap-2">
+                <span className="inline-block bg-blue-50 text-blue-800 text-xs font-medium px-3 py-1 rounded-md">
+                    {scheme.category || "General"}
+                </span>
+                {scheme.status && (
+                    <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        {scheme.status}
+                    </span>
+                )}
+            </div>
 
-            <h3 className="font-medium text-base mt-3 mb-1">{scheme.title}</h3>
+            <h3 className="font-semibold text-base mt-3 mb-1 text-[#0F1B3D] group-hover:text-blue-600 transition-colors">
+                {title}
+            </h3>
             <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                {scheme.description}
+                {scheme.description || "Comprehensive welfare support scheme for eligible beneficiaries."}
             </p>
 
-            <div className="flex justify-between text-sm">
-                <span className="text-blue-700 font-medium">{scheme.benefitAmount}</span>
-                <span className="text-gray-400">{scheme.deadline}</span>
+            <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
+                <span className="text-blue-600 font-medium text-xs sm:text-sm">{benefits}</span>
+                <span className="text-xs text-gray-400">{deadline}</span>
             </div>
         </Link>
-    )
+    );
 }

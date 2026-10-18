@@ -122,4 +122,10 @@ export const mockSchemes = [
             "Willing to do unskilled manual work",
         ],
     },
-];
+].map(s => ({
+    ...s,
+    name: s.name || s.title,
+    title: s.title || s.name,
+    benefits: s.benefits || s.benefitAmount,
+    benefitAmount: s.benefitAmount || s.benefits,
+}));

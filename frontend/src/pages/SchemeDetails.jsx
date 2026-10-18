@@ -1,3 +1,1 @@
-export default function SchemeDetails() {
-  return <div>SchemeDetails</div>;
-}
+export { default } from './schemes/SchemeDetailPage';

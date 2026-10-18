@@ -29,3 +29,9 @@ OTP_MAX_ATTEMPTS: int = int(os.getenv("OTP_MAX_ATTEMPTS", "5"))
 SMS_PROVIDER: str = os.getenv("SMS_PROVIDER", "development")
 SMS_API_KEY: str = os.getenv("SMS_API_KEY", "")
 SMS_SENDER_ID: str = os.getenv("SMS_SENDER_ID", "")
+
+# Scheme & AI Config
+SCHEME_PROVIDER: str = os.getenv("SCHEME_PROVIDER", "mock")
+DOCUMENT_PROVIDER: str = os.getenv("DOCUMENT_PROVIDER", "mock")
+SUBMISSION_PROVIDER: str = os.getenv("SUBMISSION_PROVIDER", "mock")
+AI_PROVIDER: str = os.getenv("AI_PROVIDER", "mock")

@@ -1,62 +1,12 @@
-# YOJSETU
+# Yoj-Setu (योज-सेतु)
 
-### Connecting Citizens with Government Welfare Schemes
-
-<div align="center">
-
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
-![DigiLocker](https://img.shields.io/badge/DigiLocker-0055A5?style=for-the-badge)
-
-</div>
+> **Bridge to Citizens' Entitlements** — An intelligent welfare discovery, deterministic eligibility evaluation, and application assistance platform for Indian government schemes.
 
 ---
 
-## Table of Contents
+## 📌 Project Overview
 
-- [Problem Statement](#-problem-statement)
-- [Our Solution](#-our-solution)
-- [Key Features](#-key-features)
-- [What Makes YOJSETU Different](#-what-makes-yojsetu-different)
-- [Tech Stack](#-tech-stack)
-- [System Architecture](#-system-architecture)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-- [Application Workflow](#-application-workflow)
-- [Future Scope](#-future-scope)
-- [References](#-references)
-- [Team](#-team)
-
----
-
-## Problem Statement
-
-India has thousands of Central and State Government welfare schemes, but many eligible citizens struggle to discover and access the benefits available to them.
-
-The current process is often fragmented across multiple portals, requires repeated entry of personal information and provides no single place to track applications.
-
-### Key Challenges
-
-- Citizens may not know which schemes they are eligible for.
-- Scheme information is distributed across different portals.
-- Eligibility criteria can be difficult to understand.
-- Users repeatedly provide similar personal information.
-- Documents may need to be submitted for different applications.
-- Applications are difficult to track across multiple platforms.
-
----
-
-## Our Solution
-
-**YOJSETU** is a unified platform that connects citizens with relevant government welfare schemes through a personalized and simplified experience.
-
-Users create their profile once and provide information such as income, state, category, occupation and education.
-
-YOJSETU uses this information to identify relevant schemes, assist users during applications, provide access to required documents through **DigiLocker**, and track applications from a centralized dashboard.
+**Yoj-Setu** connects citizens to relevant central and state government schemes (such as PM-KISAN, Ayushman Bharat PM-JAY, PM Awas Yojana, PM Surya Ghar, Post-Matric Scholarships, and MGNREGA). By capturing and normalizing citizen demographic, geographic, and socioeconomic attributes, Yoj-Setu runs deterministic rule evaluation against official scheme guidelines and document readiness checklists to empower citizens and eliminate informational barriers.
 
 ### Core Idea
 
@@ -65,103 +15,18 @@ Create Profile
       ↓
 Find Relevant Schemes
       ↓
-Check Eligibility
+Deterministic Eligibility Evaluation
       ↓
-Access Documents through DigiLocker
+Document Readiness & DigiLocker Checklist
       ↓
-Apply with Assistance
+Guided Application Assistance
       ↓
-Track Application
+Track Application Milestones
 ```
 
 ---
 
-## Key Features
-
-### Citizen Registration
-
-Secure registration using phone-based verification and OTP.
-
-### Personalized Profile
-
-Users maintain a single profile containing important eligibility information such as:
-
-- Income
-- State
-- Category
-- Occupation
-- Education
-
-### AI-Powered Scheme Matching
-
-The AI layer analyzes citizen information and scheme requirements to identify welfare schemes relevant to the user.
-
-### DigiLocker Integration
-
-YOJSETU can connect with **DigiLocker** to help users access their verified digital documents, reducing repetitive document collection and submission during applications.
-
-### Application Assistance
-
-Relevant profile and document information can be used to assist users while completing scheme applications.
-
-### Centralized Dashboard
-
-Users can view their:
-
-- Matched schemes
-- Applications
-- Profile
-- Application status
-- Required documents
-
-from a single dashboard.
-
-### Application Tracking
-
-Applications can be tracked through simple stages:
-
-```text
-Draft → Submitted → Under Review → Approved
-```
-
-### Secure Authentication
-
-JWT-based authentication with secure password hashing using Passlib/BCrypt.
-
----
-
-## What Makes YOJSETU Different
-
-YOJSETU focuses on the **complete welfare journey**, rather than simply providing a scheme-search portal.
-
-| Traditional Process | YOJSETU |
-|---|---|
-| Search schemes manually | AI-powered scheme matching |
-| Check eligibility separately | Profile-based eligibility |
-| Re-enter information | Reusable citizen profile |
-| Collect documents repeatedly | DigiLocker document access |
-| Visit multiple portals | Centralized experience |
-| Track applications separately | Unified dashboard |
-
-> **One profile. Relevant schemes. Easier applications. Centralized tracking.**
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React + Vite |
-| Backend | Python + FastAPI |
-| Database | MySQL |
-| Authentication | JWT |
-| Password Security | Passlib / BCrypt |
-| AI Layer | Eligibility Matching & Application Assistance |
-| Document Integration | DigiLocker |
-
----
-
-## System Architecture
+## 🏛 System Architecture
 
 ```text
                          ┌──────────────────┐
@@ -170,188 +35,290 @@ YOJSETU focuses on the **complete welfare journey**, rather than simply providin
                                   │
                                   ▼
                          ┌──────────────────┐
-                         │  React + Vite    │
+                         │   React + Vite   │
                          │    Frontend      │
+                         │ (Tailwind v4 UI) │
                          └────────┬─────────┘
                                   │
                               REST API
                                   │
                                   ▼
                          ┌──────────────────┐
-                         │     FastAPI      │
-                         │     Backend      │
+                         │  FastAPI Backend │
+                         │ (Python 3.12/14) │
                          └───────┬───┬──────┘
                                  │   │
                     ┌────────────┘   └─────────────┐
                     ▼                              ▼
              ┌─────────────┐                ┌─────────────┐
-             │    MySQL    │                │  AI Layer   │
-             │   Database  │                │  Matching   │
-             └─────────────┘                │ & Assistance│
-                                            └─────────────┘
+             │ MySQL / DB  │                │ Rule Engine │
+             │  (SQLite    │                │ Deterministic│
+             │  Fallback)  │                │ Evaluation  │
+             └─────────────┘                └─────────────┘
                                                     │
                                                     ▼
                                             ┌─────────────┐
                                             │  DigiLocker │
-                                            │   Services  │
+                                            │ Vault & Docs│
                                             └─────────────┘
 ```
 
 ---
 
-## Project Structure
+## 🛠 Technology Stack
+
+### Backend
+- **Framework:** FastAPI (Python 3.12+ / 3.14 compatible)
+- **Database:** Dual MySQL (`mysql-connector-python`) with automatic embedded SQLite (`yojsetu.db`) fallback for local development
+- **Authentication & Security:** JWT (`PyJWT==2.14.0`), Password Hashing (`bcrypt==5.0.0`), CORS middleware
+- **Data Validation & Schemas:** Pydantic v2
+- **Recommendation Engine:** Rule-based deterministic evaluation engine with fuzzy profile normalization
+
+### Frontend
+- **Framework:** React 19 + Vite 8
+- **Routing:** React Router v7 (`createBrowserRouter`)
+- **Styling:** Tailwind CSS v4 + `@tailwindcss/vite`
+- **Linting & Code Quality:** Oxlint
+- **Icons & UI:** Custom accessible SVG icon sets and Lucide-compatible design patterns
+
+---
+
+## 📂 Repository Structure
 
 ```text
 Yoj-Setu/
-│
 ├── backend/
-│   └── FastAPI Backend
-│
+│   ├── app/
+│   │   ├── config.py                 # Application settings & environment variables
+│   │   ├── db.py                     # Safe parameterized DB connection (MySQL + SQLite fallback)
+│   │   ├── dao/
+│   │   │   └── scheme_dao.py         # Data access object for schemes, rules, and documents
+│   │   ├── routers/
+│   │   │   └── schemes.py            # API routes for scheme discovery & recommendations
+│   │   ├── schemas/
+│   │   │   └── scheme_schemas.py     # Pydantic v2 schemas with standardized dual attribute compatibility
+│   │   └── services/
+│   │       ├── eligibility_engine.py # Rule evaluation engine (operators, types, conditions)
+│   │       ├── profile_normalizer.py # Profile normalization (income sanitization, location, categories)
+│   │       ├── recommendation_service.py # Scheme ranking and document readiness evaluation
+│   │       ├── scheme_ingestion_service.py # Seed data loader for official government schemes
+│   │       └── scheme_provider.py    # Scheme data catalog provider
+│   ├── main.py                       # FastAPI entrypoint, OTP & Auth routes, table DDLs
+│   ├── requirements.txt              # Backend dependencies
+│   └── yojsetu.db                    # Embedded SQLite development database
 ├── frontend/
-│   └── React + Vite Frontend
-│
-├── docs/
-│   └── Project Documentation
-│
-├── .gitignore
-└── .vscode/
+│   ├── src/
+│   │   ├── components/               # Reusable UI components (SchemeCard, SchemeList, etc.)
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx       # Authentication state, token storage, OTP integration
+│   │   │   └── ProfileContext.jsx    # Citizen profile, onboarding steps, document state
+│   │   ├── data/
+│   │   │   ├── mockNotifications.js  # Notifications and alerts seed data
+│   │   │   └── mockSchemes.js        # Standardized schemes catalog
+│   │   ├── layouts/
+│   │   │   └── AppLayout.jsx         # Responsive application shell (collapsible sidebar + mobile nav)
+│   │   ├── pages/
+│   │   │   ├── Applications.jsx      # Application status tracker & milestone pipeline
+│   │   │   ├── Assistant.jsx         # AI Sathi conversational scheme advisor
+│   │   │   ├── Dashboard.jsx         # Citizen dashboard with matched schemes & category filter
+│   │   │   ├── Documents.jsx         # Citizen document vault & readiness checklist
+│   │   │   ├── Home.jsx              # Landing page
+│   │   │   ├── Login.jsx             # Citizen login
+│   │   │   ├── NotFoundPage.jsx      # 404 handler
+│   │   │   ├── Notifications.jsx     # Notifications center
+│   │   │   ├── Onboarding.jsx        # Multi-step profile builder & eligibility intake
+│   │   │   ├── Profile.jsx           # Citizen profile view and editing
+│   │   │   ├── Register.jsx          # Citizen registration with OTP verification
+│   │   │   └── schemes/
+│   │   │       ├── SchemeDetailPage.jsx # Comprehensive scheme details & criteria breakdown
+│   │   │       └── SchemesListPage.jsx  # Searchable & filterable schemes catalog
+│   │   ├── routes/
+│   │   │   └── ProtectedRoute.jsx    # Route guard enforcing authentication & onboarding
+│   │   ├── services/
+│   │   │   ├── api.js                # Axios client with bearer token interceptor
+│   │   │   ├── authService.js        # Auth and OTP API calls
+│   │   │   ├── chatService.js        # Conversational query matching service
+│   │   │   ├── eligibilityService.js # Eligibility recommendation API calls
+│   │   │   └── schemeService.js      # Scheme listing and details API calls
+│   │   ├── App.jsx                   # Central router & provider hierarchy
+│   │   └── main.jsx                  # React application entrypoint
+│   ├── package.json                  # Frontend dependencies and npm scripts
+│   └── vite.config.js                # Vite build and plugin configuration
+├── docs/                             # Database ER diagrams and schema documentation
+└── README.md                         # Project documentation
 ```
 
 ---
 
-## Getting Started
+## ⚙️ Prerequisites
 
-### Prerequisites
+- **Node.js:** v18.0.0 or higher (v20+ recommended)
+- **npm:** v9.0.0 or higher
+- **Python:** v3.12 or higher
+- **Git:** v2.30 or higher
+- **MySQL (Optional):** MySQL Server 8.0+ (if not running MySQL, the backend automatically uses embedded SQLite `yojsetu.db`)
 
-Make sure you have:
+---
 
-- Python 3.10+
-- Node.js
-- npm
-- MySQL
-- Git
+## 🚀 Backend Setup and Execution
 
-### 1. Clone the Repository
+1. **Navigate to the backend directory:**
+   ```bash
+   cd backend
+   ```
 
-```bash
-git clone https://github.com/PrachiBhardwaj808/Yoj-Setu.git
-cd Yoj-Setu
+2. **Create and activate a Python virtual environment:**
+   - **Windows:**
+     ```powershell
+     python -m venv .venv
+     .\.venv\Scripts\Activate.ps1
+     ```
+   - **Linux / macOS:**
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run the backend development server:**
+   ```bash
+   uvicorn main:app --reload --host 127.0.0.1 --port 8000
+   ```
+   The backend API will be available at `http://127.0.0.1:8000`.
+   Interactive Swagger documentation is accessible at `http://127.0.0.1:8000/docs`.
+
+---
+
+## 💻 Frontend Setup and Execution
+
+1. **Navigate to the frontend directory:**
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the Vite development server:**
+   ```bash
+   npm run dev
+   ```
+   The frontend application will be available at `http://localhost:5173`.
+
+4. **Production Build & Linting:**
+   ```bash
+   npm run lint   # Run Oxlint
+   npm run build  # Create production build in dist/
+   ```
+
+---
+
+## 🔐 Environment Variable Configuration
+
+### Backend (`backend/.env` optional)
+Create `backend/.env` if you wish to override default settings:
+
+```env
+# Server
+PORT=8000
+SECRET_KEY=your-jwt-secret-key-at-least-32-characters-long
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# Database Configuration (MySQL)
+# If DB_HOST is unreachable or omitted, the backend automatically falls back to SQLite (backend/yojsetu.db)
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=yojsetu_db
+DB_PORT=3306
+
+# Twilio SMS (Optional - OTP defaults to mock mode in console if unset)
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE_NUMBER=
 ```
 
-### 2. Backend Setup
-
-```bash
-cd backend
-
-python -m venv venv
-```
-
-Activate the virtual environment.
-
-**Windows:**
-
-```bash
-venv\Scripts\activate
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Start the FastAPI server using the configured project entry point.
-
-### 3. Database Setup
-
-Create the MySQL database:
-
-```sql
-CREATE DATABASE yojsetu;
-```
-
-Configure the backend database connection according to your local environment.
-
-### 4. Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm run dev
+### Frontend (`frontend/.env` optional)
+```env
+VITE_API_URL=http://127.0.0.1:8000
 ```
 
 ---
 
-## Application Workflow
+## 🗄 Database Setup
 
-```text
-              ┌──────────────┐
-              │   Register   │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │Build Profile │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │ AI Matching  │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │Find Schemes  │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │  DigiLocker  │
-              │   Documents  │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │Apply Easily  │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │    Track     │
-              └──────────────┘
-```
+Yoj-Setu supports zero-configuration development:
+- **Automatic SQLite Mode:** If MySQL is not running or credentials are not configured, `app.db` automatically opens or initializes an embedded SQLite database at `backend/yojsetu.db`. All DDL statements (`users`, `otp_verifications`, `schemes`, `scheme_rules`, `scheme_documents`) run automatically upon application startup.
+- **MySQL Mode:** Create the database before launching:
+  ```sql
+  CREATE DATABASE IF NOT EXISTS yojsetu_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+  ```
+  Tables will be created automatically on startup or can be inspected in `docs/db/schema.sql`.
 
 ---
 
-## Future Scope
+## 🌐 API Overview
 
-YOJSETU can be further extended with:
-
-- Integration with more government scheme data sources.
-- Multilingual support for regional languages.
-- More advanced AI-based eligibility recommendations.
-- Automated document verification.
-- Application status notifications.
-- Expanded government portal integrations.
-- Admin panel for managing and updating scheme information.
-
----
-
-## References
-
-- [myScheme](https://www.myscheme.gov.in/)
-- [DigiLocker](https://www.digilocker.gov.in/)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [React Documentation](https://react.dev/)
-- [MySQL Documentation](https://dev.mysql.com/doc/)
-- [Government of India Open Data Platform](https://data.gov.in/)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/` | Health and API status | No |
+| `POST` | `/send-otp` | Request a 6-digit phone verification OTP | No |
+| `POST` | `/verify-otp` | Verify phone OTP | No |
+| `POST` | `/register` | Register new user account | No |
+| `POST` | `/login` | Authenticate user and receive JWT bearer token | No |
+| `GET` | `/users/me` | Fetch authenticated user details | Yes (Bearer JWT) |
+| `GET` | `/schemes` | Fetch schemes catalog with category/search filters | No |
+| `GET` | `/schemes/{id}` | Fetch scheme details, criteria rules & document requirements | No |
+| `POST` | `/schemes/recommendations` | Deterministic AI evaluation of schemes against citizen profile | No / Optional |
+| `POST` | `/schemes/ingest` | Admin endpoint to ingest/refresh seed schemes into DB | No |
 
 ---
 
-## Team
+## 🧪 Testing Instructions
 
-### Team Hackops
+### Backend Testing
+- **Parameter Handling Test:**
+  ```powershell
+  backend\.venv\Scripts\python.exe backend\scratch\test_db_params.py
+  ```
+- **Scheme Ingestion & Recommendation Engine Test:**
+  ```powershell
+  backend\.venv\Scripts\python.exe backend\scratch\test_milestone1.py
+  ```
 
-**Chitkara University — Semester 3**
-
-YOJSETU was developed as a project to simplify access to government welfare schemes through personalized discovery, AI-powered eligibility matching, DigiLocker-assisted documentation and centralized application tracking.
+### Frontend Testing
+- **Linter Check:**
+  ```bash
+  cd frontend
+  npm run lint
+  ```
+- **Production Build Validation:**
+  ```bash
+  cd frontend
+  npm run build
+  ```
 
 ---
 
-## About
+## ❓ Troubleshooting
 
-**YOJSETU** — Bridging the gap between citizens and government welfare schemes through a single, personalized platform.
+1. **`ModuleNotFoundError: No module named 'mysql'`:**
+   Ensure you activate the virtual environment (`backend/.venv`) or invoke Python directly from `.venv/Scripts/python.exe`.
+2. **Database Connection Issues:**
+   The backend gracefully falls back to SQLite (`backend/yojsetu.db`) if MySQL credentials are empty or MySQL server is not running. Check terminal startup logs for `[DB] Using SQLite fallback database`.
+3. **CORS Errors:**
+   By default, `backend/main.py` allows origins `http://localhost:5173`, `http://127.0.0.1:5173`, and `http://localhost:3000`. Ensure your frontend is running on one of these ports.
+
+---
+
+## 👥 Team
+
+### Team Hackops — Chitkara University
+YOJSETU was developed to simplify access to government welfare schemes through personalized discovery, deterministic eligibility evaluation, DigiLocker-assisted documentation, and centralized application tracking.
