@@ -1,10 +1,10 @@
-# Yoj-Setu (योज-सेतु)
+# Yoj-Setu
 
 > **Bridge to Citizens' Entitlements** — An intelligent welfare discovery, deterministic eligibility evaluation, and application assistance platform for Indian government schemes.
 
 ---
 
-## 📌 Project Overview
+## Project Overview
 
 **Yoj-Setu** connects citizens to relevant central and state government schemes (such as PM-KISAN, Ayushman Bharat PM-JAY, PM Awas Yojana, PM Surya Ghar, Post-Matric Scholarships, and MGNREGA). By capturing and normalizing citizen demographic, geographic, and socioeconomic attributes, Yoj-Setu runs deterministic rule evaluation against official scheme guidelines and document readiness checklists to empower citizens and eliminate informational barriers.
 
@@ -26,7 +26,7 @@ Track Application Milestones
 
 ---
 
-## 🏛 System Architecture
+## System Architecture
 
 ```text
                          ┌──────────────────┐
@@ -65,7 +65,7 @@ Track Application Milestones
 
 ---
 
-## 🛠 Technology Stack
+## Technology Stack
 
 ### Backend
 - **Framework:** FastAPI (Python 3.12+ / 3.14 compatible)
@@ -83,7 +83,7 @@ Track Application Milestones
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```text
 Yoj-Setu/
@@ -150,7 +150,7 @@ Yoj-Setu/
 
 ---
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 - **Node.js:** v18.0.0 or higher (v20+ recommended)
 - **npm:** v9.0.0 or higher
@@ -160,7 +160,7 @@ Yoj-Setu/
 
 ---
 
-## 🚀 Backend Setup and Execution
+## Backend Setup and Execution
 
 1. **Navigate to the backend directory:**
    ```bash
@@ -193,7 +193,7 @@ Yoj-Setu/
 
 ---
 
-## 💻 Frontend Setup and Execution
+## Frontend Setup and Execution
 
 1. **Navigate to the frontend directory:**
    ```bash
@@ -219,7 +219,7 @@ Yoj-Setu/
 
 ---
 
-## 🔐 Environment Variable Configuration
+## Environment Variable Configuration
 
 ### Backend (`backend/.env` optional)
 Create `backend/.env` if you wish to override default settings:
@@ -252,7 +252,7 @@ VITE_API_URL=http://127.0.0.1:8000
 
 ---
 
-## 🗄 Database Setup
+## Database Setup
 
 Yoj-Setu supports zero-configuration development:
 - **Automatic SQLite Mode:** If MySQL is not running or credentials are not configured, `app.db` automatically opens or initializes an embedded SQLite database at `backend/yojsetu.db`. All DDL statements (`users`, `otp_verifications`, `schemes`, `scheme_rules`, `scheme_documents`) run automatically upon application startup.
@@ -264,7 +264,7 @@ Yoj-Setu supports zero-configuration development:
 
 ---
 
-## 🌐 API Overview
+## API Overview
 
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
@@ -281,7 +281,7 @@ Yoj-Setu supports zero-configuration development:
 
 ---
 
-## 🧪 Testing Instructions
+## Testing Instructions
 
 ### Backend Testing
 - **Parameter Handling Test:**
@@ -307,7 +307,7 @@ Yoj-Setu supports zero-configuration development:
 
 ---
 
-## ❓ Troubleshooting
+## Troubleshooting
 
 1. **`ModuleNotFoundError: No module named 'mysql'`:**
    Ensure you activate the virtual environment (`backend/.venv`) or invoke Python directly from `.venv/Scripts/python.exe`.
@@ -318,7 +318,7 @@ Yoj-Setu supports zero-configuration development:
 
 ---
 
-## 👥 Team
+## Team
 
 ### Team Hackops — Chitkara University
 YOJSETU was developed to simplify access to government welfare schemes through personalized discovery, deterministic eligibility evaluation, DigiLocker-assisted documentation, and centralized application tracking.
