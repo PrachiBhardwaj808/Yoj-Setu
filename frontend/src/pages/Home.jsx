@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
-// ─── SVG Outline Icons ────────────────────────────────────────────────────────
 
 function LogoMark({ className = "w-7 h-7" }) {
   return (
@@ -253,6 +253,7 @@ const TESTIMONIALS = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -263,52 +264,61 @@ export default function Home() {
     : SCHEMES_DATA.filter(s => s.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#111827] flex flex-col font-sans selection:bg-blue-100 selection:text-[#2563EB]">
-      
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 text-[#111827] dark:text-gray-100 flex flex-col font-sans selection:bg-blue-100 selection:text-[#2563EB]">
+
       {/* ─── NAVBAR ────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0]">
+      <header className="sticky top-0 z-50 bg-white dark:bg-gray-900/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-gray-700">
         <div className="max-w-[1240px] mx-auto px-6 h-16 md:h-18 flex items-center justify-between">
-          
+
           {/* Left: Brand Logo & Wordmark */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <LogoMark className="w-7 h-7 text-[#0F1B3D]" />
-            <span className="font-semibold text-lg md:text-xl text-[#0F1B3D] tracking-tight group-hover:text-[#2563EB] transition-colors">
+            <LogoMark className="w-7 h-7 text-[#0F1B3D] dark:text-white" />
+            <span className="font-semibold text-lg md:text-xl text-[#0F1B3D] dark:text-white tracking-tight group-hover:text-[#2563EB] transition-colors">
               Yojsetu
             </span>
           </Link>
 
           {/* Center Links (Desktop) */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#about" className="text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors">
+            <a href="#about" className="text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] transition-colors">
               About
             </a>
-            <a href="#schemes" className="text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors">
+            <a href="#schemes" className="text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] transition-colors">
               Schemes
             </a>
-            <Link to="/applications" className="text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors">
+            <Link to="/applications" className="text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] transition-colors">
               Track Application
             </Link>
-            <a href="#how-it-works" className="text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors">
+            <a href="#how-it-works" className="text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] transition-colors">
               Help
             </a>
           </nav>
 
           {/* Right Actions (Desktop) */}
           <div className="hidden md:flex items-center gap-4">
-            
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2 text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#2563EB] border border-[#E2E8F0] dark:border-gray-700 px-3 py-2 rounded-lg transition-colors"
+              aria-label="Toggle dark mode"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
+              <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
+
             {/* Language Selector Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 text-xs font-medium text-[#64748B] hover:text-[#111827] bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 text-xs font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
               >
                 <GlobeIcon className="w-3.5 h-3.5" />
                 <span>{selectedLanguage}</span>
-                <ChevronDownIcon className="w-3 h-3 text-[#64748B]" />
+                <ChevronDownIcon className="w-3 h-3 text-[#64748B] dark:text-gray-300" />
               </button>
 
               {langDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-36 bg-white border border-[#E2E8F0] rounded-xl shadow-lg py-1 z-50">
+                <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-xl shadow-lg py-1 z-50">
                   {LANGUAGES.slice(0, 5).map(lang => (
                     <button
                       key={lang}
@@ -316,9 +326,8 @@ export default function Home() {
                         setSelectedLanguage(lang);
                         setLangDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors ${
-                        selectedLanguage === lang ? 'bg-blue-50 text-[#2563EB]' : 'text-[#111827] hover:bg-slate-50'
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors ${selectedLanguage === lang ? 'bg-blue-50 dark:bg-blue-950 text-[#2563EB]' : 'text-[#111827] dark:text-gray-100 hover:bg-slate-50 dark:hover:bg-gray-800'
+                        }`}
                     >
                       {lang}
                     </button>
@@ -330,7 +339,7 @@ export default function Home() {
             {/* Login */}
             <Link
               to="/login"
-              className="text-sm font-medium text-[#0F1B3D] hover:text-[#2563EB] px-3 py-2 transition-colors"
+              className="text-sm font-medium text-[#0F1B3D] dark:text-white hover:text-[#2563EB] px-3 py-2 transition-colors"
             >
               Login
             </Link>
@@ -347,7 +356,7 @@ export default function Home() {
           {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-[#0F1B3D] hover:bg-slate-100 rounded-lg transition-colors"
+            className="md:hidden p-2 text-[#0F1B3D] dark:text-white hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -356,41 +365,41 @@ export default function Home() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-[#E2E8F0] bg-white px-6 py-4 space-y-3">
+          <div className="md:hidden border-t border-[#E2E8F0] dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-4 space-y-3">
             <a
               href="#about"
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-[#111827] py-1.5"
+              className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
               About
             </a>
             <a
               href="#schemes"
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-[#111827] py-1.5"
+              className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
               Schemes
             </a>
             <Link
               to="/applications"
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-[#111827] py-1.5"
+              className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
               Track Application
             </Link>
             <a
               href="#how-it-works"
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-[#111827] py-1.5"
+              className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
               Help
             </a>
-            
-            <div className="pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
+
+            <div className="pt-3 border-t border-[#E2E8F0] dark:border-gray-700 flex flex-col gap-2">
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center text-sm font-medium text-[#0F1B3D] py-2 border border-[#E2E8F0] rounded-xl"
+                className="w-full text-center text-sm font-medium text-[#0F1B3D] dark:text-white py-2 border border-[#E2E8F0] dark:border-gray-700 rounded-xl"
               >
                 Login
               </Link>
@@ -410,23 +419,23 @@ export default function Home() {
       {/* ─── HERO SECTION ──────────────────────────────────────────────────── */}
       <section className="max-w-[1240px] mx-auto px-6 py-16 md:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          
+
           {/* LEFT COLUMN: Clean Messaging & CTAs */}
           <div className="lg:col-span-7 space-y-6">
-            
+
             {/* Small Eyebrow */}
-            <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-100 text-[#2563EB] px-3 py-1 rounded-full text-xs md:text-sm font-medium">
+            <div className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 text-[#2563EB] px-3 py-1 rounded-full text-xs md:text-sm font-medium">
               <span>Government schemes, made simple.</span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-3xl sm:text-5xl lg:text-[56px] leading-[1.15] font-semibold text-[#0F1B3D] tracking-tight">
+            <h1 className="text-3xl sm:text-5xl lg:text-[56px] leading-[1.15] font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
               Find the schemes <br className="hidden sm:inline" />
               <span className="text-[#2563EB]">you qualify for.</span>
             </h1>
 
             {/* Supporting text */}
-            <p className="text-base sm:text-lg text-[#64748B] font-regular leading-relaxed max-w-xl">
+            <p className="text-base sm:text-lg text-[#64748B] dark:text-gray-300 font-regular leading-relaxed max-w-xl">
               Tell us about yourself. Yojsetu helps you discover government benefits relevant to you.
             </p>
 
@@ -442,14 +451,14 @@ export default function Home() {
 
               <a
                 href="#schemes"
-                className="bg-white border border-[#E2E8F0] hover:border-gray-300 text-[#0F1B3D] font-medium text-base px-6 py-3.5 rounded-xl transition-all flex items-center justify-center cursor-pointer"
+                className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 hover:border-gray-300 text-[#0F1B3D] dark:text-white font-medium text-base px-6 py-3.5 rounded-xl transition-all flex items-center justify-center cursor-pointer"
               >
                 Explore schemes
               </a>
             </div>
 
             {/* Subtle Subtext */}
-            <p className="text-xs text-[#64748B] flex items-center gap-2 pt-1">
+            <p className="text-xs text-[#64748B] dark:text-gray-300 flex items-center gap-2 pt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>
               <span>Free to use · No Aadhaar required to explore</span>
             </p>
@@ -457,11 +466,11 @@ export default function Home() {
 
           {/* RIGHT COLUMN: Single Preview Card */}
           <div className="lg:col-span-5">
-            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-              
+            <div className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
-                <h3 className="text-sm font-semibold text-[#0F1B3D]">
+              <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] dark:border-gray-700">
+                <h3 className="text-sm font-semibold text-[#0F1B3D] dark:text-white">
                   Your recommendations
                 </h3>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-[#16A34A] border border-emerald-100">
@@ -472,51 +481,51 @@ export default function Home() {
 
               {/* 3 Scheme Rows */}
               <div className="mt-4 space-y-3">
-                
+
                 {/* Row 1 */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950 text-[#2563EB] flex items-center justify-center shrink-0">
                       <SproutIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#0F1B3D]">PM Kisan</p>
-                      <p className="text-xs text-[#64748B]">Direct income support</p>
+                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">PM Kisan</p>
+                      <p className="text-xs text-[#64748B] dark:text-gray-300">Direct income support</p>
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-[#0F1B3D] bg-white px-2.5 py-1 rounded-md border border-[#E2E8F0]">
+                  <span className="text-xs font-semibold text-[#0F1B3D] dark:text-white bg-white dark:bg-gray-900 px-2.5 py-1 rounded-md border border-[#E2E8F0] dark:border-gray-700">
                     ₹6,000/year
                   </span>
                 </div>
 
                 {/* Row 2 */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950 text-[#2563EB] flex items-center justify-center shrink-0">
                       <HeartPulseIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#0F1B3D]">Ayushman Bharat</p>
-                      <p className="text-xs text-[#64748B]">Secondary & tertiary care</p>
+                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">Ayushman Bharat</p>
+                      <p className="text-xs text-[#64748B] dark:text-gray-300">Secondary & tertiary care</p>
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-[#0F1B3D] bg-white px-2.5 py-1 rounded-md border border-[#E2E8F0]">
+                  <span className="text-xs font-semibold text-[#0F1B3D] dark:text-white bg-white dark:bg-gray-900 px-2.5 py-1 rounded-md border border-[#E2E8F0] dark:border-gray-700">
                     Health coverage
                   </span>
                 </div>
 
                 {/* Row 3 */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950 text-[#2563EB] flex items-center justify-center shrink-0">
                       <SunIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#0F1B3D]">PM Surya Ghar</p>
-                      <p className="text-xs text-[#64748B]">Free rooftop solar electricity</p>
+                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">PM Surya Ghar</p>
+                      <p className="text-xs text-[#64748B] dark:text-gray-300">Free rooftop solar electricity</p>
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-[#0F1B3D] bg-white px-2.5 py-1 rounded-md border border-[#E2E8F0]">
+                  <span className="text-xs font-semibold text-[#0F1B3D] dark:text-white bg-white dark:bg-gray-900 px-2.5 py-1 rounded-md border border-[#E2E8F0] dark:border-gray-700">
                     Solar subsidy
                   </span>
                 </div>
@@ -524,7 +533,7 @@ export default function Home() {
               </div>
 
               {/* Matching Footer Hint */}
-              <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
+              <div className="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-gray-700 flex items-center justify-between text-xs text-[#64748B] dark:text-gray-300">
                 <span>Based on profile filters</span>
                 <span className="font-medium text-[#2563EB] hover:underline cursor-pointer" onClick={() => navigate('/schemes')}>
                   View all 500+ →
@@ -539,33 +548,33 @@ export default function Home() {
 
 
       {/* ─── TRUST STRIP ───────────────────────────────────────────────────── */}
-      <div className="border-y border-[#E2E8F0] bg-white py-6">
+      <div className="border-y border-[#E2E8F0] dark:border-gray-700 bg-white dark:bg-gray-900 py-6">
         <div className="max-w-[1240px] mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
-            
+
             <div className="flex items-center justify-center md:justify-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F1B3D] flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 text-[#0F1B3D] dark:text-white flex items-center justify-center shrink-0">
                 <FileTextIcon className="w-4 h-4" />
               </div>
-              <span className="text-sm sm:text-base font-medium text-[#111827]">
+              <span className="text-sm sm:text-base font-medium text-[#111827] dark:text-gray-100">
                 500+ schemes
               </span>
             </div>
 
             <div className="flex items-center justify-center md:justify-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F1B3D] flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 text-[#0F1B3D] dark:text-white flex items-center justify-center shrink-0">
                 <SparklesIcon className="w-4 h-4" />
               </div>
-              <span className="text-sm sm:text-base font-medium text-[#111827]">
+              <span className="text-sm sm:text-base font-medium text-[#111827] dark:text-gray-100">
                 Personalized recommendations
               </span>
             </div>
 
             <div className="flex items-center justify-center md:justify-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F1B3D] flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 text-[#0F1B3D] dark:text-white flex items-center justify-center shrink-0">
                 <GlobeIcon className="w-4 h-4" />
               </div>
-              <span className="text-sm sm:text-base font-medium text-[#111827]">
+              <span className="text-sm sm:text-base font-medium text-[#111827] dark:text-gray-100">
                 Available in Indian languages
               </span>
             </div>
@@ -577,13 +586,13 @@ export default function Home() {
 
       {/* ─── SCHEME DISCOVERY SECTION ──────────────────────────────────────── */}
       <section id="schemes" className="max-w-[1240px] mx-auto px-6 py-20 md:py-24 w-full">
-        
+
         {/* Section Header */}
         <div className="space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
             Explore government schemes
           </h2>
-          <p className="text-base text-[#64748B]">
+          <p className="text-base text-[#64748B] dark:text-gray-300">
             Find benefits across health, education, farming, housing and more.
           </p>
         </div>
@@ -594,11 +603,10 @@ export default function Home() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
-                selectedCategory === cat
-                  ? 'bg-[#0F1B3D] text-white shadow-sm'
-                  : 'bg-white text-[#64748B] hover:text-[#111827] border border-[#E2E8F0]'
-              }`}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${selectedCategory === cat
+                ? 'bg-[#0F1B3D] text-white shadow-sm'
+                : 'bg-white dark:bg-gray-900 text-[#64748B] dark:text-gray-300 hover:text-[#111827] border border-[#E2E8F0] dark:border-gray-700'
+                }`}
             >
               {cat}
             </button>
@@ -612,29 +620,29 @@ export default function Home() {
             return (
               <div
                 key={scheme.id}
-                className="bg-white border border-[#E2E8F0] rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-all shadow-sm group"
+                className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-all shadow-sm group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F1B3D] group-hover:text-[#2563EB] group-hover:bg-blue-50 transition-colors flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 text-[#0F1B3D] dark:text-white group-hover:text-[#2563EB] group-hover:bg-blue-50 transition-colors flex items-center justify-center">
                       <IconComponent className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-medium text-[#64748B] bg-[#F8FAFC] border border-[#E2E8F0] px-2.5 py-1 rounded-md">
+                    <span className="text-xs font-medium text-[#64748B] dark:text-gray-300 bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 px-2.5 py-1 rounded-md">
                       {scheme.category}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-semibold text-[#0F1B3D] group-hover:text-[#2563EB] transition-colors">
+                  <h3 className="text-lg font-semibold text-[#0F1B3D] dark:text-white group-hover:text-[#2563EB] transition-colors">
                     {scheme.name}
                   </h3>
 
-                  <p className="text-sm text-[#64748B] mt-2 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-[#64748B] dark:text-gray-300 mt-2 line-clamp-2 leading-relaxed">
                     {scheme.description}
                   </p>
                 </div>
 
-                <div className="pt-6 mt-4 border-t border-[#E2E8F0] flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#0F1B3D]">
+                <div className="pt-6 mt-4 border-t border-[#E2E8F0] dark:border-gray-700 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#0F1B3D] dark:text-white">
                     {scheme.benefit}
                   </span>
 
@@ -655,70 +663,70 @@ export default function Home() {
 
 
       {/* ─── HOW IT WORKS SECTION ──────────────────────────────────────────── */}
-      <section id="how-it-works" className="bg-white border-y border-[#E2E8F0] py-20 md:py-24">
+      <section id="how-it-works" className="bg-white dark:bg-gray-900 border-y border-[#E2E8F0] dark:border-gray-700 py-20 md:py-24">
         <div className="max-w-[1240px] mx-auto px-6">
-          
+
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
               Simple from start to finish
             </h2>
-            <p className="text-base text-[#64748B] mt-2">
+            <p className="text-base text-[#64748B] dark:text-gray-300 mt-2">
               Discovering and applying for benefits requires only three clear steps.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
+
             {/* Step 1 */}
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between">
+            <div className="bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 rounded-2xl p-8 flex flex-col justify-between">
               <div>
-                <span className="inline-block text-xs font-semibold text-[#2563EB] bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1 mb-6">
+                <span className="inline-block text-xs font-semibold text-[#2563EB] bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 rounded-lg px-2.5 py-1 mb-6">
                   01
                 </span>
-                <h3 className="text-lg font-semibold text-[#0F1B3D]">
+                <h3 className="text-lg font-semibold text-[#0F1B3D] dark:text-white">
                   Tell us about yourself
                 </h3>
-                <p className="text-sm text-[#64748B] leading-relaxed mt-2">
+                <p className="text-sm text-[#64748B] dark:text-gray-300 leading-relaxed mt-2">
                   Answer a few simple questions regarding age, occupation, location, and income in under 2 minutes.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-[#E2E8F0] text-xs text-[#64748B]">
+              <div className="mt-8 pt-4 border-t border-[#E2E8F0] dark:border-gray-700 text-xs text-[#64748B] dark:text-gray-300">
                 No Aadhaar or personal ID required to explore
               </div>
             </div>
 
             {/* Step 2 */}
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between">
+            <div className="bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 rounded-2xl p-8 flex flex-col justify-between">
               <div>
-                <span className="inline-block text-xs font-semibold text-[#2563EB] bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1 mb-6">
+                <span className="inline-block text-xs font-semibold text-[#2563EB] bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 rounded-lg px-2.5 py-1 mb-6">
                   02
                 </span>
-                <h3 className="text-lg font-semibold text-[#0F1B3D]">
+                <h3 className="text-lg font-semibold text-[#0F1B3D] dark:text-white">
                   Discover eligible schemes
                 </h3>
-                <p className="text-sm text-[#64748B] leading-relaxed mt-2">
+                <p className="text-sm text-[#64748B] dark:text-gray-300 leading-relaxed mt-2">
                   Our matching engine instantly analyzes 500+ central and state schemes tailored to your exact profile.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-[#E2E8F0] text-xs text-[#64748B]">
+              <div className="mt-8 pt-4 border-t border-[#E2E8F0] dark:border-gray-700 text-xs text-[#64748B] dark:text-gray-300">
                 Clear breakdown of benefits & requirements
               </div>
             </div>
 
             {/* Step 3 */}
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between">
+            <div className="bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 rounded-2xl p-8 flex flex-col justify-between">
               <div>
-                <span className="inline-block text-xs font-semibold text-[#2563EB] bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1 mb-6">
+                <span className="inline-block text-xs font-semibold text-[#2563EB] bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 rounded-lg px-2.5 py-1 mb-6">
                   03
                 </span>
-                <h3 className="text-lg font-semibold text-[#0F1B3D]">
+                <h3 className="text-lg font-semibold text-[#0F1B3D] dark:text-white">
                   Apply with confidence
                 </h3>
-                <p className="text-sm text-[#64748B] leading-relaxed mt-2">
+                <p className="text-sm text-[#64748B] dark:text-gray-300 leading-relaxed mt-2">
                   Get document checklists and direct access to official application portals without middlemen.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-[#E2E8F0] text-xs text-[#64748B]">
+              <div className="mt-8 pt-4 border-t border-[#E2E8F0] dark:border-gray-700 text-xs text-[#64748B] dark:text-gray-300">
                 Step-by-step guidance & status tracking
               </div>
             </div>
@@ -731,28 +739,28 @@ export default function Home() {
 
       {/* ─── AI ASSISTANT SECTION ──────────────────────────────────────────── */}
       <section id="assistant" className="max-w-[1240px] mx-auto px-6 py-20 md:py-24 w-full">
-        
+
         <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
             Need help finding the right scheme?
           </h2>
-          <p className="text-base text-[#64748B] mt-2">
+          <p className="text-base text-[#64748B] dark:text-gray-300 mt-2">
             Ask Yojsetu in your language.
           </p>
         </div>
 
         {/* Minimal Chat Interface Preview */}
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto shadow-sm mt-10">
-          
+        <div className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto shadow-sm mt-10">
+
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] mb-6">
+          <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] dark:border-gray-700 mb-6">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-[#0F1B3D] text-white flex items-center justify-center text-xs font-bold">
                 Y
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#0F1B3D]">Yojsetu Assistant</p>
-                <p className="text-[11px] text-[#64748B]">Multilingual Civic Guide</p>
+                <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">Yojsetu Assistant</p>
+                <p className="text-[11px] text-[#64748B] dark:text-gray-300">Multilingual Civic Guide</p>
               </div>
             </div>
             <span className="inline-flex items-center gap-1 text-xs font-medium text-[#16A34A] bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">
@@ -763,10 +771,10 @@ export default function Home() {
 
           {/* Messages */}
           <div className="space-y-4 mb-6">
-            
+
             {/* User message */}
             <div className="flex justify-end">
-              <div className="bg-[#F8FAFC] text-[#111827] border border-[#E2E8F0] px-4 py-3 rounded-2xl rounded-tr-xs text-sm max-w-md">
+              <div className="bg-[#F8FAFC] dark:bg-gray-950 text-[#111827] dark:text-gray-100 border border-[#E2E8F0] dark:border-gray-700 px-4 py-3 rounded-2xl rounded-tr-xs text-sm max-w-md">
                 Which schemes can help my family?
               </div>
             </div>
@@ -786,17 +794,17 @@ export default function Home() {
           </div>
 
           {/* Input Bar Preview */}
-          <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-2">
+          <div className="flex items-center gap-2 bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 rounded-xl p-2">
             <input
               type="text"
               readOnly
               value="Type your question in Hindi, English, Punjabi..."
-              className="bg-transparent text-sm text-[#64748B] px-3 w-full focus:outline-none cursor-pointer"
+              className="bg-transparent text-sm text-[#64748B] dark:text-gray-300 px-3 w-full focus:outline-none cursor-pointer"
               onClick={() => navigate('/assistant')}
             />
             <button
               onClick={() => navigate('/assistant')}
-              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-[#2563EB] rounded-lg transition-colors cursor-pointer shrink-0"
+              className="p-2.5 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 text-[#2563EB] rounded-lg transition-colors cursor-pointer shrink-0"
               title="Voice Input"
             >
               <MicIcon className="w-4 h-4" />
@@ -815,14 +823,14 @@ export default function Home() {
 
 
       {/* ─── LANGUAGE SECTION ──────────────────────────────────────────────── */}
-      <section id="languages" className="bg-white border-y border-[#E2E8F0] py-16 md:py-20">
+      <section id="languages" className="bg-white dark:bg-gray-900 border-y border-[#E2E8F0] dark:border-gray-700 py-16 md:py-20">
         <div className="max-w-[1240px] mx-auto px-6">
-          
+
           <div className="text-center max-w-2xl mx-auto mb-8">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
               Your language. Your benefits.
             </h2>
-            <p className="text-base text-[#64748B] mt-2">
+            <p className="text-base text-[#64748B] dark:text-gray-300 mt-2">
               Explore Yojsetu in the language you're most comfortable with.
             </p>
           </div>
@@ -832,11 +840,10 @@ export default function Home() {
               <button
                 key={lang}
                 onClick={() => setSelectedLanguage(lang)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                  selectedLanguage === lang
-                    ? 'bg-[#0F1B3D] text-white shadow-sm'
-                    : 'bg-white text-[#111827] border border-[#E2E8F0] hover:border-[#2563EB]'
-                }`}
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${selectedLanguage === lang
+                  ? 'bg-[#0F1B3D] text-white shadow-sm'
+                  : 'bg-white dark:bg-gray-900 text-[#111827] dark:text-gray-100 border border-[#E2E8F0] dark:border-gray-700 hover:border-[#2563EB]'
+                  }`}
               >
                 {lang}
               </button>
@@ -849,9 +856,9 @@ export default function Home() {
 
       {/* ─── CITIZEN STORIES ───────────────────────────────────────────────── */}
       <section id="about" className="max-w-[1240px] mx-auto px-6 py-20 md:py-24 w-full">
-        
+
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
             Built for citizens
           </h2>
         </div>
@@ -860,15 +867,15 @@ export default function Home() {
           {TESTIMONIALS.map((t, idx) => (
             <div
               key={idx}
-              className="bg-white border border-[#E2E8F0] rounded-xl p-6 flex flex-col justify-between shadow-sm"
+              className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-xl p-6 flex flex-col justify-between shadow-sm"
             >
-              <p className="text-sm text-[#111827] leading-relaxed italic">
+              <p className="text-sm text-[#111827] dark:text-gray-100 leading-relaxed italic">
                 "{t.quote}"
               </p>
-              
-              <div className="mt-6 pt-4 border-t border-[#E2E8F0]">
-                <p className="text-sm font-semibold text-[#0F1B3D]">{t.name}</p>
-                <p className="text-xs text-[#64748B]">{t.location}</p>
+
+              <div className="mt-6 pt-4 border-t border-[#E2E8F0] dark:border-gray-700">
+                <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">{t.name}</p>
+                <p className="text-xs text-[#64748B] dark:text-gray-300">{t.location}</p>
               </div>
             </div>
           ))}
@@ -880,7 +887,7 @@ export default function Home() {
       {/* ─── FINAL CTA ─────────────────────────────────────────────────────── */}
       <section className="max-w-[1240px] mx-auto px-6 pb-20 md:pb-24 w-full">
         <div className="bg-[#0F1B3D] text-white rounded-3xl p-8 sm:p-12 md:p-16 text-center shadow-sm relative overflow-hidden">
-          
+
           <div className="relative z-10 max-w-xl mx-auto space-y-4">
             <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white">
               Ready to find your benefits?
@@ -904,25 +911,25 @@ export default function Home() {
 
 
       {/* ─── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-[#E2E8F0] mt-auto">
+      <footer className="bg-white dark:bg-gray-900 border-t border-[#E2E8F0] dark:border-gray-700 mt-auto">
         <div className="max-w-[1240px] mx-auto px-6 py-12">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-            
+
             {/* Left Brand */}
             <div>
               <Link to="/" className="flex items-center gap-2.5">
                 <LogoMark className="w-6 h-6" />
-                <span className="font-semibold text-lg text-[#0F1B3D] tracking-tight">
+                <span className="font-semibold text-lg text-[#0F1B3D] dark:text-white tracking-tight">
                   Yojsetu
                 </span>
               </Link>
-              <p className="text-sm text-[#64748B] mt-2 max-w-xs">
+              <p className="text-sm text-[#64748B] dark:text-gray-300 mt-2 max-w-xs">
                 Making government benefits easier to discover.
               </p>
             </div>
 
             {/* Nav Links */}
-            <div className="flex flex-wrap items-center gap-6 text-sm text-[#64748B]">
+            <div className="flex flex-wrap items-center gap-6 text-sm text-[#64748B] dark:text-gray-300">
               <a href="#about" className="hover:text-[#111827] transition-colors">About</a>
               <a href="#schemes" className="hover:text-[#111827] transition-colors">Schemes</a>
               <Link to="/applications" className="hover:text-[#111827] transition-colors">Track Application</Link>
@@ -934,7 +941,7 @@ export default function Home() {
 
           </div>
 
-          <div className="mt-8 pt-6 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
+          <div className="mt-8 pt-6 border-t border-[#E2E8F0] dark:border-gray-700 flex items-center justify-between text-xs text-[#64748B] dark:text-gray-300">
             <p>© Yojsetu. All rights reserved.</p>
             <p>Made for Indian Citizens</p>
           </div>
