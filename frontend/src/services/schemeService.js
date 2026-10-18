@@ -22,7 +22,7 @@ export const getSchemeById = async (id) => {
   } catch (err) {
     console.warn(`Backend scheme ${id} endpoint unavailable, using local cache:`, err);
   }
-  return mockSchemes.find((scheme) => scheme.id === Number(id));
+  return mockSchemes.find((scheme) => String(scheme.id) === String(id) || scheme.external_scheme_id === id);
 };
 
 export const getSchemeRecommendations = async (userProfile, userDocuments = [], category = null) => {
