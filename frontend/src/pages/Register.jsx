@@ -1,19 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
-function LogoMark({ className = "w-7 h-7" }) {
-  return (
-    <svg viewBox="0 0 32 32" fill="none" className={className}>
-      <rect width="32" height="32" rx="8" fill="#0F1B3D" />
-      <path d="M9 16L14 21L23 10" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="23" cy="10" r="2.5" fill="#2563EB" />
-    </svg>
-  );
-}
 
 export default function Register() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const { requestRegisterOTP, verifyRegisterOTP, register } = useAuth();
 
   const [step, setStep] = useState(1); // 1: Details, 2: OTP Verification
@@ -154,13 +148,16 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#111827] flex flex-col justify-between font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 text-[#111827] dark:text-gray-100 flex flex-col justify-between font-sans">
       
       {/* Header */}
-      <header className="bg-white border-b border-[#E2E8F0] px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <LogoMark className="w-7 h-7" />
-          <span className="font-semibold text-lg text-[#0F1B3D] tracking-tight">Yojsetu</span>
+      <header className="bg-white dark:bg-gray-900 border-b border-[#E2E8F0] dark:border-gray-800 px-6 h-16 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2.5" aria-label="YojSetu Home">
+          <img
+            src={logoSrc}
+            alt="YojSetu Logo"
+            className="h-12 md:h-14 w-auto object-contain hover:opacity-95 transition-opacity"
+          />
         </Link>
         <Link to="/login" className="text-sm font-medium text-[#2563EB] hover:text-blue-700">
           Sign In
@@ -169,13 +166,20 @@ export default function Register() {
 
       {/* Main Register Form Container */}
       <div className="flex-1 flex items-center justify-center p-6 py-12">
-        <div className="w-full max-w-md bg-white border border-[#E2E8F0] rounded-2xl shadow-sm p-8 space-y-6">
+        <div className="w-full max-w-md bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-2xl shadow-sm p-8 space-y-6">
           
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold text-[#0F1B3D] tracking-tight">
+            <div className="flex justify-center mb-3">
+              <img
+                src={logoSrc}
+                alt="YojSetu Logo"
+                className="h-24 md:h-28 w-auto object-contain"
+              />
+            </div>
+            <h1 className="text-2xl font-semibold text-[#0F1B3D] dark:text-gray-100 tracking-tight">
               {step === 1 ? 'Create your account' : 'Verify mobile number'}
             </h1>
-            <p className="text-sm text-[#64748B]">
+            <p className="text-sm text-[#64748B] dark:text-gray-300">
               {step === 1
                 ? 'Join Yojsetu to discover and apply for eligible government schemes'
                 : `Enter the 6-digit verification code sent to +91 ${phone}`}

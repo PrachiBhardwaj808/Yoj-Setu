@@ -55,6 +55,7 @@ function Sidebar({ collapsed, onToggle }) {
   const { completionPercent } = useProfile();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const unread = mockNotifications.filter(n => !n.read).length;
 
   function handleLogout() {
@@ -67,21 +68,30 @@ function Sidebar({ collapsed, onToggle }) {
   const initial = (displayName || 'C')[0].toUpperCase();
 
   return (
-    <aside className={`hidden lg:flex flex-col fixed left-0 top-0 h-full bg-[#0f1c3f] text-white z-40 transition-all duration-300 ${collapsed ? 'w-16' : 'w-60'}`}>
+    <aside className={`hidden lg:flex flex-col fixed left-0 top-0 h-full bg-white dark:bg-[#0f1c3f] text-gray-900 dark:text-white z-40 transition-all duration-300 ${collapsed ? 'w-16' : 'w-60'}`}>
       {/* Logo row */}
-      <div className="flex items-center justify-between px-3 py-4 border-b border-white/10">
+      <div className="flex items-center justify-between px-3 py-4 border-b border-gray-200 dark:border-white/10">
         {!collapsed && (
-          <Link to="/dashboard" className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0 font-bold text-sm">Y</div>
-            <span className="font-extrabold text-sm tracking-widest truncate">YOJSETU</span>
+          <Link to="/dashboard" className="flex items-center gap-2 min-w-0" aria-label="YojSetu Dashboard">
+            <img
+              src={logoSrc}
+              alt="YojSetu Logo"
+              className="h-12 w-auto max-w-[180px] object-contain"
+            />
           </Link>
         )}
         {collapsed && (
-          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center mx-auto font-bold text-sm">Y</div>
+          <Link to="/dashboard" aria-label="YojSetu Dashboard" className="mx-auto">
+            <img
+              src={logoSrc}
+              alt="YojSetu Logo"
+              className="w-12 h-auto max-h-12 object-contain"
+            />
+          </Link>
         )}
         <button
           onClick={onToggle}
-          className={`text-white/50 hover:text-white transition-colors p-1 rounded ${collapsed ? 'mx-auto mt-1' : ''}`}
+          className={`text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded ${collapsed ? 'mx-auto mt-1' : ''}`}
           aria-label="Toggle sidebar"
         >
           {collapsed
@@ -102,7 +112,7 @@ function Sidebar({ collapsed, onToggle }) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-2 py-2.5 rounded-xl transition-all duration-150 group relative ${isActive
                   ? 'bg-blue-600 text-white'
-                  : 'text-blue-200/70 hover:bg-white/10 hover:text-white'
+                  : 'text-gray-600 dark:text-blue-200/70 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white'
                 }`
               }
             >
@@ -126,10 +136,10 @@ function Sidebar({ collapsed, onToggle }) {
       </nav>
 
       {/* Profile + logout */}
-      <div className="border-t border-white/10 p-3 space-y-2">
+      <div className="border-t border-gray-200 dark:border-white/10 p-3 space-y-2">
         <button
           onClick={toggleTheme}
-          className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-blue-200/70 hover:bg-white/10 hover:text-white transition-all text-sm"
+          className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-gray-600 dark:text-blue-200/70 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all text-sm"
           aria-label="Toggle theme"
         >
           <span className="text-lg">{theme === "dark" ? "☀️" : "🌙"}</span>
@@ -142,10 +152,10 @@ function Sidebar({ collapsed, onToggle }) {
         {!collapsed && (
           <div className="px-2 py-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-blue-200/60">Profile Setup</span>
-              <span className="text-xs font-bold text-blue-400">{completionPercent}%</span>
+              <span className="text-xs text-gray-500 dark:text-blue-200/60">Profile Setup</span>
+              <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{completionPercent}%</span>
             </div>
-            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
               <div className="h-full bg-blue-400 rounded-full transition-all duration-500" style={{ width: `${completionPercent}%` }} />
             </div>
           </div>
@@ -157,13 +167,13 @@ function Sidebar({ collapsed, onToggle }) {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-semibold truncate">{displayName}</p>
-              <p className="text-[10px] text-blue-200/50 truncate">{user?.phone || ''}</p>
+              <p className="text-[10px] text-gray-500 dark:text-blue-200/50 truncate">{user?.phone || ''}</p>
             </div>
           </div>
         )}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all text-sm cursor-pointer"
+          className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 transition-all text-sm cursor-pointer"
           aria-label="Logout"
         >
           <LogoutIcon cls={iconCls} />
@@ -176,17 +186,22 @@ function Sidebar({ collapsed, onToggle }) {
 
 function MobileHeader() {
   const { logout } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
+  const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const unread = mockNotifications.filter(n => !n.read).length;
 
   return (
-    <header className="lg:hidden fixed top-0 inset-x-0 z-40 bg-[#0f1c3f] text-white h-14 flex items-center justify-between px-4 shadow-lg">
-      <Link to="/dashboard" className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center font-bold text-xs">Y</div>
-        <span className="font-extrabold text-sm tracking-widest">YOJSETU</span>
+    <header className="lg:hidden fixed top-0 inset-x-0 z-40 bg-white dark:bg-[#0f1c3f] text-gray-900 dark:text-white h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-white/10 shadow-md">
+      <Link to="/dashboard" className="flex items-center gap-2" aria-label="YojSetu Dashboard">
+        <img
+          src={logoSrc}
+          alt="YojSetu Logo"
+          className="h-11 w-auto max-w-[144px] object-contain"
+        />
       </Link>
       <div className="flex items-center gap-3">
-        <Link to="/notifications" className="relative text-white/70 hover:text-white transition-colors">
+        <Link to="/notifications" className="relative text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors">
           <BellIcon cls="w-5 h-5" />
           {unread > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -196,7 +211,7 @@ function MobileHeader() {
         </Link>
         <button
           onClick={() => { logout(); navigate('/login'); }}
-          className="text-white/70 hover:text-red-400 transition-colors"
+          className="text-gray-600 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 transition-colors"
           aria-label="Logout"
         >
           <LogoutIcon cls="w-5 h-5" />

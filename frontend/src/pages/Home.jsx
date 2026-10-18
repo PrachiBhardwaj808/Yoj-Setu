@@ -3,16 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
 
-function LogoMark({ className = "w-7 h-7" }) {
-  return (
-    <svg viewBox="0 0 32 32" fill="none" className={className}>
-      <rect width="32" height="32" rx="8" fill="#0F1B3D" />
-      <path d="M9 16L14 21L23 10" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="23" cy="10" r="2.5" fill="#2563EB" />
-    </svg>
-  );
-}
-
 function CheckIcon({ className = "w-4 h-4" }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="2.5">
@@ -254,6 +244,7 @@ const TESTIMONIALS = [
 export default function Home() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -268,37 +259,38 @@ export default function Home() {
 
       {/* ─── NAVBAR ────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-white dark:bg-gray-900/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-gray-700">
-        <div className="max-w-[1240px] mx-auto px-6 h-16 md:h-18 flex items-center justify-between">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 h-16 xl:h-24 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 xl:gap-8">
 
           {/* Left: Brand Logo & Wordmark */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <LogoMark className="w-7 h-7 text-[#0F1B3D] dark:text-white" />
-            <span className="font-semibold text-lg md:text-xl text-[#0F1B3D] dark:text-white tracking-tight group-hover:text-[#2563EB] transition-colors">
-              Yojsetu
-            </span>
+          <Link to="/" className="flex items-center gap-2.5 group" aria-label="YojSetu Home">
+            <img
+              src={logoSrc}
+              alt="YojSetu Logo"
+              className="h-12 sm:h-14 xl:h-[88px] w-auto object-contain hover:opacity-95 transition-opacity"
+            />
           </Link>
 
           {/* Center Links (Desktop) */}
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#about" className="text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] transition-colors">
+          <nav className="hidden xl:flex items-center justify-center gap-8 whitespace-nowrap">
+            <a href="#about" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
               About
             </a>
-            <a href="#schemes" className="text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] transition-colors">
+            <a href="#schemes" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
               Schemes
             </a>
-            <Link to="/applications" className="text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] transition-colors">
+            <Link to="/applications" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
               Track Application
             </Link>
-            <a href="#how-it-works" className="text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] transition-colors">
+            <a href="#how-it-works" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
               Help
             </a>
           </nav>
 
           {/* Right Actions (Desktop) */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden xl:flex items-center justify-self-end gap-3">
             <button
               onClick={toggleTheme}
-              className="flex items-center gap-2 text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#2563EB] border border-[#E2E8F0] dark:border-gray-700 px-3 py-2 rounded-lg transition-colors"
+              className="flex h-10 items-center gap-2 text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#2563EB] border border-[#E2E8F0] dark:border-gray-700 px-4 rounded-lg transition-colors"
               aria-label="Toggle dark mode"
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
@@ -310,7 +302,7 @@ export default function Home() {
             <div className="relative">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 text-xs font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                className="flex h-10 items-center gap-1.5 text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 px-3 rounded-lg transition-colors cursor-pointer"
               >
                 <GlobeIcon className="w-3.5 h-3.5" />
                 <span>{selectedLanguage}</span>
@@ -339,7 +331,7 @@ export default function Home() {
             {/* Login */}
             <Link
               to="/login"
-              className="text-sm font-medium text-[#0F1B3D] dark:text-white hover:text-[#2563EB] px-3 py-2 transition-colors"
+              className="text-base font-medium text-[#0F1B3D] dark:text-white hover:text-[#2563EB] px-2 py-2 transition-colors"
             >
               Login
             </Link>
@@ -347,7 +339,7 @@ export default function Home() {
             {/* Register CTA */}
             <Link
               to="/register"
-              className="bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+              className="flex h-[42px] items-center bg-[#2563EB] hover:bg-blue-700 text-white text-base font-medium px-5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
             >
               Register
             </Link>
@@ -356,7 +348,7 @@ export default function Home() {
           {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-[#0F1B3D] dark:text-white hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="col-start-3 xl:hidden p-2 text-[#0F1B3D] dark:text-white hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors justify-self-end"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -365,7 +357,7 @@ export default function Home() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-[#E2E8F0] dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-4 space-y-3">
+          <div className="xl:hidden border-t border-[#E2E8F0] dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-4 space-y-3">
             <a
               href="#about"
               onClick={() => setMobileMenuOpen(false)}
@@ -917,11 +909,12 @@ export default function Home() {
 
             {/* Left Brand */}
             <div>
-              <Link to="/" className="flex items-center gap-2.5">
-                <LogoMark className="w-6 h-6" />
-                <span className="font-semibold text-lg text-[#0F1B3D] dark:text-white tracking-tight">
-                  Yojsetu
-                </span>
+              <Link to="/" className="flex items-center gap-2.5" aria-label="YojSetu Home">
+                <img
+                  src={logoSrc}
+                  alt="YojSetu Logo"
+                  className="h-12 md:h-14 w-auto object-contain hover:opacity-95 transition-opacity"
+                />
               </Link>
               <p className="text-sm text-[#64748B] dark:text-gray-300 mt-2 max-w-xs">
                 Making government benefits easier to discover.

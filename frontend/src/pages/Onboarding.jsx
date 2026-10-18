@@ -2,18 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../context/ProfileContext';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Outline Icons ────────────────────────────────────────────────────────────
 
-function LogoMark({ className = "w-7 h-7" }) {
-  return (
-    <svg viewBox="0 0 32 32" fill="none" className={className}>
-      <rect width="32" height="32" rx="8" fill="#0F1B3D" />
-      <path d="M9 16L14 21L23 10" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="23" cy="10" r="2.5" fill="#2563EB" />
-    </svg>
-  );
-}
 
 function CheckCircleIcon({ className = "w-12 h-12" }) {
   return (
@@ -52,6 +44,8 @@ const INDIAN_LANGUAGES = [
 ];
 
 export default function Onboarding() {
+  const { theme } = useTheme();
+  const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const navigate = useNavigate();
   const { user, markOnboardingComplete } = useAuth();
   const { profile, updateProfile, saveStep, onboardingStep, completionPercent } = useProfile();
@@ -131,10 +125,13 @@ export default function Onboarding() {
     <div className="min-h-screen bg-[#F8FAFC] text-[#111827] flex flex-col font-sans">
       
       {/* ─── HEADER ──────────────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-[#E2E8F0] px-6 h-16 flex items-center justify-between sticky top-0 z-40">
-        <Link to="/" className="flex items-center gap-2.5">
-          <LogoMark className="w-7 h-7" />
-          <span className="font-semibold text-lg text-[#0F1B3D] tracking-tight">Yojsetu</span>
+      <header className="bg-white dark:bg-gray-900 border-b border-[#E2E8F0] dark:border-gray-800 px-6 h-16 flex items-center justify-between sticky top-0 z-40">
+        <Link to="/" className="flex items-center gap-2.5" aria-label="YojSetu Home">
+          <img
+            src={logoSrc}
+            alt="YojSetu Logo"
+            className="h-12 md:h-14 w-auto object-contain hover:opacity-95 transition-opacity"
+          />
         </Link>
 
         {step <= 6 && (
