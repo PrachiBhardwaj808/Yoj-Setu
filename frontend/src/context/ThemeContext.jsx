@@ -1,13 +1,16 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useState } from "react";
 
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
-        return localStorage.getItem("yojsetu_theme") || "light";
+        const savedTheme = localStorage.getItem("yojsetu_theme");
+        const initialTheme = savedTheme === "dark" ? "dark" : "light";
+        document.documentElement.classList.toggle("dark", initialTheme === "dark");
+        return initialTheme;
     });
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         document.documentElement.classList.toggle("dark", theme === "dark");
         localStorage.setItem("yojsetu_theme", theme);
     }, [theme]);

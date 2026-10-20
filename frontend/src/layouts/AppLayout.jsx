@@ -186,7 +186,7 @@ function Sidebar({ collapsed, onToggle }) {
 
 function MobileHeader() {
   const { logout } = useAuth();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const unread = mockNotifications.filter(n => !n.read).length;
@@ -201,6 +201,14 @@ function MobileHeader() {
         />
       </Link>
       <div className="flex items-center gap-3">
+        <button
+          onClick={toggleTheme}
+          className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
+        </button>
         <Link to="/notifications" className="relative text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors">
           <BellIcon cls="w-5 h-5" />
           {unread > 0 && (
@@ -232,7 +240,7 @@ function BottomNav() {
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-100 shadow-xl">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-[#0f1c3f] border-t border-gray-100 dark:border-white/10 shadow-xl">
       <div className="flex items-center justify-around h-16">
         {BOTTOM_ITEMS.map(item => {
           const Icon = item.icon;
@@ -267,7 +275,7 @@ export default function AppLayout({ children }) {
   const sidebarWidth = collapsed ? 'lg:pl-16' : 'lg:pl-60';
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb]">
+    <div className="min-h-screen bg-[#f5f7fb] dark:bg-gray-950">
       {/* Desktop sidebar */}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(v => !v)} />
 

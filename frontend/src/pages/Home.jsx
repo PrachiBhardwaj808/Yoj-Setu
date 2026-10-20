@@ -388,6 +388,14 @@ export default function Home() {
             </a>
 
             <div className="pt-3 border-t border-[#E2E8F0] dark:border-gray-700 flex flex-col gap-2">
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-[#0F1B3D] dark:text-gray-100 py-2 border border-[#E2E8F0] dark:border-gray-700 rounded-xl"
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
+                <span>{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}</span>
+              </button>
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
