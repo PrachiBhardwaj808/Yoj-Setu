@@ -4,17 +4,19 @@ import { Link, NavLink, useNavigate, Outlet } from 'react-router-dom';
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
+import { useLanguage } from '@/context/LanguageContext';
+import LanguageSelector from '@/components/common/LanguageSelector';
 import { mockNotifications } from '@/data/mockNotifications';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: HomeIcon },
-  { to: '/schemes', label: 'Schemes', icon: GridIcon },
-  { to: '/onboarding', label: 'Eligibility', icon: TargetIcon },
-  { to: '/applications', label: 'Applications', icon: FileIcon },
-  { to: '/documents', label: 'Documents', icon: DocIcon },
-  { to: '/assistant', label: 'AI Sathi', icon: BotIcon },
-  { to: '/notifications', label: 'Notifications', icon: BellIcon },
-  { to: '/profile', label: 'Profile', icon: UserIcon },
+  { to: '/dashboard', labelKey: 'nav.dashboard', defaultLabel: 'Dashboard', icon: HomeIcon },
+  { to: '/schemes', labelKey: 'nav.schemes', defaultLabel: 'Schemes', icon: GridIcon },
+  { to: '/onboarding', labelKey: 'nav.eligibility', defaultLabel: 'Eligibility', icon: TargetIcon },
+  { to: '/applications', labelKey: 'nav.applications', defaultLabel: 'Applications', icon: FileIcon },
+  { to: '/documents', labelKey: 'nav.documents', defaultLabel: 'Documents', icon: DocIcon },
+  { to: '/assistant', labelKey: 'nav.assistant', defaultLabel: 'AI Sathi', icon: BotIcon },
+  { to: '/notifications', labelKey: 'nav.notifications', defaultLabel: 'Notifications', icon: BellIcon },
+  { to: '/profile', labelKey: 'nav.profile', defaultLabel: 'Profile', icon: UserIcon },
 ];
 
 function HomeIcon({ cls }) {
@@ -53,6 +55,7 @@ function ChevronLeftIcon({ cls }) {
 function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
   const { completionPercent } = useProfile();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
@@ -105,6 +108,7 @@ function Sidebar({ collapsed, onToggle }) {
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
         {NAV_ITEMS.map(item => {
           const Icon = item.icon;
+          const label = t(item.labelKey, item.defaultLabel);
           return (
             <NavLink
               key={item.to}
@@ -124,10 +128,10 @@ function Sidebar({ collapsed, onToggle }) {
                   </span>
                 )}
               </div>
-              {!collapsed && <span className="text-sm font-medium truncate">{item.label}</span>}
+              {!collapsed && <span className="text-sm font-medium truncate">{label}</span>}
               {collapsed && (
                 <span className="absolute left-full ml-2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  {item.label}
+                  {label}
                 </span>
               )}
             </NavLink>
@@ -135,8 +139,13 @@ function Sidebar({ collapsed, onToggle }) {
         })}
       </nav>
 
-      {/* Profile + logout */}
+      {/* Language + Theme + Profile + Logout */}
       <div className="border-t border-gray-200 dark:border-white/10 p-3 space-y-2">
+        {/* Language Selector */}
+        <div className="w-full">
+          <LanguageSelector compact={collapsed} />
+        </div>
+
         <button
           onClick={toggleTheme}
           className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-gray-600 dark:text-blue-200/70 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all text-sm"
@@ -145,14 +154,14 @@ function Sidebar({ collapsed, onToggle }) {
           <span className="text-lg">{theme === "dark" ? "☀️" : "🌙"}</span>
           {!collapsed && (
             <span className="font-medium">
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+              {theme === "dark" ? t('nav.lightMode', 'Light Mode') : t('nav.darkMode', 'Dark Mode')}
             </span>
           )}
         </button>
         {!collapsed && (
           <div className="px-2 py-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-500 dark:text-blue-200/60">Profile Setup</span>
+              <span className="text-xs text-gray-500 dark:text-blue-200/60">{t('nav.profileSetup', 'Profile Setup')}</span>
               <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{completionPercent}%</span>
             </div>
             <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
@@ -177,7 +186,7 @@ function Sidebar({ collapsed, onToggle }) {
           aria-label="Logout"
         >
           <LogoutIcon cls={iconCls} />
-          {!collapsed && <span className="font-medium">Logout</span>}
+          {!collapsed && <span className="font-medium">{t('nav.logout', 'Logout')}</span>}
         </button>
       </div>
     </aside>
@@ -187,6 +196,7 @@ function Sidebar({ collapsed, onToggle }) {
 function MobileHeader() {
   const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const unread = mockNotifications.filter(n => !n.read).length;
@@ -200,16 +210,17 @@ function MobileHeader() {
           className="h-11 w-auto max-w-[144px] object-contain"
         />
       </Link>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        <LanguageSelector compact align="right" />
         <button
           onClick={toggleTheme}
-          className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
+          className="p-1 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
         </button>
-        <Link to="/notifications" className="relative text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors">
+        <Link to="/notifications" className="relative p-1 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors">
           <BellIcon cls="w-5 h-5" />
           {unread > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -219,8 +230,9 @@ function MobileHeader() {
         </Link>
         <button
           onClick={() => { logout(); navigate('/login'); }}
-          className="text-gray-600 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-          aria-label="Logout"
+          className="p-1 text-gray-600 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          aria-label={t('nav.logout', 'Logout')}
+          title={t('nav.logout', 'Logout')}
         >
           <LogoutIcon cls="w-5 h-5" />
         </button>
@@ -230,6 +242,7 @@ function MobileHeader() {
 }
 
 function BottomNav() {
+  const { t } = useLanguage();
   const unread = mockNotifications.filter(n => !n.read).length;
   const BOTTOM_ITEMS = [
     NAV_ITEMS[0], // Dashboard
@@ -261,7 +274,7 @@ function BottomNav() {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium truncate">{item.label}</span>
+              <span className="text-[10px] font-medium truncate">{t(item.labelKey, item.defaultLabel)}</span>
             </NavLink>
           );
         })}

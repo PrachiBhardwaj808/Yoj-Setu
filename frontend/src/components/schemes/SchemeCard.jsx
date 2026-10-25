@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function SchemeCard({ scheme }) {
+    const { t } = useLanguage();
     if (!scheme) return null;
 
-    const title = scheme.title || scheme.name || scheme.scheme_name || "Government Scheme";
-    const benefits = scheme.benefitAmount || scheme.benefits || scheme.benefit || "Financial & welfare support";
-    const deadline = scheme.deadline || scheme.government_level || "Active";
+    const title = scheme.title || scheme.name || scheme.scheme_name || t('schemes.catalogTitle', "Government Scheme");
+    const benefits = scheme.benefitAmount || scheme.benefits || scheme.benefit || t('schemes.directBenefit', "Financial & welfare support");
+    const deadline = scheme.deadline || scheme.government_level || t('schemes.active', "Active");
     const schemeId = scheme.id || scheme.scheme_id || scheme.external_scheme_id;
 
     return (

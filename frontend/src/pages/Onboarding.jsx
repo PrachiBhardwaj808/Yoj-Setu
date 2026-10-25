@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../context/ProfileContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 // ─── Outline Icons ────────────────────────────────────────────────────────────
 
@@ -49,6 +50,7 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const { user, markOnboardingComplete } = useAuth();
   const { profile, updateProfile, saveStep, onboardingStep, completionPercent } = useProfile();
+  const { setLanguage } = useLanguage();
 
   const [step, setStep] = useState(onboardingStep || 1); // 1-6: Form, 7: Review, 8: Success
   const [formData, setFormData] = useState(profile);
@@ -823,7 +825,10 @@ export default function Onboarding() {
                   <label className="block text-xs font-medium text-[#111827] mb-1.5">Preferred Language</label>
                   <select
                     value={formData.preferred_language}
-                    onChange={(e) => handleChange('preferred_language', e.target.value)}
+                    onChange={(e) => {
+                      handleChange('preferred_language', e.target.value);
+                      setLanguage(e.target.value);
+                    }}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   >
                     {INDIAN_LANGUAGES.map(lang => (

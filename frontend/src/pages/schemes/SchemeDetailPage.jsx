@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getSchemeById } from "@/services/schemeService";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function SchemeDetailPage() {
+    const { t } = useLanguage();
     const { id } = useParams();
     const [scheme, setScheme] = useState(null);
     const [status, setStatus] = useState("loading");
@@ -69,7 +71,7 @@ export default function SchemeDetailPage() {
     return (
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
             <Link to="/schemes" className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors">
-                ← Back to Schemes Catalog
+                ← {t('schemes.backToCatalog', 'Back to Schemes Catalog')}
             </Link>
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xs">
@@ -91,18 +93,18 @@ export default function SchemeDetailPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p className="text-xs text-gray-500 mb-1">Direct Benefit / Assistance</p>
+                        <p className="text-xs text-gray-500 mb-1">{t('schemes.directBenefit', 'Direct Benefit / Assistance')}</p>
                         <p className="font-semibold text-blue-600 text-base">{benefits}</p>
                     </div>
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p className="text-xs text-gray-500 mb-1">Timeline / Level</p>
+                        <p className="text-xs text-gray-500 mb-1">{t('schemes.timelineLevel', 'Timeline / Level')}</p>
                         <p className="font-semibold text-[#0F1B3D] text-base">{deadline}</p>
                     </div>
                 </div>
 
                 <div className="border-t border-gray-100 pt-5 space-y-3">
                     <h2 className="font-semibold text-sm text-[#0F1B3D] uppercase tracking-wider text-xs">
-                        Eligibility Criteria
+                        {t('schemes.eligibilityCriteria', 'Eligibility Criteria')}
                     </h2>
                     <ul className="space-y-2">
                         {rules.map((rule, index) => (
@@ -117,7 +119,7 @@ export default function SchemeDetailPage() {
                 {documents.length > 0 && (
                     <div className="border-t border-gray-100 pt-5 space-y-3">
                         <h2 className="font-semibold text-sm text-[#0F1B3D] uppercase tracking-wider text-xs">
-                            Required Verification Documents
+                            {t('schemes.requiredDocuments', 'Required Verification Documents')}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {documents.map((doc, index) => (
@@ -151,7 +153,7 @@ export default function SchemeDetailPage() {
                         rel="noopener noreferrer"
                         className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition-all text-center"
                     >
-                        Apply on Official Portal →
+                        {t('schemes.applyNow', 'Apply on Official Portal')} →
                     </a>
                 </div>
             </div>

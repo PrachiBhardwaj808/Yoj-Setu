@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../context/ProfileContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getEligibilityResults } from '../services/eligibilityService';
 
 // ─── Outline Icons ────────────────────────────────────────────────────────────
@@ -122,6 +123,15 @@ const CATEGORY_ICONS = {
 
 const CATEGORIES = ['All', 'Agriculture', 'Education', 'Health', 'Housing', 'Financial Support'];
 
+const CATEGORY_KEYS = {
+  All: 'dashboard.all',
+  Agriculture: 'dashboard.agriculture',
+  Education: 'dashboard.education',
+  Health: 'dashboard.health',
+  Housing: 'dashboard.housing',
+  'Financial Support': 'dashboard.financialSupport',
+};
+
 const RECENT_NOTIFICATIONS = [
   { id: 1, title: 'AI Scheme Engine evaluated profile', time: 'Just now', text: 'Matched 5+ verified central and state schemes with deterministic rules.' },
   { id: 2, title: 'DigiLocker Integration Ready', time: '1 hour ago', text: 'Document provider initialized in Mock Development Mode.' },
@@ -132,6 +142,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, completionPercent } = useProfile();
+  const { t } = useLanguage();
 
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -142,7 +153,11 @@ export default function Dashboard() {
   const firstName = userName.split(' ')[0];
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const greeting = hour < 12
+    ? t('dashboard.greetingMorning', 'Good morning')
+    : hour < 17
+    ? t('dashboard.greetingAfternoon', 'Good afternoon')
+    : t('dashboard.greetingEvening', 'Good evening');
 
   useEffect(() => {
     let isMounted = true;
@@ -178,7 +193,7 @@ export default function Dashboard() {
             {greeting}, {firstName}
           </h1>
           <p className="text-sm text-[#64748B]">
-            Here are your AI-discovered government schemes matched deterministically with your profile.
+            {t('dashboard.subtitle', 'Here are your AI-discovered government schemes matched deterministically with your profile.')}
           </p>
         </div>
 
@@ -187,13 +202,15 @@ export default function Dashboard() {
           <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
             <div className="space-y-1 flex-1">
               <div className="flex items-center gap-3">
-                <h3 className="text-sm font-semibold text-[#0F1B3D]">Complete your profile</h3>
+                <h3 className="text-sm font-semibold text-[#0F1B3D]">
+                  {t('dashboard.completeProfile', 'Complete your profile')}
+                </h3>
                 <span className="text-xs font-semibold text-[#2563EB] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
-                  {completionPercent}% completed
+                  {completionPercent}% {t('dashboard.completed', 'completed')}
                 </span>
               </div>
               <p className="text-xs text-[#64748B]">
-                Add details like landholding and family income to unlock 100% accurate eligibility matching.
+                {t('dashboard.completeProfileDesc', 'Add details like landholding and family income to unlock 100% accurate eligibility matching.')}
               </p>
               <div className="w-full max-w-md bg-[#F8FAFC] border border-[#E2E8F0] h-1.5 rounded-full mt-2 overflow-hidden">
                 <div className="bg-[#2563EB] h-1.5 rounded-full transition-all duration-500" style={{ width: `${completionPercent}%` }} />
@@ -204,7 +221,7 @@ export default function Dashboard() {
               onClick={() => navigate('/onboarding')}
               className="bg-white border border-[#E2E8F0] hover:border-gray-300 text-[#0F1B3D] font-medium text-xs px-4 py-2.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
             >
-              Complete profile
+              {t('dashboard.completeProfileBtn', 'Complete profile')}
             </button>
           </div>
         )}
@@ -213,8 +230,12 @@ export default function Dashboard() {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-[#0F1B3D] tracking-tight">Recommended Schemes For You</h2>
-              <p className="text-xs text-[#64748B]">Evaluated by deterministic rule engine & ranked by AI Recommendation Agent</p>
+              <h2 className="text-lg font-semibold text-[#0F1B3D] tracking-tight">
+                {t('dashboard.recommendedSchemes', 'Recommended Schemes For You')}
+              </h2>
+              <p className="text-xs text-[#64748B]">
+                {t('dashboard.ruleEngineDesc', 'Evaluated by deterministic rule engine & ranked by AI Recommendation Agent')}
+              </p>
             </div>
             
             {/* Filter Pills */}
@@ -229,7 +250,7 @@ export default function Dashboard() {
                       : 'bg-white text-[#64748B] border-[#E2E8F0] hover:border-gray-300'
                   }`}
                 >
-                  {cat}
+                  {t(CATEGORY_KEYS[cat] || cat, cat)}
                 </button>
               ))}
             </div>

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
+import LanguageSelector from '@/components/common/LanguageSelector';
 
 
 function CheckIcon({ className = "w-4 h-4" }) {
@@ -208,18 +210,6 @@ const SCHEMES_DATA = [
   }
 ];
 
-const LANGUAGES = [
-  'English',
-  'हिन्दी',
-  'ਪੰਜਾਬੀ',
-  'বাংলা',
-  'मराठी',
-  'தமிழ்',
-  'తెలుగు',
-  'ગુજરાતી',
-  '<ctrl42><ctrl42>ಕನ್ನಡ',
-  'മലയാളം'
-];
 
 const TESTIMONIALS = [
   {
@@ -244,11 +234,10 @@ const TESTIMONIALS = [
 export default function Home() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, supportedLanguages, t } = useLanguage();
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
   const filteredSchemes = selectedCategory === 'All'
     ? SCHEMES_DATA
@@ -298,35 +287,8 @@ export default function Home() {
               <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </button>
 
-            {/* Language Selector Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex h-10 items-center gap-1.5 text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] bg-[#F8FAFC] dark:bg-gray-950 border border-[#E2E8F0] dark:border-gray-700 px-3 rounded-lg transition-colors cursor-pointer"
-              >
-                <GlobeIcon className="w-3.5 h-3.5" />
-                <span>{selectedLanguage}</span>
-                <ChevronDownIcon className="w-3 h-3 text-[#64748B] dark:text-gray-300" />
-              </button>
-
-              {langDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-xl shadow-lg py-1 z-50">
-                  {LANGUAGES.slice(0, 5).map(lang => (
-                    <button
-                      key={lang}
-                      onClick={() => {
-                        setSelectedLanguage(lang);
-                        setLangDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors ${selectedLanguage === lang ? 'bg-blue-50 dark:bg-blue-950 text-[#2563EB]' : 'text-[#111827] dark:text-gray-100 hover:bg-slate-50 dark:hover:bg-gray-800'
-                        }`}
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Language Selector */}
+            <LanguageSelector align="right" />
 
             {/* Login */}
             <Link
@@ -388,6 +350,9 @@ export default function Home() {
             </a>
 
             <div className="pt-3 border-t border-[#E2E8F0] dark:border-gray-700 flex flex-col gap-2">
+              <div className="w-full">
+                <LanguageSelector />
+              </div>
               <button
                 onClick={toggleTheme}
                 className="w-full flex items-center justify-center gap-2 text-sm font-medium text-[#0F1B3D] dark:text-gray-100 py-2 border border-[#E2E8F0] dark:border-gray-700 rounded-xl"
@@ -828,24 +793,25 @@ export default function Home() {
 
           <div className="text-center max-w-2xl mx-auto mb-8">
             <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
-              Your language. Your benefits.
+              {t('home.languageSectionTitle', 'Your language. Your benefits.')}
             </h2>
             <p className="text-base text-[#64748B] dark:text-gray-300 mt-2">
-              Explore Yojsetu in the language you're most comfortable with.
+              {t('home.languageSectionSubtitle', "Explore Yojsetu in the language you're most comfortable with.")}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 max-w-3xl mx-auto">
-            {LANGUAGES.map(lang => (
+            {supportedLanguages.map(lang => (
               <button
-                key={lang}
-                onClick={() => setSelectedLanguage(lang)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${selectedLanguage === lang
-                  ? 'bg-[#0F1B3D] text-white shadow-sm'
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${language === lang.code
+                  ? 'bg-[#0F1B3D] dark:bg-blue-600 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-900 text-[#111827] dark:text-gray-100 border border-[#E2E8F0] dark:border-gray-700 hover:border-[#2563EB]'
                   }`}
               >
-                {lang}
+                <span>{lang.nativeName}</span>
+                <span className="text-[11px] ml-1.5 opacity-60">({lang.name})</span>
               </button>
             ))}
           </div>

@@ -1,9 +1,11 @@
 
 import { useEffect, useState } from "react";
 import { getAllSchemes } from "@/services/schemeService";
+import { useLanguage } from "@/context/LanguageContext";
 import SchemeCard from "./SchemeCard";
 
 export default function SchemeList() {
+    const { t } = useLanguage();
     const [schemes, setSchemes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchText, setSearchText] = useState("");
@@ -46,7 +48,7 @@ export default function SchemeList() {
                 <div className="relative flex-1">
                     <input
                         type="text"
-                        placeholder="Search by scheme name, keywords, or benefits..."
+                        placeholder={t('schemes.searchPlaceholder', 'Search by scheme name, keywords, or benefits...')}
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                         className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 shadow-xs"
@@ -67,20 +69,20 @@ export default function SchemeList() {
                 >
                     {categories.map((cat) => (
                         <option key={cat} value={cat}>
-                            {cat === "All" ? "All Categories" : cat}
+                            {cat === "All" ? t('schemes.allCategories', 'All Categories') : cat}
                         </option>
                     ))}
                 </select>
             </div>
 
             <div className="flex items-center justify-between text-xs text-gray-500 px-1">
-                <span>Showing {filteredSchemes.length} schemes</span>
+                <span>{t('schemes.showing', 'Showing')} {filteredSchemes.length} {t('schemes.schemesCount', 'schemes')}</span>
                 {category !== "All" && (
                     <button
                         onClick={() => setCategory("All")}
                         className="text-blue-600 hover:underline"
                     >
-                        Reset category filter
+                        {t('schemes.resetFilter', 'Reset category filter')}
                     </button>
                 )}
             </div>
@@ -88,12 +90,12 @@ export default function SchemeList() {
             {loading ? (
                 <div className="py-12 text-center text-sm text-gray-500">
                     <div className="inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>Loading government schemes catalog...</p>
+                    <p>{t('schemes.loading', 'Loading government schemes catalog...')}</p>
                 </div>
             ) : filteredSchemes.length === 0 ? (
                 <div className="p-8 text-center bg-white border border-gray-200 rounded-2xl">
-                    <p className="text-gray-600 font-medium text-sm">No schemes match your search criteria.</p>
-                    <p className="text-xs text-gray-400 mt-1">Try adjusting keywords or selecting "All Categories".</p>
+                    <p className="text-gray-600 font-medium text-sm">{t('schemes.noSchemes', 'No schemes match your search criteria.')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{t('schemes.noSchemesDesc', 'Try adjusting keywords or selecting "All Categories".')}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
