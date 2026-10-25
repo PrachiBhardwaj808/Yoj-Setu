@@ -4,7 +4,7 @@
  * Provides NMT (Neural Machine Translation) with deterministic offline fallbacks for supported Indian languages.
  */
 
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '@/translations';
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '../translations/index.js';
 
 // Common scheme keywords and phrases mapped to Indian languages
 const SCHEME_TRANSLATION_MAP = {

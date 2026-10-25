@@ -3,7 +3,7 @@
  * Conversational scheme advisory service with Bhashini integration and multilingual support.
  */
 
-import { translateText } from './bhashiniService';
+import { translateText } from './bhashiniService.js';
 
 const MOCK_RESPONSES = [
   {
