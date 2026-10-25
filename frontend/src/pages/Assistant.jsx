@@ -1,18 +1,42 @@
 import { useState, useRef, useEffect } from 'react';
-import { sendMessage, SUGGESTED_QUESTIONS } from '@/services/chatService';
+import { sendMessage, getSuggestedQuestions } from '@/services/chatService';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Assistant() {
+  const { language, currentLanguage, t } = useLanguage();
+
   const [messages, setMessages] = useState([
     {
       id: 'welcome',
       sender: 'assistant',
-      text: 'Namaste! I am Yojsetu AI Sathi — your government scheme companion. Ask me anything about farming subsidies, scholarships, housing grants, health insurance, or loan schemes.',
+      text: t(
+        'assistant.welcome',
+        'Namaste! I am Yojsetu AI Sathi — your government scheme companion. Ask me anything about farming subsidies, scholarships, housing grants, health insurance, or loan schemes.'
+      ),
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // If conversation has not started yet, update welcome greeting when language changes
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === 'welcome') {
+        return [
+          {
+            ...prev[0],
+            text: t(
+              'assistant.welcome',
+              'Namaste! I am Yojsetu AI Sathi — your government scheme companion. Ask me anything about farming subsidies, scholarships, housing grants, health insurance, or loan schemes.'
+            ),
+          },
+        ];
+      }
+      return prev;
+    });
+  }, [language, t]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,26 +57,26 @@ export default function Assistant() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputText('');
     setIsLoading(true);
 
     try {
-      const reply = await sendMessage(text);
+      const reply = await sendMessage(text, language);
       const assistantMessage = {
         id: `assistant_${Date.now()}`,
         sender: 'assistant',
         text: reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
           id: `err_${Date.now()}`,
           sender: 'assistant',
-          text: 'Sorry, I encountered an issue processing your query. Please try asking again.',
+          text: t('assistant.error', 'Sorry, I encountered an issue processing your query. Please try asking again.'),
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -61,8 +85,10 @@ export default function Assistant() {
     }
   };
 
+  const suggestedQuestions = getSuggestedQuestions(language);
+
   return (
-    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-140px)] bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-140px)] bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden font-sans">
       {/* Header */}
       <div className="p-4 border-b border-gray-100 bg-slate-900 text-white flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -71,12 +97,17 @@ export default function Assistant() {
           </div>
           <div>
             <h2 className="text-base font-bold flex items-center gap-2">
-              <span>Yojsetu AI Sathi</span>
+              <span>{t('assistant.title', 'Yojsetu AI Sathi')}</span>
               <span className="px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold rounded-full border border-emerald-500/30">
-                Online
+                {t('assistant.online', 'Online')}
+              </span>
+              <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] bg-blue-500/20 text-blue-300 font-medium rounded-full border border-blue-500/30">
+                🌐 {currentLanguage.nativeName}
               </span>
             </h2>
-            <p className="text-xs text-slate-300">Intelligent Welfare & Scheme Advisory</p>
+            <p className="text-xs text-slate-300">
+              {t('assistant.subtitle', 'Intelligent Welfare & Scheme Advisory')}
+            </p>
           </div>
         </div>
 
@@ -86,23 +117,23 @@ export default function Assistant() {
               {
                 id: 'welcome',
                 sender: 'assistant',
-                text: 'Chat cleared. How can I assist you with government schemes today?',
+                text: t('assistant.chatCleared', 'Chat cleared. How can I assist you with government schemes today?'),
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               },
             ])
           }
           className="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-lg border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer"
         >
-          Reset Chat
+          {t('assistant.resetChat', 'Reset Chat')}
         </button>
       </div>
 
       {/* Suggested Questions Pills */}
       <div className="p-3 bg-slate-50 border-b border-gray-100 overflow-x-auto flex gap-2">
         <span className="text-xs font-semibold text-gray-500 flex items-center gap-1 flex-shrink-0">
-          💡 Try asking:
+          💡 {t('assistant.tryAsking', 'Try asking:')}
         </span>
-        {SUGGESTED_QUESTIONS.map((q, idx) => (
+        {suggestedQuestions.map((q, idx) => (
           <button
             key={idx}
             onClick={() => handleSend(q)}
@@ -163,7 +194,9 @@ export default function Assistant() {
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-150" />
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-300" />
-              <span className="text-xs text-gray-400 ml-1">AI Sathi is searching scheme rules...</span>
+              <span className="text-xs text-gray-400 ml-1">
+                {t('assistant.searching', 'AI Sathi is searching scheme rules...')}
+              </span>
             </div>
           </div>
         )}
@@ -183,7 +216,7 @@ export default function Assistant() {
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Ask in English or Hindi (e.g. 'What is PM Kisan subsidy amount?')..."
+          placeholder={t('assistant.placeholder', "Ask in your language (e.g. 'What is PM Kisan subsidy amount?')...")}
           className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
           disabled={isLoading}
         />
@@ -192,7 +225,7 @@ export default function Assistant() {
           disabled={!inputText.trim() || isLoading}
           className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors cursor-pointer flex items-center gap-1.5"
         >
-          <span>Send</span>
+          <span>{t('assistant.send', 'Send')}</span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>
