@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useProfile } from '../context/ProfileContext';
+import { useProfile, calculateProfileCompletion } from '../context/ProfileContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -49,7 +49,7 @@ export default function Onboarding() {
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const navigate = useNavigate();
   const { user, markOnboardingComplete } = useAuth();
-  const { profile, updateProfile, saveStep, onboardingStep, completionPercent } = useProfile();
+  const { profile, updateProfile, saveStep, onboardingStep } = useProfile();
   const { setLanguage } = useLanguage();
 
   const [step, setStep] = useState(onboardingStep || 1); // 1-6: Form, 7: Review, 8: Success
@@ -96,6 +96,7 @@ export default function Onboarding() {
 
   const handleNext = (e) => {
     if (e) e.preventDefault();
+    updateProfile(formData);
     const nextStep = Math.min(8, step + 1);
     setStep(nextStep);
     saveStep(nextStep);
@@ -882,7 +883,7 @@ export default function Onboarding() {
               <div className="text-right">
                 <span className="text-xs text-[#64748B] block">Completion</span>
                 <span className="text-sm font-semibold text-[#16A34A] bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
-                  {completionPercent}%
+                  {calculateProfileCompletion({ ...profile, ...formData })}%
                 </span>
               </div>
             </div>

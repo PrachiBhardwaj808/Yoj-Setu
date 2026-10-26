@@ -1,12 +1,12 @@
+import { calculateProfileCompletion } from '@/context/ProfileContext';
+
 export default function ProfileCompletionBar({ profile }) {
-    const fields = Object.values(profile)
-    const filledCount = fields.filter((value) => value !== "").length
-    const percentage = Math.round((filledCount / fields.length) * 100)
+    const percentage = calculateProfileCompletion(profile);
 
     return (
         <div className="mb-6">
             <div className="flex justify-between text-sm mb-1">
-                <span className="font-m cedium">Profile completion</span>
+                <span className="font-medium">Profile completion</span>
                 <span className="text-gray-600">{percentage}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
