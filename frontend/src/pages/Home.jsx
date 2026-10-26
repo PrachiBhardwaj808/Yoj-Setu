@@ -270,6 +270,9 @@ export default function Home() {
             <Link to="/applications" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
               Track Application
             </Link>
+            <Link to="/safety-centre" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
+              {t('nav.safetyCentre', 'Safety Centre')}
+            </Link>
             <a href="#how-it-works" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
               Help
             </a>
@@ -340,6 +343,13 @@ export default function Home() {
               className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
               Track Application
+            </Link>
+            <Link
+              to="/safety-centre"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
+            >
+              {t('nav.safetyCentre', 'Safety Centre')}
             </Link>
             <a
               href="#how-it-works"

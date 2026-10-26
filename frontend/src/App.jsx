@@ -19,6 +19,7 @@ import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Assistant from './pages/Assistant';
 import NotFoundPage from './pages/NotFoundPage';
+import SafetyCentrePage from './pages/SafetyCentrePage';
 
 function RootLayout() {
   return (
@@ -36,6 +37,14 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
+      {
+        path: 'safety-centre',
+        element: (
+          <AppLayout>
+            <SafetyCentrePage />
+          </AppLayout>
+        ),
+      },
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
       {
