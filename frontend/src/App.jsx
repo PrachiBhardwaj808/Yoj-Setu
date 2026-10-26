@@ -47,58 +47,20 @@ const router = createBrowserRouter([
         ),
       },
       {
-        element: <AppLayout />,
+        element: (
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        ),
         children: [
-          {
-            path: 'dashboard',
-            element: (
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            ),
-          },
+          { path: 'dashboard', element: <Dashboard /> },
           { path: 'schemes', element: <SchemesListPage /> },
           { path: 'schemes/:id', element: <SchemeDetailPage /> },
-          {
-            path: 'applications',
-            element: (
-              <ProtectedRoute>
-                <Applications />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: 'documents',
-            element: (
-              <ProtectedRoute>
-                <Documents />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: 'notifications',
-            element: (
-              <ProtectedRoute>
-                <Notifications />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: 'profile',
-            element: (
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: 'assistant',
-            element: (
-              <ProtectedRoute>
-                <Assistant />
-              </ProtectedRoute>
-            ),
-          },
+          { path: 'applications', element: <Applications /> },
+          { path: 'documents', element: <Documents /> },
+          { path: 'notifications', element: <Notifications /> },
+          { path: 'profile', element: <Profile /> },
+          { path: 'assistant', element: <Assistant /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

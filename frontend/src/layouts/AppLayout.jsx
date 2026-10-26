@@ -53,7 +53,7 @@ function ChevronLeftIcon({ cls }) {
   return <svg viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>;
 }
 function Sidebar({ collapsed, onToggle }) {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { completionPercent } = useProfile();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ function Sidebar({ collapsed, onToggle }) {
       {/* Logo row */}
       <div className="flex items-center justify-between px-3 py-4 border-b border-gray-200 dark:border-white/10">
         {!collapsed && (
-          <Link to="/dashboard" className="flex items-center gap-2 min-w-0" aria-label="YojSetu Dashboard">
+          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2 min-w-0" aria-label="YojSetu Home">
             <img
               src={logoSrc}
               alt="YojSetu Logo"
@@ -84,7 +84,7 @@ function Sidebar({ collapsed, onToggle }) {
           </Link>
         )}
         {collapsed && (
-          <Link to="/dashboard" aria-label="YojSetu Dashboard" className="mx-auto">
+          <Link to={isAuthenticated ? "/dashboard" : "/"} aria-label="YojSetu Home" className="mx-auto">
             <img
               src={logoSrc}
               alt="YojSetu Logo"
@@ -158,43 +158,74 @@ function Sidebar({ collapsed, onToggle }) {
             </span>
           )}
         </button>
-        {!collapsed && (
-          <div className="px-2 py-2">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-500 dark:text-blue-200/60">{t('nav.profileSetup', 'Profile Setup')}</span>
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{completionPercent}%</span>
-            </div>
-            <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-400 rounded-full transition-all duration-500" style={{ width: `${completionPercent}%` }} />
-            </div>
+        {isAuthenticated ? (
+          <>
+            {!collapsed && (
+              <div className="px-2 py-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500 dark:text-blue-200/60">{t('nav.profileSetup', 'Profile Setup')}</span>
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{completionPercent}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-400 rounded-full transition-all duration-500" style={{ width: `${completionPercent}%` }} />
+                </div>
+              </div>
+            )}
+            {!collapsed && (
+              <div className="flex items-center gap-2 px-2 py-1">
+                <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {initial}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold truncate">{displayName}</p>
+                  <p className="text-[10px] text-gray-500 dark:text-blue-200/50 truncate">{user?.phone || ''}</p>
+                </div>
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 transition-all text-sm cursor-pointer"
+              aria-label="Logout"
+            >
+              <LogoutIcon cls={iconCls} />
+              {!collapsed && <span className="font-medium">{t('nav.logout', 'Logout')}</span>}
+            </button>
+          </>
+        ) : (
+          <div className="pt-2 space-y-2">
+            {!collapsed ? (
+              <>
+                <Link
+                  to="/login"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors shadow-xs"
+                >
+                  <span>{t('nav.signIn', 'Sign In')}</span>
+                </Link>
+                <Link
+                  to="/register"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-700 dark:text-white font-medium text-xs transition-colors"
+                >
+                  <span>{t('nav.register', 'Register')}</span>
+                </Link>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                title={t('nav.signIn', 'Sign In')}
+                className="w-10 h-10 mx-auto flex items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <UserIcon cls="w-4 h-4" />
+              </Link>
+            )}
           </div>
         )}
-        {!collapsed && (
-          <div className="flex items-center gap-2 px-2 py-1">
-            <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
-              {initial}
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold truncate">{displayName}</p>
-              <p className="text-[10px] text-gray-500 dark:text-blue-200/50 truncate">{user?.phone || ''}</p>
-            </div>
-          </div>
-        )}
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 transition-all text-sm cursor-pointer"
-          aria-label="Logout"
-        >
-          <LogoutIcon cls={iconCls} />
-          {!collapsed && <span className="font-medium">{t('nav.logout', 'Logout')}</span>}
-        </button>
       </div>
     </aside>
   );
 }
 
 function MobileHeader() {
-  const { logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -203,7 +234,7 @@ function MobileHeader() {
 
   return (
     <header className="lg:hidden fixed top-0 inset-x-0 z-40 bg-white dark:bg-[#0f1c3f] text-gray-900 dark:text-white h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-white/10 shadow-md">
-      <Link to="/dashboard" className="flex items-center gap-2" aria-label="YojSetu Dashboard">
+      <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2" aria-label="YojSetu Home">
         <img
           src={logoSrc}
           alt="YojSetu Logo"
@@ -220,22 +251,33 @@ function MobileHeader() {
         >
           <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
         </button>
-        <Link to="/notifications" className="relative p-1 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors">
-          <BellIcon cls="w-5 h-5" />
-          {unread > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-              {unread}
-            </span>
-          )}
-        </Link>
-        <button
-          onClick={() => { logout(); navigate('/login'); }}
-          className="p-1 text-gray-600 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-          aria-label={t('nav.logout', 'Logout')}
-          title={t('nav.logout', 'Logout')}
-        >
-          <LogoutIcon cls="w-5 h-5" />
-        </button>
+        {isAuthenticated ? (
+          <>
+            <Link to="/notifications" className="relative p-1 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors">
+              <BellIcon cls="w-5 h-5" />
+              {unread > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unread}
+                </span>
+              )}
+            </Link>
+            <button
+              onClick={() => { logout(); navigate('/login'); }}
+              className="p-1 text-gray-600 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              aria-label={t('nav.logout', 'Logout')}
+              title={t('nav.logout', 'Logout')}
+            >
+              <LogoutIcon cls="w-5 h-5" />
+            </button>
+          </>
+        ) : (
+          <Link
+            to="/login"
+            className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors"
+          >
+            {t('nav.signIn', 'Sign In')}
+          </Link>
+        )}
       </div>
     </header>
   );
