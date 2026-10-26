@@ -6,7 +6,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
 import { useLanguage } from '@/context/LanguageContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
-import { mockNotifications } from '@/data/mockNotifications';
 
 const NAV_ITEMS = [
   { to: '/dashboard', labelKey: 'nav.dashboard', defaultLabel: 'Dashboard', icon: HomeIcon },
@@ -16,7 +15,6 @@ const NAV_ITEMS = [
   { to: '/documents', labelKey: 'nav.documents', defaultLabel: 'Documents', icon: DocIcon },
   { to: '/assistant', labelKey: 'nav.assistant', defaultLabel: 'AI Sathi', icon: BotIcon },
   { to: '/safety-centre', labelKey: 'nav.safetyCentre', defaultLabel: 'Safety Centre', icon: ShieldIcon },
-  { to: '/notifications', labelKey: 'nav.notifications', defaultLabel: 'Notifications', icon: BellIcon },
   { to: '/profile', labelKey: 'nav.profile', defaultLabel: 'Profile', icon: UserIcon },
 ];
 
@@ -41,9 +39,6 @@ function BotIcon({ cls }) {
 function ShieldIcon({ cls }) {
   return <svg viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg>;
 }
-function BellIcon({ cls }) {
-  return <svg viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>;
-}
 function UserIcon({ cls }) {
   return <svg viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
 }
@@ -63,7 +58,6 @@ function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
-  const unread = mockNotifications.filter(n => !n.read).length;
 
   function handleLogout() {
     logout();
@@ -126,11 +120,6 @@ function Sidebar({ collapsed, onToggle }) {
             >
               <div className="relative">
                 <Icon cls={iconCls} />
-                {item.to === '/notifications' && unread > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {unread > 9 ? '9+' : unread}
-                  </span>
-                )}
               </div>
               {!collapsed && <span className="text-sm font-medium truncate">{label}</span>}
               {collapsed && (
@@ -234,7 +223,6 @@ function MobileHeader() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
-  const unread = mockNotifications.filter(n => !n.read).length;
 
   return (
     <header className="lg:hidden fixed top-0 inset-x-0 z-40 bg-white dark:bg-[#0f1c3f] text-gray-900 dark:text-white h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-white/10 shadow-md">
@@ -257,14 +245,6 @@ function MobileHeader() {
         </button>
         {isAuthenticated ? (
           <>
-            <Link to="/notifications" className="relative p-1 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors">
-              <BellIcon cls="w-5 h-5" />
-              {unread > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {unread}
-                </span>
-              )}
-            </Link>
             <button
               onClick={() => { logout(); navigate('/login'); }}
               className="p-1 text-gray-600 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 transition-colors"
@@ -289,15 +269,14 @@ function MobileHeader() {
 
 function BottomNav() {
   const { t } = useLanguage();
-  const unread = mockNotifications.filter(n => !n.read).length;
   const BOTTOM_ITEMS = [
-    NAV_ITEMS[0], // Dashboard
-    NAV_ITEMS[1], // Schemes
-    NAV_ITEMS[3], // Applications
-    NAV_ITEMS[5], // AI Sathi
-    NAV_ITEMS[8], // Profile
-    NAV_ITEMS[6], // Safety Centre
-  ];
+    NAV_ITEMS.find(i => i.to === '/dashboard'),
+    NAV_ITEMS.find(i => i.to === '/schemes'),
+    NAV_ITEMS.find(i => i.to === '/applications'),
+    NAV_ITEMS.find(i => i.to === '/assistant'),
+    NAV_ITEMS.find(i => i.to === '/profile'),
+    NAV_ITEMS.find(i => i.to === '/safety-centre'),
+  ].filter(Boolean);
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-[#0f1c3f] border-t border-gray-100 dark:border-white/10 shadow-xl">
@@ -315,11 +294,6 @@ function BottomNav() {
             >
               <div className="relative">
                 <Icon cls="w-5 h-5" />
-                {item.to === '/notifications' && unread > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                    {unread}
-                  </span>
-                )}
               </div>
               <span className="text-[10px] font-medium truncate">{t(item.labelKey, item.defaultLabel)}</span>
             </NavLink>

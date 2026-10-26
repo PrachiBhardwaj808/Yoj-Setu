@@ -113,7 +113,6 @@ Yoj-Setu/
 │   │   │   ├── AuthContext.jsx       # Authentication state, token storage, OTP integration
 │   │   │   └── ProfileContext.jsx    # Citizen profile, onboarding steps, document state
 │   │   ├── data/
-│   │   │   ├── mockNotifications.js  # Notifications and alerts seed data
 │   │   │   └── mockSchemes.js        # Standardized schemes catalog
 │   │   ├── layouts/
 │   │   │   └── AppLayout.jsx         # Responsive application shell (collapsible sidebar + mobile nav)
@@ -125,7 +124,6 @@ Yoj-Setu/
 │   │   │   ├── Home.jsx              # Landing page
 │   │   │   ├── Login.jsx             # Citizen login
 │   │   │   ├── NotFoundPage.jsx      # 404 handler
-│   │   │   ├── Notifications.jsx     # Notifications center
 │   │   │   ├── Onboarding.jsx        # Multi-step profile builder & eligibility intake
 │   │   │   ├── Profile.jsx           # Citizen profile view and editing
 │   │   │   ├── Register.jsx          # Citizen registration with OTP verification

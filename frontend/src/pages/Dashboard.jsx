@@ -488,9 +488,6 @@ export default function Dashboard() {
           <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
               <h3 className="text-base font-semibold text-[#0F1B3D]">Recent updates</h3>
-              <Link to="/notifications" className="text-xs font-medium text-[#2563EB] hover:underline">
-                View all
-              </Link>
             </div>
 
             <div className="space-y-3">
