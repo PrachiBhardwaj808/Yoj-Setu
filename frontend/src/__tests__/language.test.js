@@ -139,3 +139,61 @@ test('Chat Service - Multilingual questions and responses', async () => {
   const resHi = await sendMessage('किसान योजना', 'hi');
   assert.ok(resHi.includes('पीएम किसान सम्मान निधि'));
 });
+
+test('Translations Dictionary - All 10 Supported Languages have full key sets', () => {
+  const requiredCategories = [
+    'nav.dashboard',
+    'nav.schemes',
+    'nav.applications',
+    'nav.documents',
+    'nav.profile',
+    'home.heroTitle',
+    'home.checkEligibility',
+    'home.ctaButton',
+    'auth.loginTitle',
+    'auth.registerTitle',
+    'auth.tabPassword',
+    'auth.tabOtp',
+    'dashboard.recommendedSchemes',
+    'dashboard.completeProfile',
+    'schemes.catalogTitle',
+    'applications.title',
+    'documents.title',
+    'profile.title',
+    'assistant.title',
+    'common.loading',
+    'common.tryAgain',
+    'common.notFoundTitle',
+  ];
+
+  for (const lang of SUPPORTED_LANGUAGES) {
+    const dict = TRANSLATIONS[lang.code];
+    assert.ok(dict, `Dictionary for language '${lang.code}' (${lang.name}) must be defined`);
+
+    for (const key of requiredCategories) {
+      assert.ok(
+        dict[key] && dict[key].trim().length > 0,
+        `Key '${key}' must be defined and non-empty in '${lang.code}' dictionary`
+      );
+    }
+  }
+});
+
+test('Parameter Interpolation - Correctly replaces placeholders', () => {
+  const interpolate = (template, params) => {
+    if (!params || typeof params !== 'object') return template;
+    return Object.entries(params).reduce((acc, [k, v]) => {
+      return acc.replaceAll(`{${k}}`, String(v ?? ''));
+    }, template);
+  };
+
+  const templateSec = TRANSLATIONS.en['auth.resendOtpIn'];
+  assert.equal(interpolate(templateSec, { sec: 45 }), 'Resend OTP in 45s');
+
+  const templateMatch = TRANSLATIONS.en['dashboard.match'];
+  assert.equal(interpolate(templateMatch, { score: 95 }), '95% Match');
+
+  const templateDocs = TRANSLATIONS.en['dashboard.moreDocs'];
+  assert.equal(interpolate(templateDocs, { count: 3 }), '+3 more');
+});
+

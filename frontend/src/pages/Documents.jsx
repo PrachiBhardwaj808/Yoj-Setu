@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useProfile } from '@/context/ProfileContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { Link } from 'react-router-dom';
 
 const DOCUMENT_DEFINITIONS = [
@@ -70,6 +71,7 @@ const DOCUMENT_DEFINITIONS = [
 
 export default function Documents() {
   const { profile, updateProfile } = useProfile();
+  const { t } = useLanguage();
   const [filter, setFilter] = useState('all');
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -98,9 +100,9 @@ export default function Documents() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Citizen Document Vault</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('documents.title', 'Citizen Document Vault')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Keep track of verification documents needed for government welfare schemes and DBT transfers.
+            {t('documents.subtitle', 'Keep track of verification documents needed for government welfare schemes and DBT transfers.')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -110,7 +112,7 @@ export default function Documents() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors"
           >
-            <span>Open DigiLocker</span>
+            <span>{t('documents.digilockerConnected', 'Open DigiLocker')}</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
@@ -128,19 +130,19 @@ export default function Documents() {
       {/* Summary Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Documents</span>
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('documents.totalDocuments', 'Total Documents')}</span>
           <p className="text-2xl font-bold text-gray-900 mt-1">{DOCUMENT_DEFINITIONS.length}</p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm">
-          <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Ready & Available</span>
+          <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">{t('documents.verifiedReady', 'Ready & Available')}</span>
           <p className="text-2xl font-bold text-emerald-600 mt-1">{availableCount}</p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
-          <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">In Progress / Unsure</span>
+          <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">{t('dashboard.underReviewSchemes', 'In Progress / Unsure')}</span>
           <p className="text-2xl font-bold text-amber-600 mt-1">{inProgressCount}</p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
-          <span className="text-xs font-semibold text-rose-600 uppercase tracking-wider">Missing / Needed</span>
+          <span className="text-xs font-semibold text-rose-600 uppercase tracking-wider">{t('documents.missingAction', 'Missing / Needed')}</span>
           <p className="text-2xl font-bold text-rose-600 mt-1">{missingCount}</p>
         </div>
       </div>
@@ -148,10 +150,10 @@ export default function Documents() {
       {/* Filter Tabs */}
       <div className="flex gap-2 border-b border-gray-200 pb-2 overflow-x-auto">
         {[
-          { id: 'all', label: `All (${DOCUMENT_DEFINITIONS.length})` },
-          { id: 'ready', label: `Ready (${availableCount})` },
-          { id: 'pending', label: `In Progress (${inProgressCount})` },
-          { id: 'missing', label: `Missing (${missingCount})` },
+          { id: 'all', label: `${t('schemes.allCategories', 'All')} (${DOCUMENT_DEFINITIONS.length})` },
+          { id: 'ready', label: `${t('documents.availableInVault', 'Ready')} (${availableCount})` },
+          { id: 'pending', label: `${t('applications.underReview', 'In Progress')} (${inProgressCount})` },
+          { id: 'missing', label: `${t('documents.actionRequired', 'Missing')} (${missingCount})` },
         ].map(tab => (
           <button
             key={tab.id}
@@ -216,7 +218,7 @@ export default function Documents() {
 
               {/* Required By */}
               <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Required by schemes:</p>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{t('documents.requiredFor', 'Required by schemes:')}</p>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {doc.requiredBy.map((s, idx) => (
                     <span key={idx} className="text-xs bg-slate-50 text-slate-700 border border-slate-200/60 px-2 py-0.5 rounded-md">
@@ -229,17 +231,17 @@ export default function Documents() {
               {/* Status Selector & Help */}
               <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs">
-                  <label htmlFor={`status-${doc.key}`} className="text-gray-500 font-medium">Status:</label>
+                  <label htmlFor={`status-${doc.key}`} className="text-gray-500 font-medium">{t('schemes.status', 'Status:')}</label>
                   <select
                     id={`status-${doc.key}`}
                     value={status}
                     onChange={(e) => handleStatusChange(doc.key, e.target.value)}
                     className="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
-                    <option value="Yes">Ready (Available)</option>
-                    <option value="In progress">In Progress</option>
+                    <option value="Yes">{t('documents.availableInVault', 'Ready (Available)')}</option>
+                    <option value="In progress">{t('applications.underReview', 'In Progress')}</option>
                     <option value="Not sure">Not Sure</option>
-                    <option value="No">Missing</option>
+                    <option value="No">{t('documents.actionRequired', 'Missing')}</option>
                     <option value="Not applicable">Not Applicable</option>
                   </select>
                 </div>
@@ -250,7 +252,7 @@ export default function Documents() {
                   rel="noopener noreferrer"
                   className="text-xs text-blue-600 hover:text-blue-700 font-semibold inline-flex items-center gap-1"
                 >
-                  <span>Portal</span>
+                  <span>{t('applications.viewPortal', 'Official Portal')}</span>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
@@ -267,13 +269,13 @@ export default function Documents() {
           💡
         </div>
         <div>
-          <h4 className="text-sm font-bold text-blue-900">DigiLocker Integration Recommendation</h4>
+          <h4 className="text-sm font-bold text-blue-900">{t('documents.digilockerConnected', 'DigiLocker Integration Recommendation')}</h4>
           <p className="text-xs text-blue-700 mt-1 leading-relaxed">
             Citizens can fetch legally valid electronic copies of Aadhaar, Driving License, Ration Card, and Class X/XII marksheet directly via DigiLocker. Documents stored in DigiLocker are treated at par with physical originals under Rule 9A of the Information Technology (Preservation and Retention of Information by Intermediaries Providing Digital Locker Facilities) Rules, 2016.
           </p>
           <div className="mt-2">
             <Link to="/schemes" className="text-xs font-bold text-blue-800 hover:underline">
-              ← Browse eligible schemes requiring these documents
+              ← {t('home.exploreSchemes', 'Browse eligible schemes requiring these documents')}
             </Link>
           </div>
         </div>

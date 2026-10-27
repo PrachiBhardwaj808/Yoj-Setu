@@ -54,6 +54,22 @@ export function LanguageProvider({ children }) {
     }
   }, [language]);
 
+  // Synchronize across browser tabs/storage events
+  useEffect(() => {
+    function handleStorage(e) {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        const resolved = resolveLanguage(e.newValue);
+        if (resolved && resolved.code !== language) {
+          setLanguageState(resolved.code);
+        }
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorage);
+      return () => window.removeEventListener('storage', handleStorage);
+    }
+  }, [language]);
+
   /**
    * Set global language with validation and persistence.
    * Accepts code ('hi'), English name ('Hindi'), or native name ('हिन्दी').
@@ -97,25 +113,37 @@ export function LanguageProvider({ children }) {
 
   /**
    * Translate a key with automatic fallback to English and then to the provided fallback text.
+   * Supports optional interpolation params: t('key', 'fallback {name}', { name: 'Priya' })
+   * or t('key', { name: 'Priya' })
    */
   const t = useCallback(
-    (key, fallback = '') => {
+    (key, fallback = '', params = null) => {
       if (!key) return '';
 
-      // Direct match in current language
+      let text = '';
       const localizedDict = TRANSLATIONS[language];
       if (localizedDict && typeof localizedDict[key] === 'string') {
-        return localizedDict[key];
+        text = localizedDict[key];
+      } else {
+        const defaultDict = TRANSLATIONS[DEFAULT_LANGUAGE];
+        if (defaultDict && typeof defaultDict[key] === 'string') {
+          text = defaultDict[key];
+        } else {
+          text = typeof fallback === 'string' && fallback ? fallback : key;
+        }
       }
 
-      // Fallback to English dictionary
-      const defaultDict = TRANSLATIONS[DEFAULT_LANGUAGE];
-      if (defaultDict && typeof defaultDict[key] === 'string') {
-        return defaultDict[key];
+      // Check for parameter object (either 2nd or 3rd argument)
+      const interpolationData =
+        typeof fallback === 'object' && fallback !== null ? fallback : params;
+
+      if (interpolationData && typeof interpolationData === 'object') {
+        Object.entries(interpolationData).forEach(([paramKey, paramVal]) => {
+          text = text.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramVal));
+        });
       }
 
-      // Ultimate fallback
-      return fallback || key;
+      return text;
     },
     [language]
   );

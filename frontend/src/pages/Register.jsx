@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/common/LanguageSelector';
 
 export default function Register() {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const { requestRegisterOTP, verifyRegisterOTP, register } = useAuth();
 
@@ -72,19 +74,19 @@ export default function Register() {
     setError('');
 
     if (!fullName || !phone || !password) {
-      setError('Please fill in all required fields.');
+      setError(t('auth.fillRequired', 'Please fill in all required fields.'));
       return;
     }
     if (phone.length < 10) {
-      setError('Please enter a valid 10-digit mobile number.');
+      setError(t('auth.validPhone', 'Please enter a valid 10-digit mobile number.'));
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      setError(t('auth.passwordLength', 'Password must be at least 6 characters long.'));
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('auth.passwordsMatch', 'Passwords do not match.'));
       return;
     }
 
@@ -122,7 +124,7 @@ export default function Register() {
     setError('');
     const fullOtp = otpDigits.join('');
     if (fullOtp.length !== 6) {
-      setError('Please enter the complete 6-digit OTP code.');
+      setError(t('auth.otpRequired', 'Please enter the complete 6-digit OTP code.'));
       return;
     }
 
@@ -159,9 +161,12 @@ export default function Register() {
             className="h-12 md:h-14 w-auto object-contain hover:opacity-95 transition-opacity"
           />
         </Link>
-        <Link to="/login" className="text-sm font-medium text-[#2563EB] hover:text-blue-700">
-          Sign In
-        </Link>
+        <div className="flex items-center gap-3">
+          <LanguageSelector compact align="right" />
+          <Link to="/login" className="text-sm font-medium text-[#2563EB] hover:text-blue-700">
+            {t('nav.signIn', 'Sign In')}
+          </Link>
+        </div>
       </header>
 
       {/* Main Register Form Container */}
@@ -177,12 +182,12 @@ export default function Register() {
               />
             </div>
             <h1 className="text-2xl font-semibold text-[#0F1B3D] dark:text-gray-100 tracking-tight">
-              {step === 1 ? 'Create your account' : 'Verify mobile number'}
+              {step === 1 ? t('auth.registerTitle', 'Create your account') : t('auth.verifyPhoneTitle', 'Verify mobile number')}
             </h1>
             <p className="text-sm text-[#64748B] dark:text-gray-300">
               {step === 1
-                ? 'Join Yojsetu to discover and apply for eligible government schemes'
-                : `Enter the 6-digit verification code sent to +91 ${phone}`}
+                ? t('auth.registerSubtitle', 'Join Yojsetu to discover and apply for eligible government schemes')
+                : `${t('auth.verifyPhoneSubtitle', 'Enter the 6-digit verification code sent to')} +91 ${phone}`}
             </p>
           </div>
 
@@ -203,71 +208,71 @@ export default function Register() {
           {step === 1 && (
             <form onSubmit={handleRequestOtp} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[#111827] mb-1.5">
-                  Full Name <span className="text-red-500">*</span>
+                <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1.5">
+                  {t('auth.fullNameLabel', 'Full Name')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Rahul Sharma"
+                  placeholder={t('auth.fullNamePlaceholder', 'e.g. Rahul Sharma')}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm text-[#111827] focus:outline-none focus:border-[#2563EB] transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm text-[#111827] dark:text-gray-100 focus:outline-none focus:border-[#2563EB] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#111827] mb-1.5">
-                  Mobile Number <span className="text-red-500">*</span>
+                <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1.5">
+                  {t('auth.phoneLabel', 'Mobile Number')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
                   required
-                  placeholder="10-digit mobile number"
+                  placeholder={t('auth.phonePlaceholder', '10-digit mobile number')}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm text-[#111827] focus:outline-none focus:border-[#2563EB] transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm text-[#111827] dark:text-gray-100 focus:outline-none focus:border-[#2563EB] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#111827] mb-1.5">
-                  Email Address <span className="text-[#64748B] font-normal">(Optional)</span>
+                <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1.5">
+                  {t('auth.emailOptionalLabel', 'Email Address (Optional)')}
                 </label>
                 <input
                   type="email"
-                  placeholder="name@example.com"
+                  placeholder={t('auth.emailPlaceholder', 'name@example.com')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm text-[#111827] focus:outline-none focus:border-[#2563EB] transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm text-[#111827] dark:text-gray-100 focus:outline-none focus:border-[#2563EB] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#111827] mb-1.5">
-                  Password <span className="text-red-500">*</span>
+                <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1.5">
+                  {t('auth.createPasswordLabel', 'Password')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="password"
                   required
-                  placeholder="At least 6 characters"
+                  placeholder={t('auth.createPasswordPlaceholder', 'At least 6 characters')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm text-[#111827] focus:outline-none focus:border-[#2563EB] transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm text-[#111827] dark:text-gray-100 focus:outline-none focus:border-[#2563EB] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#111827] mb-1.5">
-                  Confirm Password <span className="text-red-500">*</span>
+                <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1.5">
+                  {t('auth.confirmPasswordLabel', 'Confirm Password')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="password"
                   required
-                  placeholder="Re-enter password"
+                  placeholder={t('auth.confirmPasswordPlaceholder', 'Re-enter password')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm text-[#111827] focus:outline-none focus:border-[#2563EB] transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm text-[#111827] dark:text-gray-100 focus:outline-none focus:border-[#2563EB] transition-colors"
                 />
               </div>
 
@@ -276,7 +281,7 @@ export default function Register() {
                 disabled={loading}
                 className="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-sm py-3 rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'Sending OTP...' : 'Create account'}
+                {loading ? t('auth.sendingOtp', 'Sending OTP...') : t('auth.continueOtpButton', 'Create account')}
               </button>
             </form>
           )}
@@ -297,7 +302,7 @@ export default function Register() {
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    className="w-11 h-12 text-center text-lg font-semibold bg-white border border-[#E2E8F0] rounded-xl focus:outline-none focus:border-[#2563EB] transition-colors"
+                    className="w-11 h-12 text-center text-lg font-semibold bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl focus:outline-none focus:border-[#2563EB] transition-colors"
                   />
                 ))}
               </div>
@@ -307,20 +312,22 @@ export default function Register() {
                 disabled={loading}
                 className="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-sm py-3 rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'Verifying...' : 'Verify & Continue'}
+                {loading ? t('auth.verifying', 'Verifying...') : t('auth.completeRegistration', 'Verify & Continue')}
               </button>
 
-              <div className="flex items-center justify-between text-xs pt-2 border-t border-[#E2E8F0]">
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-[#E2E8F0] dark:border-gray-800">
                 <button
                   type="button"
                   onClick={() => { setStep(1); setError(''); }}
-                  className="text-[#64748B] hover:text-[#111827]"
+                  className="text-[#64748B] dark:text-gray-400 hover:text-[#111827] dark:hover:text-white"
                 >
-                  ← Edit details
+                  ← {t('auth.backToDetails', 'Edit details')}
                 </button>
 
                 {cooldown > 0 ? (
-                  <span className="text-[#64748B]">Resend code in {cooldown}s</span>
+                  <span className="text-[#64748B] dark:text-gray-400">
+                    {t('auth.resendOtpIn', 'Resend code in {sec}s', { sec: cooldown })}
+                  </span>
                 ) : (
                   <button
                     type="button"
@@ -328,7 +335,7 @@ export default function Register() {
                     disabled={loading}
                     className="font-medium text-[#2563EB] hover:underline cursor-pointer"
                   >
-                    Resend OTP
+                    {t('auth.resendOtp', 'Resend OTP')}
                   </button>
                 )}
               </div>
@@ -337,11 +344,11 @@ export default function Register() {
           )}
 
           {/* Footer Link */}
-          <div className="text-center pt-4 border-t border-[#E2E8F0]">
-            <p className="text-xs text-[#64748B]">
-              Already have an account?{' '}
+          <div className="text-center pt-4 border-t border-[#E2E8F0] dark:border-gray-800">
+            <p className="text-xs text-[#64748B] dark:text-gray-400">
+              {t('auth.alreadyAccount', 'Already have an account?')}{' '}
               <Link to="/login" className="font-medium text-[#2563EB] hover:underline">
-                Sign in
+                {t('auth.signInLink', 'Sign in')}
               </Link>
             </p>
           </div>
@@ -350,7 +357,7 @@ export default function Register() {
       </div>
 
       <footer className="py-4 text-center text-xs text-[#64748B]">
-        © Yojsetu. All rights reserved.
+        {t('home.copyright', '© Yojsetu. All rights reserved.')}
       </footer>
     </div>
   );

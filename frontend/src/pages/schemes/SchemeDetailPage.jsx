@@ -33,7 +33,7 @@ export default function SchemeDetailPage() {
         return (
             <div className="py-16 text-center text-sm text-gray-500">
                 <div className="inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-2" />
-                <p>Loading scheme details...</p>
+                <p>{t('schemes.loadingDetails', 'Loading scheme details...')}</p>
             </div>
         );
     }
@@ -44,17 +44,17 @@ export default function SchemeDetailPage() {
                 <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-xl mb-3">
                     🔍
                 </div>
-                <h2 className="text-lg font-semibold text-[#0F1B3D] mb-1">Scheme not found</h2>
-                <p className="text-sm text-gray-500 mb-6">The requested scheme could not be found or may have been updated.</p>
+                <h2 className="text-lg font-semibold text-[#0F1B3D] mb-1">{t('schemes.notFound', 'Scheme not found')}</h2>
+                <p className="text-sm text-gray-500 mb-6">{t('schemes.notFoundDesc', 'The requested scheme could not be found or may have been updated.')}</p>
                 <Link to="/schemes" className="inline-block px-5 py-2.5 bg-blue-600 text-white text-xs font-semibold rounded-xl hover:bg-blue-700 transition-colors">
-                    ← Back to Schemes Catalog
+                    ← {t('schemes.backToCatalog', 'Back to Schemes Catalog')}
                 </Link>
             </div>
         );
     }
 
     const title = scheme.title || scheme.name || scheme.scheme_name || "Government Scheme";
-    const benefits = scheme.benefitAmount || scheme.benefits || scheme.benefit || "Financial & welfare support";
+    const benefits = scheme.benefitAmount || scheme.benefits || scheme.benefit || t('schemes.financialSupport', 'Financial & welfare support');
     const deadline = scheme.deadline || scheme.government_level || "Rolling / Active";
     const category = scheme.category || "General";
     const description = scheme.description || "Comprehensive central/state welfare support scheme.";
@@ -128,7 +128,7 @@ export default function SchemeDetailPage() {
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                                         doc.is_mandatory ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-600'
                                     }`}>
-                                        {doc.is_mandatory ? 'Mandatory' : 'Optional'}
+                                        {doc.is_mandatory ? t('schemes.mandatory', 'Mandatory') : t('schemes.optional', 'Optional')}
                                     </span>
                                 </div>
                             ))}
@@ -144,7 +144,7 @@ export default function SchemeDetailPage() {
                             rel="noopener noreferrer"
                             className="text-xs text-gray-500 hover:text-blue-600 underline font-medium"
                         >
-                            View Official Government Source Portal ↗
+                            {t('schemes.viewSourcePortal', 'View Official Government Source Portal ↗')}
                         </a>
                     )}
                     <a

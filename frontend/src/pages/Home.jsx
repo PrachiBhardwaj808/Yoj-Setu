@@ -262,19 +262,19 @@ export default function Home() {
           {/* Center Links (Desktop) */}
           <nav className="hidden xl:flex items-center justify-center gap-8 whitespace-nowrap">
             <a href="#about" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
-              About
+              {t('nav.about', 'About')}
             </a>
             <a href="#schemes" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
-              Schemes
+              {t('nav.schemes', 'Schemes')}
             </a>
             <Link to="/applications" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
-              Track Application
+              {t('nav.trackApplication', 'Track Application')}
             </Link>
             <Link to="/safety-centre" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
               {t('nav.safetyCentre', 'Safety Centre')}
             </Link>
             <a href="#how-it-works" className="text-lg font-medium text-[#64748B] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white transition-colors">
-              Help
+              {t('nav.help', 'Help')}
             </a>
           </nav>
 
@@ -282,12 +282,12 @@ export default function Home() {
           <div className="hidden xl:flex items-center justify-self-end gap-3">
             <button
               onClick={toggleTheme}
-              className="flex h-10 items-center gap-2 text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#2563EB] border border-[#E2E8F0] dark:border-gray-700 px-4 rounded-lg transition-colors"
+              className="flex h-10 items-center gap-2 text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#2563EB] border border-[#E2E8F0] dark:border-gray-700 px-4 rounded-lg transition-colors cursor-pointer"
               aria-label="Toggle dark mode"
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
-              <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+              <span>{theme === 'dark' ? t('nav.lightMode', 'Light') : t('nav.darkMode', 'Dark')}</span>
             </button>
 
             {/* Language Selector */}
@@ -298,7 +298,7 @@ export default function Home() {
               to="/login"
               className="text-base font-medium text-[#0F1B3D] dark:text-white hover:text-[#2563EB] px-2 py-2 transition-colors"
             >
-              Login
+              {t('nav.login', 'Login')}
             </Link>
 
             {/* Register CTA */}
@@ -306,14 +306,14 @@ export default function Home() {
               to="/register"
               className="flex h-[42px] items-center bg-[#2563EB] hover:bg-blue-700 text-white text-base font-medium px-5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
             >
-              Register
+              {t('nav.register', 'Register')}
             </Link>
           </div>
 
           {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="col-start-3 xl:hidden p-2 text-[#0F1B3D] dark:text-white hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors justify-self-end"
+            className="col-start-3 xl:hidden p-2 text-[#0F1B3D] dark:text-white hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors justify-self-end cursor-pointer"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -328,21 +328,21 @@ export default function Home() {
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
-              About
+              {t('nav.about', 'About')}
             </a>
             <a
               href="#schemes"
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
-              Schemes
+              {t('nav.schemes', 'Schemes')}
             </a>
             <Link
               to="/applications"
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
-              Track Application
+              {t('nav.trackApplication', 'Track Application')}
             </Link>
             <Link
               to="/safety-centre"
@@ -356,7 +356,7 @@ export default function Home() {
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-medium text-[#111827] dark:text-gray-100 py-1.5"
             >
-              Help
+              {t('nav.help', 'Help')}
             </a>
 
             <div className="pt-3 border-t border-[#E2E8F0] dark:border-gray-700 flex flex-col gap-2">
@@ -365,25 +365,25 @@ export default function Home() {
               </div>
               <button
                 onClick={toggleTheme}
-                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-[#0F1B3D] dark:text-gray-100 py-2 border border-[#E2E8F0] dark:border-gray-700 rounded-xl"
+                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-[#0F1B3D] dark:text-gray-100 py-2 border border-[#E2E8F0] dark:border-gray-700 rounded-xl cursor-pointer"
                 aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
-                <span>{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}</span>
+                <span>{theme === 'dark' ? t('nav.lightMode', 'Light Mode') : t('nav.darkMode', 'Dark Mode')}</span>
               </button>
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center text-sm font-medium text-[#0F1B3D] dark:text-white py-2 border border-[#E2E8F0] dark:border-gray-700 rounded-xl"
               >
-                Login
+                {t('nav.login', 'Login')}
               </Link>
               <Link
                 to="/register"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center text-sm font-medium text-white bg-[#2563EB] py-2.5 rounded-xl"
               >
-                Register
+                {t('nav.register', 'Register')}
               </Link>
             </div>
           </div>
@@ -400,18 +400,18 @@ export default function Home() {
 
             {/* Small Eyebrow */}
             <div className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 text-[#2563EB] px-3 py-1 rounded-full text-xs md:text-sm font-medium">
-              <span>Government schemes, made simple.</span>
+              <span>{t('home.heroBadge', 'Government schemes, made simple.')}</span>
             </div>
 
             {/* Main Heading */}
             <h1 className="text-3xl sm:text-5xl lg:text-[56px] leading-[1.15] font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
-              Find the schemes <br className="hidden sm:inline" />
-              <span className="text-[#2563EB]">you qualify for.</span>
+              {t('home.heroTitleLine1', 'Find the schemes')} <br className="hidden sm:inline" />
+              <span className="text-[#2563EB]">{t('home.heroTitleLine2', 'you qualify for.')}</span>
             </h1>
 
             {/* Supporting text */}
             <p className="text-base sm:text-lg text-[#64748B] dark:text-gray-300 font-regular leading-relaxed max-w-xl">
-              Tell us about yourself. Yojsetu helps you discover government benefits relevant to you.
+              {t('home.heroSubtitle', 'Tell us about yourself. Yojsetu helps you discover government benefits relevant to you.')}
             </p>
 
             {/* Action Buttons */}
@@ -420,7 +420,7 @@ export default function Home() {
                 onClick={() => navigate('/schemes')}
                 className="bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-base px-6 py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
               >
-                <span>Check eligibility</span>
+                <span>{t('home.checkEligibility', 'Check eligibility')}</span>
                 <ArrowRightIcon className="w-4 h-4" />
               </button>
 
@@ -428,14 +428,14 @@ export default function Home() {
                 href="#schemes"
                 className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 hover:border-gray-300 text-[#0F1B3D] dark:text-white font-medium text-base px-6 py-3.5 rounded-xl transition-all flex items-center justify-center cursor-pointer"
               >
-                Explore schemes
+                {t('home.exploreSchemes', 'Explore schemes')}
               </a>
             </div>
 
             {/* Subtle Subtext */}
             <p className="text-xs text-[#64748B] dark:text-gray-300 flex items-center gap-2 pt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>
-              <span>Free to use · No Aadhaar required to explore</span>
+              <span>{t('home.heroSubtext', 'Free to use · No Aadhaar required to explore')}</span>
             </p>
           </div>
 
@@ -446,11 +446,11 @@ export default function Home() {
               {/* Header */}
               <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] dark:border-gray-700">
                 <h3 className="text-sm font-semibold text-[#0F1B3D] dark:text-white">
-                  Your recommendations
+                  {t('home.previewTitle', 'Your recommendations')}
                 </h3>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-[#16A34A] border border-emerald-100">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse"></span>
-                  Matched for you
+                  {t('home.matchedForYou', 'Matched for you')}
                 </span>
               </div>
 
@@ -464,12 +464,12 @@ export default function Home() {
                       <SproutIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">PM Kisan</p>
-                      <p className="text-xs text-[#64748B] dark:text-gray-300">Direct income support</p>
+                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">{t('home.previewKisanTitle', 'PM Kisan')}</p>
+                      <p className="text-xs text-[#64748B] dark:text-gray-300">{t('home.previewKisanDesc', 'Direct income support')}</p>
                     </div>
                   </div>
                   <span className="text-xs font-semibold text-[#0F1B3D] dark:text-white bg-white dark:bg-gray-900 px-2.5 py-1 rounded-md border border-[#E2E8F0] dark:border-gray-700">
-                    ₹6,000/year
+                    {t('home.previewKisanBenefit', '₹6,000/year')}
                   </span>
                 </div>
 
@@ -480,12 +480,12 @@ export default function Home() {
                       <HeartPulseIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">Ayushman Bharat</p>
-                      <p className="text-xs text-[#64748B] dark:text-gray-300">Secondary & tertiary care</p>
+                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">{t('home.previewAyushmanTitle', 'Ayushman Bharat')}</p>
+                      <p className="text-xs text-[#64748B] dark:text-gray-300">{t('home.previewAyushmanDesc', 'Secondary & tertiary care')}</p>
                     </div>
                   </div>
                   <span className="text-xs font-semibold text-[#0F1B3D] dark:text-white bg-white dark:bg-gray-900 px-2.5 py-1 rounded-md border border-[#E2E8F0] dark:border-gray-700">
-                    Health coverage
+                    {t('home.previewAyushmanBenefit', 'Health coverage')}
                   </span>
                 </div>
 
@@ -496,12 +496,12 @@ export default function Home() {
                       <SunIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">PM Surya Ghar</p>
-                      <p className="text-xs text-[#64748B] dark:text-gray-300">Free rooftop solar electricity</p>
+                      <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">{t('home.previewSuryaTitle', 'PM Surya Ghar')}</p>
+                      <p className="text-xs text-[#64748B] dark:text-gray-300">{t('home.previewSuryaDesc', 'Free rooftop solar electricity')}</p>
                     </div>
                   </div>
                   <span className="text-xs font-semibold text-[#0F1B3D] dark:text-white bg-white dark:bg-gray-900 px-2.5 py-1 rounded-md border border-[#E2E8F0] dark:border-gray-700">
-                    Solar subsidy
+                    {t('home.previewSuryaBenefit', 'Solar subsidy')}
                   </span>
                 </div>
 
@@ -509,9 +509,9 @@ export default function Home() {
 
               {/* Matching Footer Hint */}
               <div className="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-gray-700 flex items-center justify-between text-xs text-[#64748B] dark:text-gray-300">
-                <span>Based on profile filters</span>
+                <span>{t('home.basedOnFilters', 'Based on profile filters')}</span>
                 <span className="font-medium text-[#2563EB] hover:underline cursor-pointer" onClick={() => navigate('/schemes')}>
-                  View all 500+ →
+                  {t('home.viewAllSchemes', 'View all 500+ →')}
                 </span>
               </div>
 
@@ -532,7 +532,7 @@ export default function Home() {
                 <FileTextIcon className="w-4 h-4" />
               </div>
               <span className="text-sm sm:text-base font-medium text-[#111827] dark:text-gray-100">
-                500+ schemes
+                {t('home.trustSchemes', '500+ schemes')}
               </span>
             </div>
 
@@ -541,7 +541,7 @@ export default function Home() {
                 <SparklesIcon className="w-4 h-4" />
               </div>
               <span className="text-sm sm:text-base font-medium text-[#111827] dark:text-gray-100">
-                Personalized recommendations
+                {t('home.trustRecommendations', 'Personalized recommendations')}
               </span>
             </div>
 
@@ -550,7 +550,7 @@ export default function Home() {
                 <GlobeIcon className="w-4 h-4" />
               </div>
               <span className="text-sm sm:text-base font-medium text-[#111827] dark:text-gray-100">
-                Available in Indian languages
+                {t('home.trustLanguages', 'Available in Indian languages')}
               </span>
             </div>
 
@@ -565,27 +565,36 @@ export default function Home() {
         {/* Section Header */}
         <div className="space-y-2">
           <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
-            Explore government schemes
+            {t('home.schemesSectionTitle', 'Explore government schemes')}
           </h2>
           <p className="text-base text-[#64748B] dark:text-gray-300">
-            Find benefits across health, education, farming, housing and more.
+            {t('home.schemesSectionSubtitle', 'Find benefits across health, education, farming, housing and more.')}
           </p>
         </div>
 
         {/* Category Filters */}
         <div className="flex items-center gap-2 overflow-x-auto pt-6 pb-2 scrollbar-none">
-          {SCHEME_CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${selectedCategory === cat
-                ? 'bg-[#0F1B3D] text-white shadow-sm'
-                : 'bg-white dark:bg-gray-900 text-[#64748B] dark:text-gray-300 hover:text-[#111827] border border-[#E2E8F0] dark:border-gray-700'
-                }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {SCHEME_CATEGORIES.map(cat => {
+            const catLabel = cat === 'All' ? t('dashboard.all', 'All')
+              : cat === 'Agriculture' ? t('dashboard.agriculture', 'Agriculture')
+              : cat === 'Health' ? t('dashboard.health', 'Health')
+              : cat === 'Education' ? t('dashboard.education', 'Education')
+              : cat === 'Housing' ? t('dashboard.housing', 'Housing')
+              : cat === 'Employment' ? t('dashboard.employment', 'Employment')
+              : cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${selectedCategory === cat
+                  ? 'bg-[#0F1B3D] text-white shadow-sm'
+                  : 'bg-white dark:bg-gray-900 text-[#64748B] dark:text-gray-300 hover:text-[#111827] border border-[#E2E8F0] dark:border-gray-700'
+                  }`}
+              >
+                {catLabel}
+              </button>
+            );
+          })}
         </div>
 
         {/* Scheme Cards Grid */}
@@ -625,7 +634,7 @@ export default function Home() {
                     onClick={() => navigate(`/schemes/${scheme.id}`)}
                     className="text-sm font-medium text-[#2563EB] hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
                   >
-                    <span>View scheme</span>
+                    <span>{t('home.viewScheme', 'View scheme')}</span>
                     <ArrowRightIcon className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -643,10 +652,10 @@ export default function Home() {
 
           <div className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
-              Simple from start to finish
+              {t('home.howItWorksTitle', 'Simple from start to finish')}
             </h2>
             <p className="text-base text-[#64748B] dark:text-gray-300 mt-2">
-              Discovering and applying for benefits requires only three clear steps.
+              {t('home.howItWorksSubtitle', 'Discovering and applying for benefits requires only three clear steps.')}
             </p>
           </div>
 
@@ -659,14 +668,14 @@ export default function Home() {
                   01
                 </span>
                 <h3 className="text-lg font-semibold text-[#0F1B3D] dark:text-white">
-                  Tell us about yourself
+                  {t('home.step1Title', 'Tell us about yourself')}
                 </h3>
                 <p className="text-sm text-[#64748B] dark:text-gray-300 leading-relaxed mt-2">
-                  Answer a few simple questions regarding age, occupation, location, and income in under 2 minutes.
+                  {t('home.step1Desc', 'Answer a few simple questions regarding age, occupation, location, and income in under 2 minutes.')}
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#E2E8F0] dark:border-gray-700 text-xs text-[#64748B] dark:text-gray-300">
-                No Aadhaar or personal ID required to explore
+                {t('home.step1Note', 'No Aadhaar or personal ID required to explore')}
               </div>
             </div>
 
@@ -677,14 +686,14 @@ export default function Home() {
                   02
                 </span>
                 <h3 className="text-lg font-semibold text-[#0F1B3D] dark:text-white">
-                  Discover eligible schemes
+                  {t('home.step2Title', 'Discover eligible schemes')}
                 </h3>
                 <p className="text-sm text-[#64748B] dark:text-gray-300 leading-relaxed mt-2">
-                  Our matching engine instantly analyzes 500+ central and state schemes tailored to your exact profile.
+                  {t('home.step2Desc', 'Our matching engine instantly analyzes 500+ central and state schemes tailored to your exact profile.')}
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#E2E8F0] dark:border-gray-700 text-xs text-[#64748B] dark:text-gray-300">
-                Clear breakdown of benefits & requirements
+                {t('home.step2Note', 'Clear breakdown of benefits & requirements')}
               </div>
             </div>
 
@@ -695,14 +704,14 @@ export default function Home() {
                   03
                 </span>
                 <h3 className="text-lg font-semibold text-[#0F1B3D] dark:text-white">
-                  Apply with confidence
+                  {t('home.step3Title', 'Apply with confidence')}
                 </h3>
                 <p className="text-sm text-[#64748B] dark:text-gray-300 leading-relaxed mt-2">
-                  Get document checklists and direct access to official application portals without middlemen.
+                  {t('home.step3Desc', 'Get document checklists and direct access to official application portals without middlemen.')}
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#E2E8F0] dark:border-gray-700 text-xs text-[#64748B] dark:text-gray-300">
-                Step-by-step guidance & status tracking
+                {t('home.step3Note', 'Step-by-step guidance & status tracking')}
               </div>
             </div>
 
@@ -717,10 +726,10 @@ export default function Home() {
 
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
-            Need help finding the right scheme?
+            {t('home.assistantTitle', 'Need help finding the right scheme?')}
           </h2>
           <p className="text-base text-[#64748B] dark:text-gray-300 mt-2">
-            Ask Yojsetu in your language.
+            {t('home.assistantSubtitle', 'Ask Yojsetu in your language.')}
           </p>
         </div>
 
@@ -734,13 +743,13 @@ export default function Home() {
                 Y
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">Yojsetu Assistant</p>
-                <p className="text-[11px] text-[#64748B] dark:text-gray-300">Multilingual Civic Guide</p>
+                <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">{t('home.assistantCardTitle', 'Yojsetu Assistant')}</p>
+                <p className="text-[11px] text-[#64748B] dark:text-gray-300">{t('home.assistantCardSubtitle', 'Multilingual Civic Guide')}</p>
               </div>
             </div>
             <span className="inline-flex items-center gap-1 text-xs font-medium text-[#16A34A] bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>
-              Online
+              {t('home.assistantOnline', 'Online')}
             </span>
           </div>
 
@@ -750,14 +759,14 @@ export default function Home() {
             {/* User message */}
             <div className="flex justify-end">
               <div className="bg-[#F8FAFC] dark:bg-gray-950 text-[#111827] dark:text-gray-100 border border-[#E2E8F0] dark:border-gray-700 px-4 py-3 rounded-2xl rounded-tr-xs text-sm max-w-md">
-                Which schemes can help my family?
+                {t('home.assistantQueryPreview', 'Which schemes can help my family?')}
               </div>
             </div>
 
             {/* Yojsetu message */}
             <div className="flex justify-start">
               <div className="bg-[#0F1B3D] text-white px-4 py-3 rounded-2xl rounded-tl-xs text-sm max-w-md space-y-1.5 leading-relaxed">
-                <p>Based on your profile, here are 3 schemes you may be eligible for:</p>
+                <p>{t('home.assistantReplyPreview', 'Based on your profile, here are 3 schemes you may be eligible for:')}</p>
                 <ul className="text-xs text-slate-300 space-y-1 pt-1 list-disc list-inside">
                   <li>PM Kisan Samman Nidhi</li>
                   <li>Ayushman Bharat Health Cover</li>
@@ -773,7 +782,7 @@ export default function Home() {
             <input
               type="text"
               readOnly
-              value="Type your question in Hindi, English, Punjabi..."
+              value={t('home.assistantInputPlaceholder', 'Type your question in Hindi, English, Punjabi...')}
               className="bg-transparent text-sm text-[#64748B] dark:text-gray-300 px-3 w-full focus:outline-none cursor-pointer"
               onClick={() => navigate('/assistant')}
             />
@@ -788,7 +797,7 @@ export default function Home() {
               onClick={() => navigate('/assistant')}
               className="bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-medium px-4 py-2.5 rounded-lg transition-all cursor-pointer shrink-0"
             >
-              Ask
+              {t('home.assistantAskBtn', 'Ask')}
             </button>
           </div>
 
@@ -835,23 +844,23 @@ export default function Home() {
 
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-2xl sm:text-3xl font-semibold text-[#0F1B3D] dark:text-white tracking-tight">
-            Built for citizens
+            {t('home.testimonialsTitle', 'Built for citizens')}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((t, idx) => (
+          {TESTIMONIALS.map((testimonialItem, idx) => (
             <div
               key={idx}
               className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-xl p-6 flex flex-col justify-between shadow-sm"
             >
               <p className="text-sm text-[#111827] dark:text-gray-100 leading-relaxed italic">
-                "{t.quote}"
+                "{testimonialItem.quote}"
               </p>
 
               <div className="mt-6 pt-4 border-t border-[#E2E8F0] dark:border-gray-700">
-                <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">{t.name}</p>
-                <p className="text-xs text-[#64748B] dark:text-gray-300">{t.location}</p>
+                <p className="text-sm font-semibold text-[#0F1B3D] dark:text-white">{testimonialItem.name}</p>
+                <p className="text-xs text-[#64748B] dark:text-gray-300">{testimonialItem.location}</p>
               </div>
             </div>
           ))}
@@ -866,17 +875,17 @@ export default function Home() {
 
           <div className="relative z-10 max-w-xl mx-auto space-y-4">
             <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white">
-              Ready to find your benefits?
+              {t('home.ctaTitle', 'Ready to find your benefits?')}
             </h2>
             <p className="text-slate-300 text-base sm:text-lg">
-              Check your eligibility in a few simple steps.
+              {t('home.ctaSubtitle', 'Check your eligibility in a few simple steps.')}
             </p>
             <div className="pt-4">
               <button
                 onClick={() => navigate('/schemes')}
                 className="bg-[#2563EB] hover:bg-blue-600 text-white font-medium text-base px-8 py-3.5 rounded-xl transition-all shadow-sm inline-flex items-center gap-2 cursor-pointer active:scale-[0.99]"
               >
-                <span>Check my eligibility</span>
+                <span>{t('home.ctaButton', 'Check my eligibility')}</span>
                 <ArrowRightIcon className="w-4 h-4" />
               </button>
             </div>
@@ -901,26 +910,26 @@ export default function Home() {
                 />
               </Link>
               <p className="text-sm text-[#64748B] dark:text-gray-300 mt-2 max-w-xs">
-                Making government benefits easier to discover.
+                {t('home.footerTagline', 'Making government benefits easier to discover.')}
               </p>
             </div>
 
             {/* Nav Links */}
             <div className="flex flex-wrap items-center gap-6 text-sm text-[#64748B] dark:text-gray-300">
-              <a href="#about" className="hover:text-[#111827] transition-colors">About</a>
-              <a href="#schemes" className="hover:text-[#111827] transition-colors">Schemes</a>
-              <Link to="/applications" className="hover:text-[#111827] transition-colors">Track Application</Link>
-              <a href="#how-it-works" className="hover:text-[#111827] transition-colors">Help</a>
+              <a href="#about" className="hover:text-[#111827] transition-colors">{t('nav.about', 'About')}</a>
+              <a href="#schemes" className="hover:text-[#111827] transition-colors">{t('nav.schemes', 'Schemes')}</a>
+              <Link to="/applications" className="hover:text-[#111827] transition-colors">{t('nav.trackApplication', 'Track Application')}</Link>
+              <a href="#how-it-works" className="hover:text-[#111827] transition-colors">{t('nav.help', 'Help')}</a>
               <span className="text-[#E2E8F0]">|</span>
-              <span className="hover:text-[#111827] cursor-pointer">Privacy</span>
-              <span className="hover:text-[#111827] cursor-pointer">Terms</span>
+              <span className="hover:text-[#111827] cursor-pointer">{t('home.privacy', 'Privacy')}</span>
+              <span className="hover:text-[#111827] cursor-pointer">{t('home.terms', 'Terms')}</span>
             </div>
 
           </div>
 
           <div className="mt-8 pt-6 border-t border-[#E2E8F0] dark:border-gray-700 flex items-center justify-between text-xs text-[#64748B] dark:text-gray-300">
-            <p>© Yojsetu. All rights reserved.</p>
-            <p>Made for Indian Citizens</p>
+            <p>{t('home.copyright', '© Yojsetu. All rights reserved.')}</p>
+            <p>{t('home.madeForCitizens', 'Made for Indian Citizens')}</p>
           </div>
         </div>
       </footer>

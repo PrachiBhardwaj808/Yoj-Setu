@@ -271,12 +271,12 @@ export default function Dashboard() {
           ) : filteredRecommendations.length === 0 ? (
             <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 text-center space-y-3">
               <SearchIcon className="w-8 h-8 text-[#64748B] mx-auto" />
-              <p className="text-sm font-semibold text-[#0F1B3D]">No schemes match this filter</p>
+              <p className="text-sm font-semibold text-[#0F1B3D]">{t('dashboard.noSchemesMatch', 'No schemes match this filter')}</p>
               <button
                 onClick={() => setSelectedCategory('All')}
                 className="text-xs font-medium text-[#2563EB] hover:underline"
               >
-                Reset category filter
+                {t('dashboard.resetFilter', 'Reset category filter')}
               </button>
             </div>
           ) : (
@@ -309,7 +309,7 @@ export default function Dashboard() {
                               ? 'bg-amber-50 text-amber-700 border-amber-200'
                               : 'bg-rose-50 text-rose-700 border-rose-200'
                           }`}>
-                            {scheme.match_score || 90}% Match
+                            {t('dashboard.match', '{score}% Match', { score: scheme.match_score || 90 })}
                           </span>
                           <span className="text-xs font-medium text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
                             {scheme.benefit}
@@ -335,9 +335,9 @@ export default function Dashboard() {
                             ) : (
                               <WarningIcon className="w-3.5 h-3.5 text-amber-600" />
                             )}
-                            Why you qualify:
+                            {t('dashboard.whyQualify', 'Why you qualify:')}
                           </span>
-                          <span className="text-[10px] text-[#64748B]">State: {scheme.state || 'All India'}</span>
+                          <span className="text-[10px] text-[#64748B]">{t('dashboard.stateLabel', 'State:')} {scheme.state || t('dashboard.allIndia', 'All India')}</span>
                         </div>
                         <p className="text-[11px] text-[#64748B] leading-normal">
                           {scheme.reason}
@@ -347,7 +347,7 @@ export default function Dashboard() {
                       {/* Document Readiness Pill Row */}
                       {scheme.documents && scheme.documents.length > 0 && (
                         <div className="mt-3 flex items-center gap-2 overflow-x-auto text-[11px]">
-                          <span className="text-[#64748B] font-medium shrink-0">Docs:</span>
+                          <span className="text-[#64748B] font-medium shrink-0">{t('dashboard.docsLabel', 'Docs:')}</span>
                           {scheme.documents.slice(0, 3).map((d, i) => (
                             <span
                               key={i}
@@ -361,7 +361,7 @@ export default function Dashboard() {
                             </span>
                           ))}
                           {scheme.documents.length > 3 && (
-                            <span className="text-[10px] text-[#64748B]">+{scheme.documents.length - 3} more</span>
+                            <span className="text-[10px] text-[#64748B]">{t('dashboard.moreDocs', '+{count} more', { count: scheme.documents.length - 3 })}</span>
                           )}
                         </div>
                       )}
@@ -370,13 +370,13 @@ export default function Dashboard() {
                     {/* Footer Card Row */}
                     <div className="pt-4 mt-4 border-t border-[#E2E8F0] flex items-center justify-between">
                       <span className="text-xs text-[#64748B]">
-                        Govt: <strong className="text-[#0F1B3D]">{scheme.government_level || 'Central'}</strong>
+                        {t('dashboard.govtLabel', 'Govt:')} <strong className="text-[#0F1B3D]">{scheme.government_level || 'Central'}</strong>
                       </span>
                       <button
                         onClick={() => setSelectedSchemeModal(scheme)}
                         className="text-xs font-medium text-[#2563EB] hover:text-blue-700 flex items-center gap-1 transition-colors cursor-pointer"
                       >
-                        <span>View scheme details</span>
+                        <span>{t('dashboard.viewSchemeDetails', 'View scheme details')}</span>
                         <ArrowRightIcon className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -393,24 +393,24 @@ export default function Dashboard() {
           {/* Deterministic Engine Summary */}
           <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">Deterministic Eligibility Summary</h3>
-              <span className="text-xs text-[#64748B]">Calculated by rule engine</span>
+              <h3 className="text-base font-semibold text-[#0F1B3D]">{t('dashboard.summaryTitle', 'Deterministic Eligibility Summary')}</h3>
+              <span className="text-xs text-[#64748B]">{t('dashboard.calculatedByEngine', 'Calculated by rule engine')}</span>
             </div>
 
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
                 <span className="text-2xl font-bold text-[#0F1B3D]">{recommendations.length}</span>
-                <p className="text-xs text-[#64748B] mt-1">Total Evaluated</p>
+                <p className="text-xs text-[#64748B] mt-1">{t('schemes.schemesCount', 'Total Evaluated')}</p>
               </div>
 
               <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
                 <span className="text-2xl font-bold text-[#16A34A]">{eligibleCount}</span>
-                <p className="text-xs text-[#16A34A] font-medium mt-1">Eligible Schemes</p>
+                <p className="text-xs text-[#16A34A] font-medium mt-1">{t('dashboard.eligibleSchemes', 'Eligible Schemes')}</p>
               </div>
 
               <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
                 <span className="text-2xl font-bold text-amber-600">{reviewCount}</span>
-                <p className="text-xs text-amber-700 font-medium mt-1">Needs Information</p>
+                <p className="text-xs text-amber-700 font-medium mt-1">{t('dashboard.underReviewSchemes', 'Needs Information')}</p>
               </div>
             </div>
 
@@ -421,7 +421,7 @@ export default function Dashboard() {
 
           {/* Quick Actions */}
           <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
-            <h3 className="text-base font-semibold text-[#0F1B3D]">Quick actions</h3>
+            <h3 className="text-base font-semibold text-[#0F1B3D]">{t('dashboard.quickActionsTitle', 'Quick actions')}</h3>
 
             <div className="grid grid-cols-2 gap-3">
               <Link
@@ -429,7 +429,7 @@ export default function Dashboard() {
                 className="p-3.5 bg-[#F8FAFC] hover:bg-blue-50 border border-[#E2E8F0] hover:border-blue-200 rounded-xl flex flex-col justify-between transition-colors group"
               >
                 <SearchIcon className="w-5 h-5 text-[#0F1B3D] group-hover:text-[#2563EB]" />
-                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Discover all schemes</span>
+                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">{t('home.exploreSchemes', 'Discover all schemes')}</span>
               </Link>
 
               <Link
@@ -437,7 +437,7 @@ export default function Dashboard() {
                 className="p-3.5 bg-[#F8FAFC] hover:bg-blue-50 border border-[#E2E8F0] hover:border-blue-200 rounded-xl flex flex-col justify-between transition-colors group"
               >
                 <TargetIcon className="w-5 h-5 text-[#0F1B3D] group-hover:text-[#2563EB]" />
-                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Update profile</span>
+                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">{t('dashboard.updateProfileTitle', 'Update profile')}</span>
               </Link>
 
               <Link
@@ -445,7 +445,7 @@ export default function Dashboard() {
                 className="p-3.5 bg-[#F8FAFC] hover:bg-blue-50 border border-[#E2E8F0] hover:border-blue-200 rounded-xl flex flex-col justify-between transition-colors group"
               >
                 <BotIcon className="w-5 h-5 text-[#0F1B3D] group-hover:text-[#2563EB]" />
-                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">Ask AI Assistant</span>
+                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">{t('dashboard.askSathiTitle', 'Ask AI Assistant')}</span>
               </Link>
 
               <Link
@@ -453,7 +453,7 @@ export default function Dashboard() {
                 className="p-3.5 bg-[#F8FAFC] hover:bg-blue-50 border border-[#E2E8F0] hover:border-blue-200 rounded-xl flex flex-col justify-between transition-colors group"
               >
                 <FileTextIcon className="w-5 h-5 text-[#0F1B3D] group-hover:text-[#2563EB]" />
-                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">My Applications</span>
+                <span className="text-xs font-semibold text-[#0F1B3D] mt-3 group-hover:text-[#2563EB]">{t('nav.applications', 'My Applications')}</span>
               </Link>
             </div>
           </div>
@@ -464,7 +464,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">Your applications</h3>
+              <h3 className="text-base font-semibold text-[#0F1B3D]">{t('applications.title', 'Your applications')}</h3>
               <Link to="/applications" className="text-xs font-medium text-[#2563EB] hover:underline">
                 View status →
               </Link>
@@ -473,21 +473,21 @@ export default function Dashboard() {
             <div className="p-8 text-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
               <FileTextIcon className="w-8 h-8 text-[#64748B] mx-auto" />
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-[#0F1B3D]">No active applications yet</p>
-                <p className="text-xs text-[#64748B]">Select an eligible scheme above to start auto-fill & document verification.</p>
+                <p className="text-sm font-semibold text-[#0F1B3D]">{t('applications.noApplications', 'No active applications yet')}</p>
+                <p className="text-xs text-[#64748B]">{t('applications.noApplicationsDesc', 'Select an eligible scheme above to start auto-fill & document verification.')}</p>
               </div>
               <Link
                 to="/schemes"
                 className="inline-block bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs mt-2"
               >
-                Explore schemes
+                {t('home.exploreSchemes', 'Explore schemes')}
               </Link>
             </div>
           </div>
 
           <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">Recent updates</h3>
+              <h3 className="text-base font-semibold text-[#0F1B3D]">{t('dashboard.recentNotifications', 'Recent updates')}</h3>
             </div>
 
             <div className="space-y-3">
@@ -521,7 +521,7 @@ export default function Dashboard() {
             className="bg-[#2563EB] hover:bg-blue-600 text-white font-medium text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
           >
             <MicIcon className="w-4 h-4" />
-            <span>Ask Yojsetu AI</span>
+            <span>{t('dashboard.askSathiTitle', 'Ask Yojsetu AI')}</span>
           </button>
         </div>
 
@@ -555,7 +555,7 @@ export default function Dashboard() {
               </div>
 
               <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-xs space-y-1">
-                <span className="font-semibold text-[#0F1B3D] block">Why you qualify:</span>
+                <span className="font-semibold text-[#0F1B3D] block">{t('dashboard.whyQualify', 'Why you qualify:')}</span>
                 <p className="text-[#64748B] leading-relaxed">{selectedSchemeModal.reason}</p>
               </div>
 
@@ -577,7 +577,7 @@ export default function Dashboard() {
               {/* Document Readiness Checklist */}
               {selectedSchemeModal.documents && selectedSchemeModal.documents.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs font-semibold text-[#0F1B3D] block">Required Documents:</span>
+                  <span className="text-xs font-semibold text-[#0F1B3D] block">{t('schemes.requiredDocuments', 'Required Documents:')}</span>
                   <div className="space-y-1.5">
                     {selectedSchemeModal.documents.map((doc, idx) => (
                       <div key={idx} className="flex items-center justify-between text-xs p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg">
@@ -612,7 +612,7 @@ export default function Dashboard() {
                   onClick={() => setSelectedSchemeModal(null)}
                   className="px-4 py-2 border border-[#E2E8F0] rounded-xl text-xs font-medium text-[#0F1B3D] hover:bg-slate-50 cursor-pointer"
                 >
-                  Close
+                  {t('common.close', 'Close')}
                 </button>
                 <button
                   onClick={() => {
@@ -621,7 +621,7 @@ export default function Dashboard() {
                   }}
                   className="px-5 py-2 bg-[#2563EB] text-white rounded-xl text-xs font-semibold hover:bg-blue-700 cursor-pointer"
                 >
-                  Apply Now →
+                  {t('schemes.applyNow', 'Apply Now →')}
                 </button>
               </div>
             </div>

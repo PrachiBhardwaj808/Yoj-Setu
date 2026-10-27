@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/common/LanguageSelector';
 
 export default function Login() {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const { login, loginWithOTP, requestLoginOTP, requestForgotPasswordOTP, verifyForgotPasswordOTP, resetPassword } = useAuth();
 
@@ -92,7 +94,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     if (!identifier || !password) {
-      setError('Please enter your mobile number/email and password.');
+      setError(t('auth.fillRequired', 'Please enter your mobile number/email and password.'));
       return;
     }
     setLoading(true);
@@ -112,7 +114,7 @@ export default function Login() {
     setError('');
     setSuccessMsg('');
     if (!phone || phone.length < 10) {
-      setError('Please enter a valid 10-digit mobile number.');
+      setError(t('auth.validPhone', 'Please enter a valid 10-digit mobile number.'));
       return;
     }
     setLoading(true);
@@ -135,7 +137,7 @@ export default function Login() {
     setError('');
     const fullOtp = otpDigits.join('');
     if (fullOtp.length !== 6) {
-      setError('Please enter the complete 6-digit OTP.');
+      setError(t('auth.otpRequired', 'Please enter the complete 6-digit OTP.'));
       return;
     }
     setLoading(true);
@@ -154,7 +156,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     if (!forgotPhone || forgotPhone.length < 10) {
-      setError('Please enter a valid 10-digit mobile number.');
+      setError(t('auth.validPhone', 'Please enter a valid 10-digit mobile number.'));
       return;
     }
     setLoading(true);
@@ -175,7 +177,7 @@ export default function Login() {
     setError('');
     const fullOtp = forgotOtpDigits.join('');
     if (fullOtp.length !== 6) {
-      setError('Please enter the 6-digit OTP code.');
+      setError(t('auth.otpRequired', 'Please enter the 6-digit OTP code.'));
       return;
     }
     setLoading(true);
@@ -195,11 +197,11 @@ export default function Login() {
     e.preventDefault();
     setError('');
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError(t('auth.passwordLength', 'Password must be at least 6 characters.'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('auth.passwordsMatch', 'Passwords do not match.'));
       return;
     }
     setLoading(true);
@@ -208,7 +210,7 @@ export default function Login() {
       setShowForgotModal(false);
       setForgotStep(1);
       setActiveTab('password');
-      setSuccessMsg('Password updated successfully. Please sign in with your new password.');
+      setSuccessMsg(t('auth.resetSuccess', 'Password updated successfully. Please sign in with your new password.'));
     } catch (err) {
       setError(err.message || 'Failed to reset password.');
     } finally {
@@ -228,9 +230,12 @@ export default function Login() {
             className="h-12 md:h-14 w-auto object-contain hover:opacity-95 transition-opacity"
           />
         </Link>
-        <Link to="/register" className="text-sm font-medium text-[#2563EB] hover:text-blue-700">
-          Create Account
-        </Link>
+        <div className="flex items-center gap-3">
+          <LanguageSelector compact align="right" />
+          <Link to="/register" className="text-sm font-medium text-[#2563EB] hover:text-blue-700">
+            {t('nav.register', 'Create Account')}
+          </Link>
+        </div>
       </header>
 
       {/* Main Login Card */}
@@ -245,27 +250,31 @@ export default function Login() {
                 className="h-24 md:h-28 w-auto object-contain"
               />
             </div>
-            <h1 className="text-2xl font-semibold text-[#0F1B3D] dark:text-gray-100 tracking-tight">Welcome back</h1>
-            <p className="text-sm text-[#64748B] dark:text-gray-300">Sign in to access your saved schemes and applications</p>
+            <h1 className="text-2xl font-semibold text-[#0F1B3D] dark:text-gray-100 tracking-tight">
+              {t('auth.loginTitle', 'Welcome back')}
+            </h1>
+            <p className="text-sm text-[#64748B] dark:text-gray-300">
+              {t('auth.loginSubtitle', 'Sign in to access your saved schemes and applications')}
+            </p>
           </div>
 
           {/* Mode Switcher Tabs */}
-          <div className="flex bg-[#F8FAFC] p-1 rounded-xl border border-[#E2E8F0]">
+          <div className="flex bg-[#F8FAFC] dark:bg-gray-800 p-1 rounded-xl border border-[#E2E8F0] dark:border-gray-700">
             <button
               onClick={() => { setActiveTab('password'); setError(''); setSuccessMsg(''); }}
               className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-                activeTab === 'password' ? 'bg-white text-[#0F1B3D] shadow-xs' : 'text-[#64748B] hover:text-[#111827]'
+                activeTab === 'password' ? 'bg-white dark:bg-gray-700 text-[#0F1B3D] dark:text-white shadow-xs' : 'text-[#64748B] dark:text-gray-400 hover:text-[#111827] dark:hover:text-white'
               }`}
             >
-              Password Login
+              {t('auth.tabPassword', 'Password Login')}
             </button>
             <button
               onClick={() => { setActiveTab('otp'); setError(''); setSuccessMsg(''); }}
               className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-                activeTab === 'otp' ? 'bg-white text-[#0F1B3D] shadow-xs' : 'text-[#64748B] hover:text-[#111827]'
+                activeTab === 'otp' ? 'bg-white dark:bg-gray-700 text-[#0F1B3D] dark:text-white shadow-xs' : 'text-[#64748B] dark:text-gray-400 hover:text-[#111827] dark:hover:text-white'
               }`}
             >
-              Login with OTP
+              {t('auth.tabOtp', 'Login with OTP')}
             </button>
           </div>
 
@@ -293,28 +302,30 @@ export default function Login() {
           {activeTab === 'password' && (
             <form onSubmit={handlePasswordLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[#111827] mb-1.5">
-                  Mobile Number or Email
+                <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1.5">
+                  {t('auth.identifierLabel', 'Mobile Number or Email')}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Enter 10-digit phone or email"
+                  placeholder={t('auth.identifierPlaceholder', 'Enter 10-digit phone or email')}
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm text-[#111827] focus:outline-none focus:border-[#2563EB] transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm text-[#111827] dark:text-gray-100 focus:outline-none focus:border-[#2563EB] transition-colors"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-medium text-[#111827]">Password</label>
+                  <label className="block text-xs font-medium text-[#111827] dark:text-gray-200">
+                    {t('auth.passwordLabel', 'Password')}
+                  </label>
                   <button
                     type="button"
                     onClick={() => { setShowForgotModal(true); setForgotStep(1); setError(''); setSuccessMsg(''); }}
                     className="text-xs font-medium text-[#2563EB] hover:underline cursor-pointer"
                   >
-                    Forgot password?
+                    {t('auth.forgotPasswordLink', 'Forgot password?')}
                   </button>
                 </div>
                 <input
@@ -323,7 +334,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm text-[#111827] focus:outline-none focus:border-[#2563EB] transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm text-[#111827] dark:text-gray-100 focus:outline-none focus:border-[#2563EB] transition-colors"
                 />
               </div>
 
@@ -332,7 +343,7 @@ export default function Login() {
                 disabled={loading}
                 className="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-sm py-3 rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'Signing in...' : 'Sign in'}
+                {loading ? t('auth.signingIn', 'Signing in...') : t('auth.signInButton', 'Sign in')}
               </button>
             </form>
           )}
@@ -343,16 +354,16 @@ export default function Login() {
               {!otpSent ? (
                 <form onSubmit={handleSendLoginOtp} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-[#111827] mb-1.5">
-                      Mobile Number
+                    <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1.5">
+                      {t('auth.phoneLabel', 'Mobile Number')}
                     </label>
                     <input
                       type="tel"
                       required
-                      placeholder="10-digit mobile number"
+                      placeholder={t('auth.phonePlaceholder', '10-digit mobile number')}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm text-[#111827] focus:outline-none focus:border-[#2563EB] transition-colors"
+                      className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm text-[#111827] dark:text-gray-100 focus:outline-none focus:border-[#2563EB] transition-colors"
                     />
                   </div>
 
@@ -361,14 +372,18 @@ export default function Login() {
                     disabled={loading}
                     className="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-sm py-3 rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
                   >
-                    {loading ? 'Sending code...' : 'Request OTP'}
+                    {loading ? t('auth.sendingOtp', 'Sending code...') : t('auth.sendOtpButton', 'Request OTP')}
                   </button>
                 </form>
               ) : (
                 <form onSubmit={handleVerifyLoginOtp} className="space-y-5">
                   <div className="text-center space-y-1">
-                    <p className="text-xs font-medium text-[#111827]">Verify your mobile number</p>
-                    <p className="text-xs text-[#64748B]">Enter the 6-digit code sent to {phone}</p>
+                    <p className="text-xs font-medium text-[#111827] dark:text-gray-200">
+                      {t('auth.verifyPhoneTitle', 'Verify your mobile number')}
+                    </p>
+                    <p className="text-xs text-[#64748B] dark:text-gray-400">
+                      {t('auth.enterOtpPrompt', 'Enter the 6-digit code sent to')} {phone}
+                    </p>
                   </div>
 
                   {/* 6 OTP Boxes */}
@@ -383,7 +398,7 @@ export default function Login() {
                         value={digit}
                         onChange={(e) => handleOtpChange(idx, e.target.value, false)}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e, false)}
-                        className="w-11 h-12 text-center text-lg font-semibold bg-white border border-[#E2E8F0] rounded-xl focus:outline-none focus:border-[#2563EB] transition-colors"
+                        className="w-11 h-12 text-center text-lg font-semibold bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl focus:outline-none focus:border-[#2563EB] transition-colors"
                       />
                     ))}
                   </div>
@@ -393,19 +408,21 @@ export default function Login() {
                     disabled={loading}
                     className="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-sm py-3 rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
                   >
-                    {loading ? 'Verifying...' : 'Verify & Login'}
+                    {loading ? t('auth.verifying', 'Verifying...') : t('auth.verifyOtpSignIn', 'Verify & Login')}
                   </button>
 
-                  <div className="text-center pt-2 border-t border-[#E2E8F0]">
+                  <div className="text-center pt-2 border-t border-[#E2E8F0] dark:border-gray-800">
                     {cooldown > 0 ? (
-                      <span className="text-xs text-[#64748B]">Resend code in {cooldown}s</span>
+                      <span className="text-xs text-[#64748B] dark:text-gray-400">
+                        {t('auth.resendOtpIn', 'Resend code in {sec}s', { sec: cooldown })}
+                      </span>
                     ) : (
                       <button
                         type="button"
                         onClick={handleSendLoginOtp}
                         className="text-xs font-medium text-[#2563EB] hover:underline cursor-pointer"
                       >
-                        Resend OTP
+                        {t('auth.resendOtp', 'Resend OTP')}
                       </button>
                     )}
                   </div>
@@ -415,11 +432,11 @@ export default function Login() {
           )}
 
           {/* Footer Link */}
-          <div className="text-center pt-4 border-t border-[#E2E8F0]">
-            <p className="text-xs text-[#64748B]">
-              Don't have an account?{' '}
+          <div className="text-center pt-4 border-t border-[#E2E8F0] dark:border-gray-800">
+            <p className="text-xs text-[#64748B] dark:text-gray-400">
+              {t('auth.noAccount', "Don't have an account?")}{' '}
               <Link to="/register" className="font-medium text-[#2563EB] hover:underline">
-                Register now
+                {t('auth.registerLink', 'Register now')}
               </Link>
             </p>
           </div>
@@ -430,20 +447,22 @@ export default function Login() {
       {/* ── FORGOT PASSWORD MODAL ── */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl max-w-md w-full p-6 space-y-5 relative shadow-lg">
+          <div className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-2xl max-w-md w-full p-6 space-y-5 relative shadow-lg">
             
-            <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">Reset Password</h3>
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0] dark:border-gray-800">
+              <h3 className="text-base font-semibold text-[#0F1B3D] dark:text-gray-100">
+                {t('auth.forgotModalTitle', 'Reset Password')}
+              </h3>
               <button
                 onClick={() => setShowForgotModal(false)}
-                className="text-[#64748B] hover:text-[#111827] font-bold text-lg cursor-pointer"
+                className="text-[#64748B] hover:text-[#111827] dark:hover:text-white font-bold text-lg cursor-pointer"
               >
                 ×
               </button>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-xl text-xs">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs">
                 {error}
               </div>
             )}
@@ -452,22 +471,24 @@ export default function Login() {
             {forgotStep === 1 && (
               <form onSubmit={handleRequestForgotOtp} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-[#111827] mb-1.5">Mobile Number</label>
+                  <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1.5">
+                    {t('auth.phoneLabel', 'Mobile Number')}
+                  </label>
                   <input
                     type="tel"
                     required
-                    placeholder="Enter registered 10-digit number"
+                    placeholder={t('auth.phonePlaceholder', 'Enter registered 10-digit number')}
                     value={forgotPhone}
                     onChange={(e) => setForgotPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#2563EB] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700"
+                  className="w-full bg-[#2563EB] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 cursor-pointer"
                 >
-                  {loading ? 'Sending code...' : 'Send OTP Code'}
+                  {loading ? t('auth.sendingOtp', 'Sending code...') : t('auth.sendResetCode', 'Send OTP Code')}
                 </button>
               </form>
             )}
@@ -475,7 +496,9 @@ export default function Login() {
             {/* Step 2: OTP Verification */}
             {forgotStep === 2 && (
               <form onSubmit={handleVerifyForgotOtp} className="space-y-4">
-                <p className="text-xs text-[#64748B]">Enter the 6-digit code sent to {forgotPhone}</p>
+                <p className="text-xs text-[#64748B] dark:text-gray-400">
+                  {t('auth.enterOtpPrompt', 'Enter the 6-digit code sent to')} {forgotPhone}
+                </p>
                 <div className="flex justify-between gap-2" onPaste={(e) => handleOtpPaste(e, true)}>
                   {forgotOtpDigits.map((digit, idx) => (
                     <input
@@ -487,16 +510,16 @@ export default function Login() {
                       value={digit}
                       onChange={(e) => handleOtpChange(idx, e.target.value, true)}
                       onKeyDown={(e) => handleOtpKeyDown(idx, e, true)}
-                      className="w-11 h-12 text-center text-lg font-semibold bg-white border border-[#E2E8F0] rounded-xl focus:outline-none focus:border-[#2563EB]"
+                      className="w-11 h-12 text-center text-lg font-semibold bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl focus:outline-none focus:border-[#2563EB]"
                     />
                   ))}
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#2563EB] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700"
+                  className="w-full bg-[#2563EB] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 cursor-pointer"
                 >
-                  {loading ? 'Verifying...' : 'Verify OTP'}
+                  {loading ? t('auth.verifying', 'Verifying...') : t('auth.verifyResetCode', 'Verify OTP')}
                 </button>
               </form>
             )}
@@ -505,33 +528,37 @@ export default function Login() {
             {forgotStep === 3 && (
               <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-[#111827] mb-1">New Password</label>
+                  <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1">
+                    {t('auth.newPasswordLabel', 'New Password')}
+                  </label>
                   <input
                     type="password"
                     required
-                    placeholder="At least 6 characters"
+                    placeholder={t('auth.createPasswordPlaceholder', 'At least 6 characters')}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#111827] mb-1">Confirm New Password</label>
+                  <label className="block text-xs font-medium text-[#111827] dark:text-gray-200 mb-1">
+                    {t('auth.confirmPasswordLabel', 'Confirm New Password')}
+                  </label>
                   <input
                     type="password"
                     required
-                    placeholder="Re-enter new password"
+                    placeholder={t('auth.confirmPasswordPlaceholder', 'Re-enter new password')}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-[#E2E8F0] dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#2563EB] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700"
+                  className="w-full bg-[#2563EB] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 cursor-pointer"
                 >
-                  {loading ? 'Updating...' : 'Set New Password'}
+                  {loading ? t('common.loading', 'Updating...') : t('auth.setNewPassword', 'Set New Password')}
                 </button>
               </form>
             )}
@@ -541,7 +568,7 @@ export default function Login() {
       )}
 
       <footer className="py-4 text-center text-xs text-[#64748B]">
-        © Yojsetu. All rights reserved.
+        {t('home.copyright', '© Yojsetu. All rights reserved.')}
       </footer>
     </div>
   );
