@@ -5,6 +5,9 @@ import { useProfile } from '../context/ProfileContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getEligibilityResults } from '../services/eligibilityService';
 import { getSchemeRouteId } from '../utils/schemeUtils';
+import { getApplications } from '../services/applicationService';
+import { APPLICATIONS_UPDATED_EVENT } from '../utils/storage';
+import { STATUS_LABELS } from '../data/mockApplications';
 
 // ─── Outline Icons ────────────────────────────────────────────────────────────
 
@@ -133,12 +136,6 @@ const CATEGORY_KEYS = {
   'Financial Support': 'dashboard.financialSupport',
 };
 
-const RECENT_NOTIFICATIONS = [
-  { id: 1, title: 'AI Scheme Engine evaluated profile', time: 'Just now', text: 'Checked the available scheme catalogue against profile criteria.' },
-  { id: 2, title: 'DigiLocker Integration Ready', time: '1 hour ago', text: 'Document provider initialized in Mock Development Mode.' },
-  { id: 3, title: 'Profile details saved', time: 'Yesterday', text: 'Your location and demographic profile were normalized.' }
-];
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -149,6 +146,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSchemeModal, setSelectedSchemeModal] = useState(null);
+  const [trackedApplications, setTrackedApplications] = useState([]);
+  const [trackedApplicationsOwnerId, setTrackedApplicationsOwnerId] = useState(user?.id);
+  const [trackerError, setTrackerError] = useState(false);
+  const [trackerErrorOwnerId, setTrackerErrorOwnerId] = useState(user?.id);
 
   const userName = profile?.full_name || user?.full_name || 'Rahul';
   const firstName = userName.split(' ')[0];
@@ -179,12 +180,55 @@ export default function Dashboard() {
     return () => { isMounted = false; };
   }, [profile]);
 
+  useEffect(() => {
+    let isMounted = true;
+    const loadTrackedApplications = async () => {
+      if (!user?.id) {
+        setTrackedApplications([]);
+        setTrackedApplicationsOwnerId(user?.id);
+        setTrackerError(false);
+        setTrackerErrorOwnerId(user?.id);
+        return;
+      }
+
+      try {
+        const applications = await getApplications(user.id);
+        if (isMounted) {
+          setTrackedApplications(applications);
+          setTrackedApplicationsOwnerId(user.id);
+          setTrackerError(false);
+          setTrackerErrorOwnerId(user.id);
+        }
+      } catch (err) {
+        console.error('Failed to load local application tracking records:', err);
+        if (isMounted) {
+          setTrackerError(true);
+          setTrackerErrorOwnerId(user.id);
+        }
+      }
+    };
+    const handleApplicationsUpdated = (event) => {
+      if (String(event.detail?.userId) === String(user?.id)) loadTrackedApplications();
+    };
+
+    loadTrackedApplications();
+    window.addEventListener(APPLICATIONS_UPDATED_EVENT, handleApplicationsUpdated);
+    return () => {
+      isMounted = false;
+      window.removeEventListener(APPLICATIONS_UPDATED_EVENT, handleApplicationsUpdated);
+    };
+  }, [user?.id]);
+
   const filteredRecommendations = selectedCategory === 'All'
     ? recommendations
     : recommendations.filter(r => (r.category || '').toLowerCase().includes(selectedCategory.toLowerCase()));
 
   const eligibleCount = recommendations.filter(r => r.status === 'ELIGIBLE').length;
   const reviewCount = recommendations.filter(r => r.status === 'INSUFFICIENT_INFORMATION').length;
+  const activeTrackedApplications = Object.is(trackedApplicationsOwnerId, user?.id)
+    ? trackedApplications
+    : [];
+  const activeTrackerError = trackerError && Object.is(trackerErrorOwnerId, user?.id);
 
   return (
     <div className="space-y-8 pb-10 font-sans">
@@ -194,7 +238,7 @@ export default function Dashboard() {
             {greeting}, {firstName}
           </h1>
           <p className="text-sm text-[#64748B]">
-            {t('dashboard.subtitle', 'Here are your AI-discovered government schemes matched deterministically with your profile.')}
+            {t('dashboard.subtitle', 'Explore schemes from the catalogue and review how their listed criteria compare with your profile.')}
           </p>
         </div>
 
@@ -235,7 +279,7 @@ export default function Dashboard() {
                 {t('dashboard.recommendedSchemes', 'Recommended Schemes For You')}
               </h2>
               <p className="text-xs text-[#64748B]">
-                {t('dashboard.ruleEngineDesc', 'Evaluated by deterministic rule engine & ranked by AI Recommendation Agent')}
+                {t('dashboard.ruleEngineDesc', 'Recommendations are based on the scheme catalogue and your profile information. Confirm details with the official scheme source.')}
               </p>
             </div>
             
@@ -471,36 +515,52 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            <div className="p-8 text-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
-              <FileTextIcon className="w-8 h-8 text-[#64748B] mx-auto" />
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-[#0F1B3D]">{t('applications.noApplications', 'No active applications yet')}</p>
-                <p className="text-xs text-[#64748B]">{t('applications.noApplicationsDesc', 'Select an eligible scheme above to start auto-fill & document verification.')}</p>
+            {activeTrackerError ? (
+              <p role="alert" className="p-5 rounded-xl bg-red-50 text-sm text-red-700">
+                {t('applications.loadError', 'Unable to load your locally tracked schemes.')}
+              </p>
+            ) : activeTrackedApplications.length === 0 ? (
+              <div className="p-8 text-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
+                <FileTextIcon className="w-8 h-8 text-[#64748B] mx-auto" />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-[#0F1B3D]">{t('applications.noApplications', 'No schemes tracked yet')}</p>
+                  <p className="text-xs text-[#64748B]">{t('applications.noApplicationsDesc', 'Add a scheme to keep a private reminder. Tracking does not submit an application.')}</p>
+                </div>
+                <Link
+                  to="/schemes"
+                  className="inline-block bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs mt-2"
+                >
+                  {t('home.exploreSchemes', 'Explore schemes')}
+                </Link>
               </div>
-              <Link
-                to="/schemes"
-                className="inline-block bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs mt-2"
-              >
-                {t('home.exploreSchemes', 'Explore schemes')}
-              </Link>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                {activeTrackedApplications.slice(0, 3).map((application) => (
+                  <Link
+                    key={application.id}
+                    to={`/schemes/${application.external_scheme_id}`}
+                    className="flex items-center justify-between gap-3 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl hover:border-blue-200"
+                  >
+                    <span className="text-sm font-semibold text-[#0F1B3D]">{application.schemeName}</span>
+                    <span className="text-[11px] text-gray-600">{STATUS_LABELS[application.status] || STATUS_LABELS.unverified}</span>
+                  </Link>
+                ))}
+                <p className="text-[11px] text-[#64748B]">
+                  {t('applications.localTrackingNotice', 'These are private, self-reported tracking notes, not government status updates.')}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">{t('dashboard.recentNotifications', 'Recent updates')}</h3>
+              <h3 className="text-base font-semibold text-[#0F1B3D]">{t('applications.localTrackingTitle', 'About your tracker')}</h3>
             </div>
 
-            <div className="space-y-3">
-              {RECENT_NOTIFICATIONS.map(n => (
-                <div key={n.id} className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-[#0F1B3D]">{n.title}</p>
-                    <span className="text-[10px] text-[#64748B]">{n.time}</span>
-                  </div>
-                  <p className="text-[11px] text-[#64748B]">{n.text}</p>
-                </div>
-              ))}
+            <div className="space-y-3 text-xs text-[#64748B]">
+              <p>{t('applications.localTrackingStorage', 'Tracker records are stored in this browser under your account-specific key.')}</p>
+              <p>{t('applications.localTrackingStatuses', 'You can mark a scheme as planning or applied (self-reported).')}</p>
+              <p>{t('applications.localTrackingNotice', 'Tracking does not submit an application or provide official status updates.')}</p>
             </div>
           </div>
         </div>

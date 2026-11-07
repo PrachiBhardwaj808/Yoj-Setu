@@ -16,7 +16,19 @@ import {
   getApplications,
   createApplication,
   getApplicationById,
+  updateApplicationStatus,
 } from '../services/applicationService.js';
+import api from '../services/api.js';
+import { mockSchemes } from '../data/mockSchemes.js';
+
+api.defaults.adapter = async (config) => ({
+  data: mockSchemes,
+  status: 200,
+  statusText: 'OK',
+  headers: {},
+  config,
+  request: {},
+});
 
 function setupMockStorage() {
   const store = new Map();
@@ -107,8 +119,11 @@ test('Test B: Application Isolation - User A cannot see User B applications', as
 
   // 1. Authenticate User A (101) and add applications
   localStorage.setItem(USER_KEY, JSON.stringify({ id: 101, full_name: 'Aarav' }));
-  const appA1 = await createApplication(1, 'PM Kisan Samman Nidhi', '₹6,000/year', 101);
-  const appA2 = await createApplication(2, 'Ayushman Bharat (PM-JAY)', '₹5,00,000 cover', 101);
+  const appA1 = await createApplication('SCH-PM-KISAN-001', 101);
+  const appA2 = await createApplication('SCH-AYUSHMAN-002', 101);
+  const duplicate = await createApplication('SCH-PM-KISAN-001', 101);
+  assert.equal(duplicate.id, appA1.id, 'Tracking the same scheme should not create duplicates');
+  await assert.rejects(createApplication('not-in-catalogue', 101), /not in the current catalogue/);
 
   const appsA = await getApplications(101);
   assert.equal(appsA.length, 2);
@@ -122,11 +137,18 @@ test('Test B: Application Isolation - User A cannot see User B applications', as
   assert.equal(appsBInitial.length, 0);
 
   // 3. Save a different application for User B
-  const appB1 = await createApplication(3, 'PM Surya Ghar: Muft Bijli Yojana', 'Up to ₹78,000 subsidy', 102);
+  const appB1 = await createApplication('SCH-SURYA-GHAR-003', 102);
   const appsB = await getApplications(102);
   assert.equal(appsB.length, 1);
   assert.equal(appsB[0].schemeName, 'PM Surya Ghar: Muft Bijli Yojana');
   assert.ok(store.has('yojsetu_user_applications_102'));
+  await updateApplicationStatus(appB1.id, 'applied_by_user', 102);
+  assert.equal((await getApplications(102))[0].status, 'applied_by_user');
+  assert.equal((await getApplications(101))[0].status, 'planning');
+  await assert.rejects(
+    updateApplicationStatus(appA1.id, 'applied_by_user', 102),
+    /not found for this user/
+  );
 
   // 4. Verify cross-user access is impossible
   const appsAFresh = await getApplications(101);
@@ -147,7 +169,7 @@ test('Test C: Account Switching - User A -> Logout -> User B -> Logout -> User A
   localStorage.setItem(USER_KEY, JSON.stringify({ id: 101, full_name: 'User A' }));
   localStorage.setItem(TOKEN_KEY, 'token_a');
   await updateProfile({ full_name: 'User A', state: 'Maharashtra' }, 101);
-  await createApplication(10, 'Scheme A', '₹10,000', 101);
+  await createApplication('SCH-PM-KISAN-001', 101);
 
   // Step 2: Logout User A
   localStorage.removeItem(USER_KEY);
@@ -171,7 +193,7 @@ test('Test C: Account Switching - User A -> Logout -> User B -> Logout -> User A
 
   // User B creates their own data
   await updateProfile({ full_name: 'User B', state: 'Delhi' }, 102);
-  await createApplication(20, 'Scheme B', '₹20,000', 102);
+  await createApplication('SCH-AYUSHMAN-002', 102);
 
   // Step 4: Logout User B
   localStorage.removeItem(USER_KEY);
@@ -190,7 +212,7 @@ test('Test C: Account Switching - User A -> Logout -> User B -> Logout -> User A
 
   const restoredAppsA = await getApplications(101);
   assert.equal(restoredAppsA.length, 1);
-  assert.equal(restoredAppsA[0].schemeName, 'Scheme A');
+  assert.equal(restoredAppsA[0].schemeName, 'PM Kisan Samman Nidhi');
 });
 
 test('Test D: Logout - Clears active session while preserving saved user data', async () => {
@@ -200,7 +222,7 @@ test('Test D: Logout - Clears active session while preserving saved user data', 
   localStorage.setItem(USER_KEY, JSON.stringify({ id: 101, full_name: 'Citizen 101' }));
   localStorage.setItem(TOKEN_KEY, 'token_101');
   await updateProfile({ full_name: 'Citizen 101', state: 'Kerala' }, 101);
-  await createApplication(5, 'Kerala Welfare Grant', '₹5,000', 101);
+  await createApplication('SCH-PM-KISAN-001', 101);
 
   assert.ok(store.has('yojsetu_profile_101'));
   assert.ok(store.has('yojsetu_user_applications_101'));
@@ -237,7 +259,13 @@ test('Test E: Refresh / Session Restoration - Resolves user ID before loading da
   );
   store.set(
     'yojsetu_user_applications_101',
-    JSON.stringify([{ id: 'app_restored', schemeName: 'Solar Subsidy' }])
+    JSON.stringify([{
+      id: 'app_restored',
+      userId: 101,
+      external_scheme_id: 'SCH-SURYA-GHAR-003',
+      status: 'planning',
+      trackedAt: '2025-01-01T00:00:00.000Z',
+    }])
   );
 
   // On page refresh, user ID is resolved synchronously from storage
@@ -257,7 +285,7 @@ test('Test E: Refresh / Session Restoration - Resolves user ID before loading da
 
   const apps = await getApplications(resolvedId);
   assert.equal(apps.length, 1);
-  assert.equal(apps[0].schemeName, 'Solar Subsidy');
+  assert.equal(apps[0].schemeName, 'PM Surya Ghar: Muft Bijli Yojana');
 });
 
 test('Test F: Legacy Storage - Legacy keys are isolated and never assigned to logged-in users', async () => {
@@ -355,8 +383,8 @@ test('Test G: Invalid Identity - Rejects invalid user IDs and never falls back t
   // Create application with invalid identity throws without polluting storage
   await assert.rejects(
     async () => {
-      await createApplication(1, 'Fraud Scheme', '₹100', null);
+      await createApplication('SCH-PM-KISAN-001', null);
     },
-    /Cannot create application/
+    /Application tracking requires an authenticated user/
   );
 });

@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import api from '../services/api.js';
 import { getAllSchemes, getSchemeById } from '../services/schemeService.js';
 import { mockSchemes } from '../data/mockSchemes.js';
-import { mockApplications } from '../data/mockApplications.js';
 import {
   filterSchemes,
   findSchemeByReference,
@@ -135,12 +134,17 @@ test('E: External detail routes resolve to actual backend IDs; unknown IDs are n
 });
 
 test('F: Application references resolve to the correct canonical schemes', () => {
-  for (const application of mockApplications) {
-    const scheme = findSchemeForApplication(application, mockSchemes);
-    assert.ok(scheme, `Missing catalogue scheme for application ${application.id}`);
-    assert.equal(scheme.name, application.schemeName);
-    assert.equal(getSchemeRouteId(scheme), application.external_scheme_id);
-  }
+  const application = {
+    id: 'local_application_1',
+    external_scheme_id: 'SCH-SURYA-GHAR-003',
+    schemeName: 'PM Surya Ghar: Muft Bijli Yojana',
+    status: 'planning',
+    trackingType: 'local',
+  };
+  const scheme = findSchemeForApplication(application, mockSchemes);
+  assert.ok(scheme, `Missing catalogue scheme for application ${application.id}`);
+  assert.equal(scheme.name, application.schemeName);
+  assert.equal(getSchemeRouteId(scheme), application.external_scheme_id);
 
   assert.equal(findSchemeForApplication({ schemeName: 'Unknown' }, mockSchemes), null);
 });
@@ -173,6 +177,7 @@ test('H: Search, category filters, and application detail routes retain catalogu
     'SCH-PMAY-006',
   ]);
 
-  const appScheme = findSchemeForApplication(mockApplications[1], mockSchemes);
-  assert.equal(getSchemeRouteId(appScheme), mockApplications[1].external_scheme_id);
+  const application = { external_scheme_id: 'SCH-AYUSHMAN-002' };
+  const appScheme = findSchemeForApplication(application, mockSchemes);
+  assert.equal(getSchemeRouteId(appScheme), application.external_scheme_id);
 });

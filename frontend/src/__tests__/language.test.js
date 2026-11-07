@@ -11,6 +11,23 @@ import {
 
 import { translateText, isBhashiniSupported } from '../services/bhashiniService.js';
 import { sendMessage, getSuggestedQuestions } from '../services/chatService.js';
+import api from '../services/api.js';
+import { mockSchemes } from '../data/mockSchemes.js';
+
+globalThis.localStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
+
+api.defaults.adapter = async (config) => ({
+  data: mockSchemes,
+  status: 200,
+  statusText: 'OK',
+  headers: {},
+  config,
+  request: {},
+});
 
 test('Language Definitions - Default and Supported Languages', () => {
   assert.equal(DEFAULT_LANGUAGE, 'en');
@@ -81,8 +98,8 @@ test('Translations Dictionary - Core UI strings and fallback logic', () => {
   assert.equal(TRANSLATIONS.hi['profile.title'], 'नागरिक प्रोफ़ाइल');
 
   // Core assistant keys
-  assert.equal(TRANSLATIONS.en['assistant.title'], 'Yojsetu AI Sathi');
-  assert.equal(TRANSLATIONS.hi['assistant.title'], 'योजसेतु एआई साथी');
+  assert.equal(TRANSLATIONS.en['assistant.title'], 'Yojsetu Scheme Sathi');
+  assert.equal(TRANSLATIONS.hi['assistant.title'], 'योजसेतु योजना साथी');
 });
 
 test('Bhashini Service - Supported codes and translation fallbacks', async () => {
@@ -98,17 +115,11 @@ test('Bhashini Service - Supported codes and translation fallbacks', async () =>
   const empty = await translateText('', 'hi', 'en');
   assert.equal(empty, '');
 
-  // Scheme response translation to Hindi
+  // Without Bhashini credentials, translations are returned unchanged.
   const kisanEn =
     'The catalogue lists PM Kisan Samman Nidhi with ₹6,000 / year direct transfer. See the scheme details for eligibility and required documents.';
   const translatedKisan = await translateText(kisanEn, 'hi', 'en');
-  assert.ok(translatedKisan.includes('पीएम किसान सम्मान निधि'));
-
-  const defaultReply =
-    "I'm Yojsetu AI Sathi — I can help you find government schemes, check your eligibility, and guide your applications. Try asking me about farming, health, housing, education, or loans!";
-
-  const translatedReply = await translateText(defaultReply, 'hi', 'en');
-  assert.ok(translatedReply.includes('योजसेतु एआई साथी'), 'Should contain Hindi translation');
+  assert.equal(translatedKisan, kisanEn);
 });
 
 test('Chat Service - Multilingual questions and responses', async () => {
@@ -134,17 +145,31 @@ test('Chat Service - Multilingual questions and responses', async () => {
   // Send message in English
   const resEn = await sendMessage('Tell me about kisan subsidy', 'en');
   assert.ok(resEn.includes('PM Kisan Samman Nidhi'));
+  assert.ok(resEn.includes('₹6,000 / year direct transfer'));
   assert.ok(!resEn.includes('under 2 hectares'));
 
   // Send message in Hindi
   const resHi = await sendMessage('किसान योजना', 'hi');
-  assert.ok(resHi.includes('पीएम किसान सम्मान निधि'));
+  assert.ok(
+    resHi.includes('PM Kisan Samman Nidhi') || resHi.includes('पीएम किसान सम्मान निधि'),
+    'Catalogue responses should retain the matched scheme name'
+  );
 
   const employmentReply = await sendMessage('How does MGNREGA support rural employment?', 'en');
   assert.ok(employmentReply.includes('100 days of wage employment'));
 
   const unsupportedReply = await sendMessage('Tell me about a business loan', 'en');
-  assert.ok(unsupportedReply.includes('business-loan scheme'));
+  assert.ok(unsupportedReply.includes('could not find a matching scheme'));
+
+  const eligibilityReply = await sendMessage('Am I eligible for PM Kisan?', 'en');
+  assert.ok(eligibilityReply.includes('cannot determine or confirm personal eligibility'));
+  assert.ok(eligibilityReply.includes('PM Kisan Samman Nidhi'));
+
+  const trackingReply = await sendMessage('How do I track my application status?', 'en');
+  assert.ok(trackingReply.includes('self-reported'));
+  assert.ok(trackingReply.includes('does not submit an application'));
+
+  assert.equal(await sendMessage('  ', 'en'), 'Enter a question about a scheme in the catalogue.');
 });
 
 test('Translations Dictionary - All 10 Supported Languages have full key sets', () => {

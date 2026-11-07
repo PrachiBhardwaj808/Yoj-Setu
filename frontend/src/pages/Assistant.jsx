@@ -11,7 +11,7 @@ export default function Assistant() {
       sender: 'assistant',
       text: t(
         'assistant.welcome',
-        'Namaste! I am Yojsetu AI Sathi — your government scheme companion. Ask me anything about farming subsidies, scholarships, housing grants, health insurance, or loan schemes.'
+        'Namaste! I can help you look up information from the current scheme catalogue. I cannot confirm personal eligibility or submit applications.'
       ),
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
@@ -29,7 +29,7 @@ export default function Assistant() {
             ...prev[0],
             text: t(
               'assistant.welcome',
-              'Namaste! I am Yojsetu AI Sathi — your government scheme companion. Ask me anything about farming subsidies, scholarships, housing grants, health insurance, or loan schemes.'
+              'Namaste! I can help you look up information from the current scheme catalogue. I cannot confirm personal eligibility or submit applications.'
             ),
           },
         ];
@@ -97,16 +97,16 @@ export default function Assistant() {
           </div>
           <div>
             <h2 className="text-base font-bold flex items-center gap-2">
-              <span>{t('assistant.title', 'Yojsetu AI Sathi')}</span>
-              <span className="px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold rounded-full border border-emerald-500/30">
-                {t('assistant.online', 'Online')}
+              <span>{t('assistant.title', 'Scheme Catalogue Helper')}</span>
+              <span className="px-2 py-0.5 text-[10px] bg-blue-500/20 text-blue-300 font-semibold rounded-full border border-blue-500/30">
+                {t('assistant.catalogueBadge', 'Catalogue')}
               </span>
               <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] bg-blue-500/20 text-blue-300 font-medium rounded-full border border-blue-500/30">
                 🌐 {currentLanguage.nativeName}
               </span>
             </h2>
             <p className="text-xs text-slate-300">
-              {t('assistant.subtitle', 'Intelligent Welfare & Scheme Advisory')}
+              {t('assistant.subtitle', 'Answers based on the current scheme catalogue')}
             </p>
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function Assistant() {
               {
                 id: 'welcome',
                 sender: 'assistant',
-                text: t('assistant.chatCleared', 'Chat cleared. How can I assist you with government schemes today?'),
+                text: t('assistant.chatCleared', 'Chat cleared. Ask about information listed in the scheme catalogue.'),
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               },
             ])
@@ -195,7 +195,7 @@ export default function Assistant() {
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-150" />
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-300" />
               <span className="text-xs text-gray-400 ml-1">
-                {t('assistant.searching', 'AI Sathi is searching scheme rules...')}
+                {t('assistant.searching', 'Checking the scheme catalogue...')}
               </span>
             </div>
           </div>

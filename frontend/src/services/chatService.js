@@ -1,72 +1,77 @@
 /**
- * chatService.js
- * Conversational scheme advisory service with Bhashini integration and multilingual support.
+ * Catalogue helper with Bhashini translation support.
  */
-
 import { translateText } from './bhashiniService.js';
+import { getAllSchemes } from './schemeService.js';
 
-const MOCK_RESPONSES = [
-  {
-    pattern: /kisan|farmer|farm|agriculture|किसान|ਖੇਤੀ|কৃষি|शेतकरी|விவசாயி|రైతు|ખેડૂત|ರೈತ|കർഷകൻ/i,
-    reply:
-      'The catalogue lists PM Kisan Samman Nidhi with ₹6,000 / year direct transfer. See the scheme details for eligibility and required documents.',
-  },
-  {
-    pattern: /health|hospital|insurance|ayushman|स्वास्थ्य|सेहत|স্বাস্থ্য|आरोग्य|சுகாதாரம்|ఆరోగ్యం|આરોગ્ય|ಆರೋಗ್ಯ|ആരോഗ്യം/i,
-    reply:
-      'The catalogue lists Ayushman Bharat (PM-JAY) with ₹5 Lakhs health cover / year. See the scheme details and official portal before applying.',
-  },
-  {
-    pattern: /housing|house|ghar|awas|आवास|घर|ਮਕਾਨ|ঘর|வீடு|ఇల్లు|ઘર|ಮನೆ|വീട്/i,
-    reply:
-      'The catalogue lists PM Awas Yojana (PMAY-Urban/Rural) with up to ₹2.5 Lakhs house subsidy, and PM Surya Ghar: Muft Bijli Yojana with up to ₹78,000 solar subsidy. Check each scheme’s details for eligibility.',
-  },
-  {
-    pattern: /scholarship|education|study|college|छात्रवृत्ति|ਪੜ੍ਹਾਈ|বৃত্তি|शिष्यवृत्ती|கல்வி உதவித்தொகை|స్కాలర్‌షిప్|શિષ્યવૃત્તિ|ವಿದ್ಯಾರ್ಥಿವೇತನ|സ്കോളർഷിപ്പ്/i,
-    reply:
-      'The catalogue lists the Post-Matric Scholarship Scheme with 100% tuition + allowance. See the scheme details for eligibility and required documents.',
-  },
-  {
-    pattern: /pension|atal|apy|पेंशन|ਪੈਨਸ਼ਨ|পেনশন|पेन्शन|ஓய்வூதியம்|పెన్షన్|પેન્શન|ಪಿಂಚಣಿ|പെൻഷൻ/i,
-    reply:
-      'I do not have a verified pension scheme in the current catalogue. Please check the catalogue for currently listed schemes.',
-  },
-  {
-    pattern: /loan|mudra|business|ऋण|लोन|ਕਰਜ਼ਾ|ঋণ|कर्ज|கடன்|రుణం|લોન|ಸાલ|ಸಾಲ|വായ്പ/i,
-    reply:
-      'I do not have a verified business-loan scheme in the current catalogue. Please check the catalogue for currently listed schemes.',
-  },
-  {
-    pattern: /mgnrega|employment|rural work|मनरेगा|ग्रामीण रोजगार|ਮਨਰੇਗਾ|গ্রামীণ কর্মসংস্থান|मनरेगा|ஊரக வேலைவாய்ப்பு|గ్రామీణ ఉపాధి|ગ્રામીણ રોજગાર|ಗ್ರಾಮೀಣ ಉದ್ಯೋಗ|ഗ്രാമീണ തൊഴിൽ/i,
-    reply:
-      'The catalogue lists MGNREGA Rural Employment Guarantee as providing 100 days of wage employment in a financial year for adult members of rural households.',
-  },
-  {
-    pattern: /scheme|yojana|benefit|योजना|ਯੋਜਨਾ|প্রকল্প|திட்டம்|పథకం|યોજના|ಯೋಜನೆ|പദ്ധതി/i,
-    reply:
-      'I can help with schemes in the current catalogue. Ask about farming, health, housing, education, or employment, or check the catalogue for available schemes.',
-  },
-];
+const CATEGORY_TERMS = {
+  agriculture: /farm|agri|kisan|किसान|ਖੇਤੀ|কৃষি|शेतकरी|விவசாயி|రైతు|ખેડૂત|ರೈತ|കർഷകൻ/i,
+  health: /health|hospital|insurance|ayushman|स्वास्थ्य|सेहत|স্বাস্থ্য|आरोग্য|சுகாதாரம்|ఆరోగ్యం|આરોગ્ય|ಆರೋಗ್ಯ|ആരോഗ്യം/i,
+  housing: /housing|house|ghar|awas|solar|आवास|घर|ਮਕਾਨ|ঘর|வீடு|ఇల్లు|ઘર|ಮನೆ|വീട്/i,
+  education: /scholarship|education|study|college|छात्रवृत्ति|ਪੜ੍ਹਾਈ|বৃত্তি|शिष्यवृत्ती|கல்வி உதவித்தொகை|స్కాలర్‌షిప్|શિષ્યવૃત્તિ|ವಿದ್ಯಾರ್ಥಿವೇತನ|സ്കോളർഷിപ്പ്/i,
+  employment: /mgnrega|employment|rural work|मनरेगा|ग्रामीण रोजगार|ਮਨਰੇਗਾ|গ্রামীণ কর্মসংস্থান|ஊரக வேலைவாய்ப்பு|గ్రామీణ ఉపాధి|ગ્રામીણ રોજગાર|ಗ್ರামীણ ಉದ್ಯೋಗ|ഗ്രামীണ തൊഴിൽ/i,
+};
 
-const DEFAULT_RESPONSE =
-  "I'm Yojsetu AI Sathi — I can help you find government schemes, check your eligibility, and guide your applications. Try asking me about farming, health, housing, education, or loans!";
+const ELIGIBILITY_TERMS = /eligible|eligibility|पात्र|योग्य|ਯੋਗ|যোগ্য|தகுதி|అర్హత|પાત્ર|ಅರ್ಹ|അർഹത/i;
+const TRACKING_TERMS = /track|status|application|आवेदन|स्थिति|ਅਰਜ਼ੀ|ਸਥਿਤੀ|আবেদন|অবস্থা|விண்ணப்பம்|நிலை|దరఖాస్తు|స్థితి|અરજી|ಸ್ಥિતિ|ಅರ್ಜಿ|സ്ഥിതി|അപേക്ഷ|നില/i;
+
+function schemeSearchText(scheme) {
+  const rules = Array.isArray(scheme.rules)
+    ? scheme.rules.map((rule) => rule.raw_condition_text || '').join(' ')
+    : '';
+  return [
+    scheme.name,
+    scheme.category,
+    scheme.description,
+    scheme.benefits,
+    rules,
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function formatScheme(scheme) {
+  const details = [scheme.benefits || scheme.benefitAmount, scheme.description]
+    .filter(Boolean)
+    .join(' ');
+  return `• ${scheme.name}${details ? `: ${details}` : ''}`;
+}
 
 /**
- * Sends user prompt to the advisory service and returns a response localized in the selected language.
- *
- * @param {string} text - User query
- * @param {string} language - Target language code (default 'en')
- * @returns {Promise<string>} Localized AI response
+ * Answers using the current catalogue and local tracker behavior only.
  */
 export async function sendMessage(text, language = 'en') {
-  await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
-  const match = MOCK_RESPONSES.find((r) => r.pattern.test(text));
-  const rawReply = match?.reply ?? DEFAULT_RESPONSE;
+  const query = String(text || '').trim();
+  let rawReply;
+  if (!query) {
+    rawReply = 'Enter a question about a scheme in the catalogue.';
+  } else {
+    const catalogue = await getAllSchemes();
+    const category = Object.entries(CATEGORY_TERMS)
+      .find(([, pattern]) => pattern.test(query))?.[0];
+    const matchingSchemes = catalogue.filter((scheme) => {
+      const fields = schemeSearchText(scheme);
+      const schemeName = String(scheme.name || '').toLowerCase();
+      return fields.includes(query.toLowerCase()) ||
+        (schemeName && query.toLowerCase().includes(schemeName)) ||
+        (category && String(scheme.category || '').toLowerCase().includes(category)) ||
+        Object.values(CATEGORY_TERMS).some((pattern) => pattern.test(query) && pattern.test(fields));
+    }).slice(0, 4);
 
-  if (language && language !== 'en') {
-    return await translateText(rawReply, language, 'en');
+    if (ELIGIBILITY_TERMS.test(query)) {
+      rawReply = matchingSchemes.length
+        ? `I can show catalogue information, but I cannot determine or confirm personal eligibility. Review the listed criteria and contact the official scheme source.\n\n${matchingSchemes.map(formatScheme).join('\n')}`
+        : 'I cannot determine personal eligibility. No matching scheme was found in the current catalogue; browse the catalogue or check an official scheme source.';
+    } else if (TRACKING_TERMS.test(query)) {
+      rawReply = 'The tracker stores a private reminder in this browser. You can mark a scheme as planning or applied (self-reported); it does not submit an application or receive official status updates.';
+    } else if (matchingSchemes.length) {
+      rawReply = `Here is information listed in the current scheme catalogue:\n\n${matchingSchemes.map(formatScheme).join('\n')}\n\nCheck the scheme details and official source for eligibility, documents, and application steps.`;
+    } else {
+      rawReply = 'I could not find a matching scheme in the current catalogue. Browse the catalogue or search using a scheme name or category.';
+    }
   }
 
+  if (language && language !== 'en') {
+    return translateText(rawReply, language, 'en');
+  }
   return rawReply;
 }
 
@@ -135,12 +140,8 @@ export const MULTILINGUAL_SUGGESTIONS = {
   ],
 };
 
-/**
- * Returns suggested starter questions tailored to the selected language.
- */
 export function getSuggestedQuestions(language = 'en') {
   return MULTILINGUAL_SUGGESTIONS[language] || MULTILINGUAL_SUGGESTIONS.en;
 }
 
-// Backward-compatible default export
 export const SUGGESTED_QUESTIONS = MULTILINGUAL_SUGGESTIONS.en;

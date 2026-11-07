@@ -1,16 +1,29 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getSchemeById } from "@/services/schemeService";
+import { createApplication, getApplications } from "@/services/applicationService";
+import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function SchemeDetailPage() {
     const { t } = useLanguage();
+    const { user } = useAuth();
     const { id } = useParams();
     const [scheme, setScheme] = useState(null);
     const [status, setStatus] = useState("loading");
+    const [tracking, setTracking] = useState(false);
+    const [isTracked, setIsTracked] = useState(false);
+    const [trackingError, setTrackingError] = useState("");
+
+    useEffect(() => {
+        setTracking(false);
+        setIsTracked(false);
+        setTrackingError("");
+    }, [id, user?.id]);
 
     useEffect(() => {
         let isMounted = true;
+        setScheme(null);
         setStatus("loading");
         getSchemeById(id)
             .then((data) => {
@@ -29,6 +42,40 @@ export default function SchemeDetailPage() {
 
         return () => { isMounted = false; };
     }, [id]);
+
+    useEffect(() => {
+        if (!scheme?.external_scheme_id || !user?.id) return;
+        let isMounted = true;
+        getApplications(user.id)
+            .then((applications) => {
+                if (isMounted) {
+                    setIsTracked(applications.some(
+                        (application) => application.external_scheme_id === scheme.external_scheme_id
+                    ));
+                }
+            })
+            .catch((err) => console.error("Error checking local scheme tracking:", err));
+        return () => { isMounted = false; };
+    }, [scheme?.external_scheme_id, user?.id]);
+
+    const handleTrackScheme = async () => {
+        if (!scheme?.external_scheme_id || !user?.id) {
+            setTrackingError(t('applications.signInToTrack', 'Sign in to save a scheme to your tracker.'));
+            return;
+        }
+
+        setTracking(true);
+        setTrackingError("");
+        try {
+            await createApplication(scheme.external_scheme_id, user.id);
+            setIsTracked(true);
+        } catch (err) {
+            console.error("Error adding scheme to local tracker:", err);
+            setTrackingError(t('applications.trackError', 'Unable to add this scheme to your tracker. Please try again.'));
+        } finally {
+            setTracking(false);
+        }
+    };
 
     if (status === "loading") {
         return (
@@ -159,6 +206,21 @@ export default function SchemeDetailPage() {
                 )}
 
                 <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                    <div className="w-full sm:w-auto">
+                        <button
+                            type="button"
+                            onClick={handleTrackScheme}
+                            disabled={tracking || isTracked}
+                            className="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-100 text-slate-800 disabled:text-slate-500 font-semibold text-sm rounded-xl transition-all text-center"
+                        >
+                            {isTracked
+                                ? t('applications.tracked', 'Added to your tracker')
+                                : tracking
+                                ? t('common.saving', 'Saving...')
+                                : t('applications.trackScheme', 'Track this scheme')}
+                        </button>
+                        {trackingError && <p role="alert" className="text-xs text-red-600 mt-2">{trackingError}</p>}
+                    </div>
                     {scheme.source_url && (
                         <a
                             href={scheme.source_url}

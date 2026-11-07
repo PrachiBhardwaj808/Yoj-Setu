@@ -13,7 +13,7 @@ const NAV_ITEMS = [
   { to: '/onboarding', labelKey: 'nav.eligibility', defaultLabel: 'Eligibility', icon: TargetIcon },
   { to: '/applications', labelKey: 'nav.applications', defaultLabel: 'Applications', icon: FileIcon },
   { to: '/documents', labelKey: 'nav.documents', defaultLabel: 'Documents', icon: DocIcon },
-  { to: '/assistant', labelKey: 'nav.assistant', defaultLabel: 'AI Sathi', icon: BotIcon },
+  { to: '/assistant', labelKey: 'nav.assistant', defaultLabel: 'Scheme Sathi', icon: BotIcon },
   { to: '/safety-centre', labelKey: 'nav.safetyCentre', defaultLabel: 'Safety Centre', icon: ShieldIcon },
   { to: '/profile', labelKey: 'nav.profile', defaultLabel: 'Profile', icon: UserIcon },
 ];

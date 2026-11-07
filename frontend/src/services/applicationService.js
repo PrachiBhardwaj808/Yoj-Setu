@@ -1,158 +1,181 @@
 /**
- * applicationService.js
- *
- * Client application management service with multi-user isolation.
- * Persists applications to user-specific storage keys (yojsetu_user_applications_{userId}).
- * Never accesses global or other users' application storage.
+ * Application tracking is a local, user-scoped record. It does not submit
+ * applications to government portals or receive government status updates.
  */
-import api from './api.js';
+import { getAllSchemes } from './schemeService.js';
 import {
+  APPLICATIONS_UPDATED_EVENT,
   getApplicationsStorageKey,
   getCurrentUserId,
   getStorage,
-  APPLICATIONS_UPDATED_EVENT
+  isValidUserId,
 } from '../utils/storage.js';
+import { findSchemeByReference } from '../utils/schemeUtils.js';
 
 export { APPLICATIONS_UPDATED_EVENT };
 
-function getStoredApplications(userId) {
-  const activeUserId = userId ?? getCurrentUserId();
-  if (!activeUserId) return [];
+export const TRACKING_STATUSES = Object.freeze(['planning', 'applied_by_user']);
 
-  const storageKey = getApplicationsStorageKey(activeUserId);
-  if (!storageKey) return [];
-
-  const storage = getStorage();
-  if (!storage) return [];
-
-  try {
-    const saved = storage.getItem(storageKey);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn(`[applicationService] Failed to parse applications for user ${activeUserId}:`, err);
+function activeUser(userId) {
+  const resolvedId = userId ?? getCurrentUserId();
+  if (!isValidUserId(resolvedId)) {
+    throw new Error('Application tracking requires an authenticated user.');
   }
-
-  return [];
+  return resolvedId;
 }
 
-function persistApplications(apps, userId) {
-  const activeUserId = userId ?? getCurrentUserId();
-  if (!activeUserId) return;
-
-  const storageKey = getApplicationsStorageKey(activeUserId);
-  if (!storageKey) return;
-
+function readStoredApplications(userId) {
   const storage = getStorage();
-  if (!storage) return;
+  const key = getApplicationsStorageKey(userId);
+  if (!storage || !key) throw new Error('Application tracking storage is unavailable.');
 
-  try {
-    storage.setItem(storageKey, JSON.stringify(apps));
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent(APPLICATIONS_UPDATED_EVENT, {
-        detail: { userId: activeUserId }
-      }));
-    }
-  } catch (err) {
-    console.warn(`[applicationService] Failed to persist applications for user ${activeUserId}:`, err);
+  const raw = storage.getItem(key);
+  if (!raw) return [];
+  const records = JSON.parse(raw);
+  if (!Array.isArray(records)) {
+    throw new Error(`Invalid application list stored for user ${userId}.`);
   }
+
+  return records.filter((record) =>
+    record &&
+    typeof record === 'object' &&
+    (record.userId === undefined || String(record.userId) === String(userId))
+  );
+}
+
+function writeStoredApplications(records, userId) {
+  const storage = getStorage();
+  const key = getApplicationsStorageKey(userId);
+  if (!storage || !key) {
+    throw new Error('Application tracking storage is unavailable.');
+  }
+
+  storage.setItem(key, JSON.stringify(records));
+  if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(APPLICATIONS_UPDATED_EVENT, {
+      detail: { userId },
+    }));
+  }
+}
+
+async function getCanonicalScheme(reference) {
+  if (reference === null || reference === undefined || String(reference).trim() === '') {
+    throw new Error('A valid scheme reference is required to track an application.');
+  }
+  const schemes = await getAllSchemes();
+  const scheme = findSchemeByReference(reference, schemes);
+  if (!scheme?.external_scheme_id || !scheme.name) {
+    throw new Error(`Scheme "${reference}" is not in the current catalogue.`);
+  }
+  return scheme;
 }
 
 export async function getApplications(userId) {
-  const activeUserId = userId ?? getCurrentUserId();
-  if (!activeUserId) {
-    return [];
-  }
+  const ownerId = userId ?? getCurrentUserId();
+  if (!isValidUserId(ownerId)) return [];
+  const schemes = await getAllSchemes();
+  return readStoredApplications(ownerId)
+    .map((application) => {
+      const scheme = findSchemeByReference(
+        application.external_scheme_id || application.schemeId,
+        schemes
+      );
+      if (!scheme) return null;
 
-  // 1. Attempt backend API fetch
-  try {
-    const response = await api.get('/applications');
-    if (response.data && Array.isArray(response.data)) {
-      return response.data;
-    }
-  } catch {
-    // Expected before persistent backend applications table is mounted
-  }
-
-  // 2. Read from user-specific isolated storage key
-  return getStoredApplications(activeUserId);
+      return {
+        ...application,
+        userId: ownerId,
+        schemeId: scheme.external_scheme_id,
+        external_scheme_id: scheme.external_scheme_id,
+        schemeName: scheme.name,
+        category: scheme.category || 'General',
+        benefitAmount: scheme.benefitAmount || scheme.benefits || '',
+        status: TRACKING_STATUSES.includes(application.status) ? application.status : 'unverified',
+        trackingType: 'local',
+      };
+    })
+    .filter(Boolean);
 }
 
 export async function getApplicationById(id, userId) {
-  const activeUserId = userId ?? getCurrentUserId();
-  if (!activeUserId) return null;
-
-  try {
-    const response = await api.get(`/applications/${id}`);
-    if (response.data) return response.data;
-  } catch {
-    // Fall back to local user storage
-  }
-
-  const apps = getStoredApplications(activeUserId);
-  return apps.find((a) => a.id === id) ?? null;
+  const ownerId = userId ?? getCurrentUserId();
+  if (!isValidUserId(ownerId)) return null;
+  const applications = await getApplications(ownerId);
+  return applications.find((application) => String(application.id) === String(id)) ?? null;
 }
 
-export async function createApplication(schemeId, schemeName, benefitAmount, userId) {
-  const activeUserId = userId ?? getCurrentUserId();
-  if (!activeUserId) {
-    throw new Error('Cannot create application: No authenticated user session.');
+export async function createApplication(schemeReference, userId) {
+  const ownerId = activeUser(userId);
+  const scheme = await getCanonicalScheme(schemeReference);
+  const records = readStoredApplications(ownerId);
+  const existing = records.find((record) =>
+    record.external_scheme_id === scheme.external_scheme_id ||
+    record.schemeId === scheme.external_scheme_id
+  );
+  if (existing) {
+    return {
+      ...existing,
+      schemeId: scheme.external_scheme_id,
+      external_scheme_id: scheme.external_scheme_id,
+      schemeName: scheme.name,
+      category: scheme.category || 'General',
+      benefitAmount: scheme.benefitAmount || scheme.benefits || '',
+      status: TRACKING_STATUSES.includes(existing.status) ? existing.status : 'unverified',
+      trackingType: 'local',
+    };
   }
 
-  const storageKey = getApplicationsStorageKey(activeUserId);
-  if (!storageKey) {
-    throw new Error(`Cannot create application: Invalid user ID "${activeUserId}".`);
-  }
-
-  const newApp = {
-    id: `app_${Date.now()}`,
-    userId: activeUserId,
-    schemeId,
-    schemeName,
-    category: 'General',
-    status: 'submitted',
-    appliedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    referenceNo: `YOJ-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
-    benefitAmount: benefitAmount || 'Standard Grant / Subsidy',
-    notes: 'Application submitted successfully. Verification in progress.',
+  const now = new Date().toISOString();
+  const application = {
+    id: `local_${globalThis.crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`}`,
+    userId: ownerId,
+    schemeId: scheme.external_scheme_id,
+    external_scheme_id: scheme.external_scheme_id,
+    schemeName: scheme.name,
+    category: scheme.category || 'General',
+    benefitAmount: scheme.benefitAmount || scheme.benefits || '',
+    status: 'planning',
+    trackingType: 'local',
+    trackedAt: now,
+    updatedAt: now,
   };
 
-  try {
-    const response = await api.post('/applications', newApp);
-    if (response.data) return response.data;
-  } catch {
-    // Save locally under user-specific storage key
-    const current = getStoredApplications(activeUserId);
-    const updated = [newApp, ...current];
-    persistApplications(updated, activeUserId);
-  }
-
-  return newApp;
+  writeStoredApplications([application, ...records], ownerId);
+  return application;
 }
 
-export async function clearUserApplications(userId) {
-  const activeUserId = userId ?? getCurrentUserId();
-  if (!activeUserId) return;
+export async function updateApplicationStatus(id, status, userId) {
+  const ownerId = activeUser(userId);
+  if (!TRACKING_STATUSES.includes(status)) {
+    throw new Error(`Unsupported local tracking status "${status}".`);
+  }
 
-  const storageKey = getApplicationsStorageKey(activeUserId);
-  if (!storageKey) return;
+  const records = readStoredApplications(ownerId);
+  const index = records.findIndex((record) => String(record.id) === String(id));
+  if (index < 0) {
+    throw new Error('The tracked application was not found for this user.');
+  }
 
+  const updated = {
+    ...records[index],
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+  records[index] = updated;
+  writeStoredApplications(records, ownerId);
+  return updated;
+}
+
+export function clearUserApplications(userId) {
+  const ownerId = activeUser(userId);
   const storage = getStorage();
-  if (storage) {
-    try {
-      storage.removeItem(storageKey);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent(APPLICATIONS_UPDATED_EVENT, {
-          detail: { userId: activeUserId }
-        }));
-      }
-    } catch (err) {
-      console.warn(`[applicationService] Failed to clear applications for user ${activeUserId}:`, err);
-    }
+  const key = getApplicationsStorageKey(ownerId);
+  if (!storage || !key) throw new Error('Application tracking storage is unavailable.');
+
+  storage.removeItem(key);
+  if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(APPLICATIONS_UPDATED_EVENT, {
+      detail: { userId: ownerId },
+    }));
   }
 }

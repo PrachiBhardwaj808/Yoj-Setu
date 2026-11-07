@@ -33,6 +33,7 @@ export function ProfileProvider({ children }) {
     }
     return { ...EMPTY_PROFILE };
   });
+  const [hydratedUserId, setHydratedUserId] = useState(userId);
 
   const [onboardingStep, setOnboardingStep] = useState(() => {
     if (!isValidUserId(userId)) return 1;
@@ -72,6 +73,7 @@ export function ProfileProvider({ children }) {
     if (!isValidUserId(targetUserId)) {
       setProfile({ ...EMPTY_PROFILE });
       setOnboardingStep(1);
+      setHydratedUserId(targetUserId);
       profileRef.current = { ...EMPTY_PROFILE };
       stepRef.current = 1;
       return;
@@ -88,6 +90,7 @@ export function ProfileProvider({ children }) {
           const loadedStep = parsed.step ?? 1;
           setProfile(loadedProfile);
           setOnboardingStep(loadedStep);
+          setHydratedUserId(targetUserId);
           profileRef.current = loadedProfile;
           stepRef.current = loadedStep;
           return;
@@ -99,6 +102,7 @@ export function ProfileProvider({ children }) {
 
     setProfile({ ...EMPTY_PROFILE });
     setOnboardingStep(1);
+    setHydratedUserId(targetUserId);
     profileRef.current = { ...EMPTY_PROFILE };
     stepRef.current = 1;
   }, []);
@@ -200,11 +204,14 @@ export function ProfileProvider({ children }) {
   }, []);
 
   // Calculate completion percentage based on answered fields
-  const completionPercent = calculateProfileCompletion(profile);
+  const isCurrentUserHydrated = Object.is(hydratedUserId, userId);
+  const activeProfile = isCurrentUserHydrated ? profile : { ...EMPTY_PROFILE };
+  const activeOnboardingStep = isCurrentUserHydrated ? onboardingStep : 1;
+  const completionPercent = calculateProfileCompletion(activeProfile);
 
   const value = {
-    profile,
-    onboardingStep,
+    profile: activeProfile,
+    onboardingStep: activeOnboardingStep,
     completionPercent,
     updateProfile,
     saveStep,
