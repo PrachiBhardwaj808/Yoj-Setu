@@ -100,7 +100,7 @@ export function AuthProvider({ children }) {
       setUser(freshUser);
       localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
       return freshUser;
-    } catch (err) {
+    } catch {
       return null;
     }
   }, []);

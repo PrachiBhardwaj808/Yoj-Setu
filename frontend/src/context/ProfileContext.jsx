@@ -1,8 +1,9 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
 const ProfileContext = createContext(null);
 
 const STORAGE_KEY = 'yojsetu_profile';
+export const PROFILE_UPDATED_EVENT = 'yojsetu:profile-updated';
 
 export const EMPTY_PROFILE = {
   // 1. Personal
@@ -141,41 +142,112 @@ export function ProfileProvider({ children }) {
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [onboardingStep, setOnboardingStep] = useState(1);
 
-  // Hydrate from localStorage
+  const profileRef = useRef(profile);
+  const stepRef = useRef(onboardingStep);
+
+  // Keep refs synchronized with state
   useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
+
+  useEffect(() => {
+    stepRef.current = onboardingStep;
+  }, [onboardingStep]);
+
+  const loadProfile = useCallback(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        setProfile(parsed.profile ? { ...EMPTY_PROFILE, ...parsed.profile } : EMPTY_PROFILE);
-        setOnboardingStep(parsed.step ?? 1);
+        const loadedProfile = parsed.profile ? { ...EMPTY_PROFILE, ...parsed.profile } : EMPTY_PROFILE;
+        const loadedStep = parsed.step ?? 1;
+        setProfile(loadedProfile);
+        setOnboardingStep(loadedStep);
+        profileRef.current = loadedProfile;
+        stepRef.current = loadedStep;
+      } else {
+        setProfile(EMPTY_PROFILE);
+        setOnboardingStep(1);
+        profileRef.current = EMPTY_PROFILE;
+        stepRef.current = 1;
       }
     } catch {
       localStorage.removeItem(STORAGE_KEY);
+      setProfile(EMPTY_PROFILE);
+      setOnboardingStep(1);
+      profileRef.current = EMPTY_PROFILE;
+      stepRef.current = 1;
     }
   }, []);
 
+  // Hydrate from localStorage and synchronize across storage events & same-tab custom events
+  useEffect(() => {
+    loadProfile();
+
+    // Cross-tab synchronization (native browser storage event)
+    const handleStorage = (e) => {
+      if (!e.key || e.key === STORAGE_KEY) {
+        loadProfile();
+      }
+    };
+
+    // Same-tab synchronization (custom event dispatched by profileService)
+    const handleSameTabUpdate = (e) => {
+      if (e.detail?.profile) {
+        const updated = { ...EMPTY_PROFILE, ...e.detail.profile };
+        const step = e.detail.step ?? stepRef.current;
+        setProfile(updated);
+        setOnboardingStep(step);
+        profileRef.current = updated;
+        stepRef.current = step;
+      } else {
+        loadProfile();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorage);
+      window.addEventListener(PROFILE_UPDATED_EVENT, handleSameTabUpdate);
+      return () => {
+        window.removeEventListener('storage', handleStorage);
+        window.removeEventListener(PROFILE_UPDATED_EVENT, handleSameTabUpdate);
+      };
+    }
+  }, [loadProfile]);
+
   const persist = useCallback((updatedProfile, step) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ profile: updatedProfile, step }));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ profile: updatedProfile, step }));
+    } catch (err) {
+      console.warn('[ProfileContext] Failed to persist profile to localStorage:', err);
+    }
   }, []);
 
   const updateProfile = useCallback((changes) => {
     setProfile(prev => {
       const updated = { ...prev, ...changes };
-      persist(updated, onboardingStep);
+      profileRef.current = updated;
+      persist(updated, stepRef.current);
       return updated;
     });
-  }, [onboardingStep, persist]);
+  }, [persist]);
 
   const saveStep = useCallback((step) => {
     setOnboardingStep(step);
-    persist(profile, step);
-  }, [profile, persist]);
+    stepRef.current = step;
+    persist(profileRef.current, step);
+  }, [persist]);
 
   const clearProfile = useCallback(() => {
     setProfile(EMPTY_PROFILE);
     setOnboardingStep(1);
-    localStorage.removeItem(STORAGE_KEY);
+    profileRef.current = EMPTY_PROFILE;
+    stepRef.current = 1;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
   }, []);
 
   // Calculate completion percentage based on answered fields

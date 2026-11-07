@@ -1,7 +1,7 @@
 import { useLanguage } from '@/context/LanguageContext';
 
 /** LoadingState — consistent loading skeleton for all data-driven pages */
-export function LoadingState({ message, rows = 4 }) {
+export function LoadingState({ message, _rows = 4 }) {
   const { t } = useLanguage();
   const displayMsg = message !== undefined ? message : t('common.loading', 'Loading…');
 
