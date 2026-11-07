@@ -9,37 +9,42 @@ const MOCK_RESPONSES = [
   {
     pattern: /kisan|farmer|farm|agriculture|किसान|ਖੇਤੀ|কৃষি|शेतकरी|விவசாயி|రైతు|ખેડૂત|ರೈತ|കർഷകൻ/i,
     reply:
-      'PM Kisan Samman Nidhi gives ₹6,000 per year directly to your bank account. If you are a registered farmer with land under 2 hectares, you likely qualify. Would you like me to check your eligibility?',
+      'The catalogue lists PM Kisan Samman Nidhi with ₹6,000 / year direct transfer. See the scheme details for eligibility and required documents.',
   },
   {
     pattern: /health|hospital|insurance|ayushman|स्वास्थ्य|सेहत|স্বাস্থ্য|आरोग्य|சுகாதாரம்|ఆరోగ్యం|આરોગ્ય|ಆರೋಗ್ಯ|ആരോഗ്യം/i,
     reply:
-      'Ayushman Bharat PM-JAY provides up to ₹5,00,000 per year in health insurance coverage. Treatment at any empanelled government or private hospital is free. Shall I help you apply?',
+      'The catalogue lists Ayushman Bharat (PM-JAY) with ₹5 Lakhs health cover / year. See the scheme details and official portal before applying.',
   },
   {
     pattern: /housing|house|ghar|awas|आवास|घर|ਮਕਾਨ|ঘর|வீடு|ఇల్లు|ઘર|ಮನೆ|വീട്/i,
     reply:
-      'PM Awas Yojana offers housing subsidies of up to ₹2.67 lakh for urban families. PM Surya Ghar Muft Bijli additionally provides up to ₹78,000 for solar panels. Would you like details on both?',
+      'The catalogue lists PM Awas Yojana (PMAY-Urban/Rural) with up to ₹2.5 Lakhs house subsidy, and PM Surya Ghar: Muft Bijli Yojana with up to ₹78,000 solar subsidy. Check each scheme’s details for eligibility.',
   },
   {
     pattern: /scholarship|education|study|college|छात्रवृत्ति|ਪੜ੍ਹਾਈ|বৃত্তি|शिष्यवृत्ती|கல்வி உதவித்தொகை|స్కాలర్‌షిప్|શિષ્યવૃત્તિ|ವಿದ್ಯಾರ್ಥಿವೇತನ|സ്കോളർഷിപ്പ്/i,
     reply:
-      'PM Scholarship for Higher Education provides ₹36,000 per year for eligible students. You need minimum 80% marks and family income below ₹8 lakh. Should I check your profile for eligibility?',
+      'The catalogue lists the Post-Matric Scholarship Scheme with 100% tuition + allowance. See the scheme details for eligibility and required documents.',
   },
   {
     pattern: /pension|atal|apy|पेंशन|ਪੈਨਸ਼ਨ|পেনশন|पेन्शन|ஓய்வூதியம்|పెన్షన్|પેન્શન|ಪಿಂಚಣಿ|പെൻഷൻ/i,
     reply:
-      'Atal Pension Yojana guarantees ₹1,000 to ₹5,000 per month pension for workers in the unorganized sector. You can enroll if you are between 18–40 years old with a bank account.',
+      'I do not have a verified pension scheme in the current catalogue. Please check the catalogue for currently listed schemes.',
   },
   {
-    pattern: /loan|mudra|business|ऋण|लोन|ਕਰਜ਼ਾ|ঋণ|कर्ज|கடன்|రుణం|લોન|ಸಾಲ|വായ്പ/i,
+    pattern: /loan|mudra|business|ऋण|लोन|ਕਰਜ਼ਾ|ঋণ|कर्ज|கடன்|రుణం|લોન|ಸાલ|ಸಾಲ|വായ്പ/i,
     reply:
-      'Mudra Loan Scheme provides collateral-free loans up to ₹10 lakh for small business owners. Three tiers: Shishu (up to ₹50K), Kishore (₹50K–5L), Tarun (₹5L–10L). Want to know which tier fits your need?',
+      'I do not have a verified business-loan scheme in the current catalogue. Please check the catalogue for currently listed schemes.',
+  },
+  {
+    pattern: /mgnrega|employment|rural work|मनरेगा|ग्रामीण रोजगार|ਮਨਰੇਗਾ|গ্রামীণ কর্মসংস্থান|मनरेगा|ஊரக வேலைவாய்ப்பு|గ్రామీణ ఉపాధి|ગ્રામીણ રોજગાર|ಗ್ರಾಮೀಣ ಉದ್ಯೋಗ|ഗ്രാമീണ തൊഴിൽ/i,
+    reply:
+      'The catalogue lists MGNREGA Rural Employment Guarantee as providing 100 days of wage employment in a financial year for adult members of rural households.',
   },
   {
     pattern: /scheme|yojana|benefit|योजना|ਯੋਜਨਾ|প্রকল্প|திட்டம்|పథకం|યોજના|ಯೋಜನೆ|പദ്ധതി/i,
     reply:
-      'There are 500+ Central and State government schemes available. Based on your profile, I can recommend the most relevant ones. Would you like me to run a full eligibility check?',
+      'I can help with schemes in the current catalogue. Ask about farming, health, housing, education, or employment, or check the catalogue for available schemes.',
   },
 ];
 
@@ -70,63 +75,63 @@ export const MULTILINGUAL_SUGGESTIONS = {
     'What farming schemes am I eligible for?',
     'How do I apply for Ayushman Bharat?',
     'What is PM Awas Yojana subsidy?',
-    'Can I get a Mudra business loan?',
+    'How does MGNREGA support rural employment?',
     'How to track my application status?',
   ],
   hi: [
     'मैं किन कृषि योजनाओं के लिए पात्र हूँ?',
     'आयुष्मान भारत कार्ड के लिए आवेदन कैसे करें?',
     'पीएम आवास योजना की सब्सिडी क्या है?',
-    'क्या मुझे मुद्रा व्यापार ऋण मिल सकता है?',
+    'मनरेगा ग्रामीण रोजगार को कैसे समर्थन देता है?',
     'आवेदन की स्थिति कैसे ट्रैक करें?',
   ],
   pa: [
     'ਮੈਂ ਕਿਹੜੀਆਂ ਖੇਤੀਬਾੜੀ ਸਕੀਮਾਂ ਲਈ ਯੋਗ ਹਾਂ?',
     'ਆਯੁਸ਼ਮਾਨ ਭਾਰਤ ਲਈ ਅਰਜ਼ੀ ਕਿਵੇਂ ਦੇਣੀ ਹੈ?',
     'ਪੀਐਮ ਆਵਾਸ ਯੋਜਨਾ ਸਬਸਿਡੀ ਕੀ ਹੈ?',
-    'ਕੀ ਮੈਨੂੰ ਮੁਦਰਾ ਲੋਨ ਮਿਲ ਸਕਦਾ ਹੈ?',
+    'ਮਨਰੇਗਾ ਪੇਂਡੂ ਰੁਜ਼ਗਾਰ ਵਿੱਚ ਕਿਵੇਂ ਮਦਦ ਕਰਦਾ ਹੈ?',
   ],
   bn: [
     'আমি কোন কোন কৃষি প্রকল্পের জন্য যোগ্য?',
     'আয়ুষ্মান ভারতের জন্য কীভাবে আবেদন করব?',
     'পিএম আবাস যোজনার ভর্তুকি কত?',
-    'মুদ্রা ব্যবসার ঋণ কীভাবে পাব?',
+    'মনরেগা কীভাবে গ্রামীণ কর্মসংস্থানে সহায়তা করে?',
   ],
   mr: [
     'मी कोणत्या कृषी योजनांसाठी पात्र आहे?',
     'आयुष्मान भारतसाठी अर्ज कसा करावा?',
     'पीएम आवास योजना अनुदान काय आहे?',
-    'मुद्रा व्यवसाय कर्ज कसे मिळवायचे?',
+    'मनरेगा ग्रामीण रोजगाराला कशी मदत करते?',
   ],
   ta: [
     'நான் எந்த விவசாயத் திட்டங்களுக்கு தகுதியானவன்?',
     'ஆயுஷ்மான் பாரத்திற்கு எவ்வாறு விண்ணப்பிப்பது?',
     'பிரதம மந்திரி அவாஸ் யோஜனா மானியம் என்ன?',
-    'முத்ரா வணிக கடன் பெற முடியுமா?',
+    'மகாத்மா காந்தி தேசிய ஊரக வேலை உறுதித் திட்டம் கிராமப்புற வேலைவாய்ப்புக்கு எவ்வாறு உதவுகிறது?',
   ],
   te: [
     'నేను ఏ వ్యవసాయ పథకాలకు అర్హుడిని?',
     'ఆయుష్మాన్ భారత్ కోసం ఎలా దరఖాస్తు చేయాలి?',
     'పీఎం ఆవాస్ యోజన రాయితీ ఎంత?',
-    'ముద్రా వ్యాపార రుణం పొందవచ్చా?',
+    'ఎంజీఎన్ఆర్ఈజీఏ గ్రామీణ ఉపాధికి ఎలా తోడ్పడుతుంది?',
   ],
   gu: [
     'હું કઈ કૃષિ યોજનાઓ માટે પાત્ર છું?',
     'આયુષ્માન ભારત માટે કેવી રીતે અરજી કરવી?',
     'પીએમ આવાસ યોજના સબસિડી શું છે?',
-    'શું મને મુદ્રા લોન મળી શકે?',
+    'મનરેગા ગ્રામ્ય રોજગારમાં કેવી રીતે મદદ કરે છે?',
   ],
   kn: [
     'ನಾನು ಯಾವ ಕೃಷಿ ಯೋಜನೆಗಳಿಗೆ ಅರ್ಹನಾಗಿದ್ದೇನೆ?',
     'ಆಯುಷ್ಮಾನ್ ಭಾರತ್‌ಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸುವುದು ಹೇಗೆ?',
     'ಪಿಎಂ ಆವಾಸ್ ಯೋಜನೆ ಸಬ್ಸಿಡಿ ಏನು?',
-    'ಮುದ್ರಾ ವ್ಯಾಪಾರ ಸಾಲ ಪಡೆಯಬಹುದೇ?',
+    'ಮನರೇಗಾ ಗ್ರಾಮೀಣ ಉದ್ಯೋಗಕ್ಕೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ?',
   ],
   ml: [
     'ഏതൊക്കെ കാർഷിക പദ്ധതികൾക്കാണ് എനിക്ക് അർഹതയുള്ളത്?',
     'ആയുഷ്മാൻ ഭാരതിന് എങ്ങനെ അപേക്ഷിക്കാം?',
     'പിഎം ആവാസ് യോജന സബ്‌സിഡി എത്രയാണ്?',
-    'മുദ്ര ബിസിനസ്സ് വായ്പ ലഭിക്കുമോ?',
+    'മന്രേഗ ഗ്രാമീണ തൊഴിലിനെ എങ്ങനെ സഹായിക്കുന്നു?',
   ],
 };
 

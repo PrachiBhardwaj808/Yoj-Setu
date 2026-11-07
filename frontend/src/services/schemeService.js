@@ -1,28 +1,58 @@
-import api from './api';
-import { mockSchemes } from "@/data/mockSchemes";
+import api from './api.js';
+import { mockSchemes } from '../data/mockSchemes.js';
+import {
+  findSchemeByReference,
+  normalizeScheme,
+  normalizeSchemes,
+} from '../utils/schemeUtils.js';
 
 export const getAllSchemes = async (params = {}) => {
+  let response;
   try {
-    const res = await api.get('/schemes', { params });
-    if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-      return res.data;
-    }
+    response = await api.get('/schemes', { params });
   } catch (err) {
     console.warn('Backend schemes endpoint unavailable, using local cache:', err);
+    return mockSchemes;
   }
-  return mockSchemes;
+
+  if (!Array.isArray(response.data)) {
+    throw new Error('Backend schemes endpoint returned an invalid catalogue.');
+  }
+  return normalizeSchemes(response.data);
 };
 
 export const getSchemeById = async (id) => {
-  try {
-    const res = await api.get(`/schemes/${id}`);
-    if (res.data) {
-      return res.data;
+  if (id === null || id === undefined || String(id).trim() === '') return undefined;
+  const requestedId = String(id);
+
+  if (/^\d+$/.test(requestedId)) {
+    try {
+      const response = await api.get(`/schemes/${requestedId}`);
+      if (response.data) return normalizeScheme(response.data);
+    } catch (err) {
+      if (err.response?.status === 404) return undefined;
+      console.warn(`Backend scheme ${requestedId} endpoint unavailable, checking exact catalogue match:`, err);
     }
-  } catch (err) {
-    console.warn(`Backend scheme ${id} endpoint unavailable, using local cache:`, err);
+
+    const catalogue = await getAllSchemes();
+    return findSchemeByReference(requestedId, catalogue) || undefined;
   }
-  return mockSchemes.find((scheme) => String(scheme.id) === String(id) || scheme.external_scheme_id === id);
+
+  const catalogue = await getAllSchemes();
+  const matchedScheme = findSchemeByReference(requestedId, catalogue);
+  if (!matchedScheme) return undefined;
+
+  if (/^\d+$/.test(String(matchedScheme.id)) && matchedScheme.external_scheme_id) {
+    try {
+      const response = await api.get(`/schemes/${matchedScheme.id}`);
+      if (response.data) return normalizeScheme(response.data);
+    } catch (err) {
+      if (err.response?.status === 404) return undefined;
+      console.warn(`Backend scheme ${matchedScheme.id} endpoint unavailable, using exact catalogue match:`, err);
+    }
+  }
+
+  return matchedScheme;
 };
 
 export const getSchemeRecommendations = async (userProfile, userDocuments = [], category = null) => {

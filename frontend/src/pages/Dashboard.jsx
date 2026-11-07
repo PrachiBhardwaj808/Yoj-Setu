@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getEligibilityResults } from '../services/eligibilityService';
+import { getSchemeRouteId } from '../utils/schemeUtils';
 
 // ─── Outline Icons ────────────────────────────────────────────────────────────
 
@@ -133,7 +134,7 @@ const CATEGORY_KEYS = {
 };
 
 const RECENT_NOTIFICATIONS = [
-  { id: 1, title: 'AI Scheme Engine evaluated profile', time: 'Just now', text: 'Matched 5+ verified central and state schemes with deterministic rules.' },
+  { id: 1, title: 'AI Scheme Engine evaluated profile', time: 'Just now', text: 'Checked the available scheme catalogue against profile criteria.' },
   { id: 2, title: 'DigiLocker Integration Ready', time: '1 hour ago', text: 'Document provider initialized in Mock Development Mode.' },
   { id: 3, title: 'Profile details saved', time: 'Yesterday', text: 'Your location and demographic profile were normalized.' }
 ];
@@ -617,7 +618,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => {
                     setSelectedSchemeModal(null);
-                    navigate(`/schemes/${selectedSchemeModal.scheme_id || selectedSchemeModal.external_scheme_id}`);
+                    navigate(`/schemes/${getSchemeRouteId(selectedSchemeModal)}`);
                   }}
                   className="px-5 py-2 bg-[#2563EB] text-white rounded-xl text-xs font-semibold hover:bg-blue-700 cursor-pointer"
                 >

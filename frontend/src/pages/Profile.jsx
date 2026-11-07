@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -11,6 +11,12 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ ...profile });
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Synchronize edit form whenever profile or active user switches
+  useEffect(() => {
+    setEditForm({ ...profile });
+    setIsEditing(false);
+  }, [user?.id, profile]);
 
   const handleSave = (e) => {
     e.preventDefault();

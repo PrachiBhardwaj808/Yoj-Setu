@@ -9,20 +9,22 @@ import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '../translations/index.js'
 // Common scheme keywords and phrases mapped to Indian languages
 const SCHEME_TRANSLATION_MAP = {
   hi: {
-    'PM Kisan Samman Nidhi gives ₹6,000 per year directly to your bank account. If you are a registered farmer with land under 2 hectares, you likely qualify. Would you like me to check your eligibility?':
-      'पीएम किसान सम्मान निधि आपके बैंक खाते में सीधे ₹6,000 प्रति वर्ष प्रदान करती है। यदि आप 2 हेक्टेयर से कम भूमि वाले पंजीकृत किसान हैं, तो आप पात्र हैं। क्या आप चाहते हैं कि मैं आपकी पात्रता की जांच करूँ?',
-    'Ayushman Bharat PM-JAY provides up to ₹5,00,000 per year in health insurance coverage. Treatment at any empanelled government or private hospital is free. Shall I help you apply?':
-      'आयुष्मान भारत पीएम-जेएवाई ₹5,00,000 प्रति वर्ष तक का स्वास्थ्य बीमा कवरेज प्रदान करता है। किसी भी सूचीबद्ध सरकारी या निजी अस्पताल में इलाज निःशुल्क है। क्या मैं आवेदन करने में आपकी सहायता करूँ?',
-    'PM Awas Yojana offers housing subsidies of up to ₹2.67 lakh for urban families. PM Surya Ghar Muft Bijli additionally provides up to ₹78,000 for solar panels. Would you like details on both?':
-      'पीएम आवास योजना शहरी परिवारों को ₹2.67 लाख तक की आवास सब्सिडी प्रदान करती है। पीएम सूर्य घर मुफ्त बिजली योजना सौर पैनलों के लिए ₹78,000 तक अतिरिक्त प्रदान करती है। क्या आप दोनों का विवरण चाहते हैं?',
-    'PM Scholarship for Higher Education provides ₹36,000 per year for eligible students. You need minimum 80% marks and family income below ₹8 lakh. Should I check your profile for eligibility?':
-      'उच्च शिक्षा के लिए पीएम छात्रवृत्ति योग्य छात्रों को ₹36,000 प्रति वर्ष प्रदान करती है। इसके लिए न्यूनतम 80% अंक और पारिवारिक आय ₹8 लाख से कम होनी चाहिए। क्या मैं पात्रता के लिए आपकी प्रोफ़ाइल जांचूं?',
-    'Atal Pension Yojana guarantees ₹1,000 to ₹5,000 per month pension for workers in the unorganized sector. You can enroll if you are between 18–40 years old with a bank account.':
-      'अटल पेंशन योजना असंगठित क्षेत्र के श्रमिकों के लिए ₹1,000 से ₹5,000 प्रति माह पेंशन की गारंटी देती है। यदि आप बैंक खाते के साथ 18-40 वर्ष की आयु के हैं तो आप नामांकन कर सकते हैं।',
-    'Mudra Loan Scheme provides collateral-free loans up to ₹10 lakh for small business owners. Three tiers: Shishu (up to ₹50K), Kishore (₹50K–5L), Tarun (₹5L–10L). Want to know which tier fits your need?':
-      'मुद्रा ऋण योजना छोटे व्यवसाय मालिकों के लिए ₹10 लाख तक संपार्श्विक-मुक्त ऋण प्रदान करती है। तीन श्रेणियां: शिशु (₹50,000 तक), किशोर (₹50 हजार-5 लाख), तरुण (₹5-10 लाख)। क्या आप जानना चाहते हैं कि कौन सा आपकी आवश्यकता के अनुकूल है?',
-    'There are 500+ Central and State government schemes available. Based on your profile, I can recommend the most relevant ones. Would you like me to run a full eligibility check?':
-      '500+ से अधिक केंद्रीय और राज्य सरकारी योजनाएं उपलब्ध हैं। आपकी प्रोफ़ाइल के आधार पर, मैं सबसे प्रासंगिक योजनाओं की सिफारिश कर सकता हूँ। क्या आप पूर्ण पात्रता जांच चलाना चाहते हैं?',
+    'The catalogue lists PM Kisan Samman Nidhi with ₹6,000 / year direct transfer. See the scheme details for eligibility and required documents.':
+      'योजना सूची में पीएम किसान सम्मान निधि के लिए प्रति वर्ष ₹6,000 का प्रत्यक्ष हस्तांतरण दर्ज है। पात्रता और आवश्यक दस्तावेज़ों के लिए योजना का विवरण देखें।',
+    'The catalogue lists Ayushman Bharat (PM-JAY) with ₹5 Lakhs health cover / year. See the scheme details and official portal before applying.':
+      'योजना सूची में आयुष्मान भारत (PM-JAY) के लिए प्रति वर्ष ₹5 लाख का स्वास्थ्य कवर दर्ज है। आवेदन से पहले योजना का विवरण और आधिकारिक पोर्टल देखें।',
+    'The catalogue lists PM Awas Yojana (PMAY-Urban/Rural) with up to ₹2.5 Lakhs house subsidy, and PM Surya Ghar: Muft Bijli Yojana with up to ₹78,000 solar subsidy. Check each scheme’s details for eligibility.':
+      'योजना सूची में पीएम आवास योजना (PMAY-Urban/Rural) के लिए ₹2.5 लाख तक की आवास सहायता और पीएम सूर्य घर: मुफ्त बिजली योजना के लिए ₹78,000 तक की सौर सब्सिडी दर्ज है। पात्रता के लिए प्रत्येक योजना का विवरण देखें।',
+    'The catalogue lists the Post-Matric Scholarship Scheme with 100% tuition + allowance. See the scheme details for eligibility and required documents.':
+      'योजना सूची में पोस्ट-मैट्रिक छात्रवृत्ति योजना के लिए 100% शिक्षण शुल्क और भत्ता दर्ज है। पात्रता और आवश्यक दस्तावेज़ों के लिए योजना का विवरण देखें।',
+    'I do not have a verified pension scheme in the current catalogue. Please check the catalogue for currently listed schemes.':
+      'वर्तमान योजना सूची में मेरे पास कोई सत्यापित पेंशन योजना नहीं है। सूची में उपलब्ध योजनाओं को देखें।',
+    'I do not have a verified business-loan scheme in the current catalogue. Please check the catalogue for currently listed schemes.':
+      'वर्तमान योजना सूची में मेरे पास कोई सत्यापित व्यवसाय ऋण योजना नहीं है। सूची में उपलब्ध योजनाओं को देखें।',
+    'The catalogue lists MGNREGA Rural Employment Guarantee as providing 100 days of wage employment in a financial year for adult members of rural households.':
+      'योजना सूची में मनरेगा ग्रामीण रोजगार गारंटी के तहत ग्रामीण परिवारों के वयस्क सदस्यों को एक वित्तीय वर्ष में 100 दिन का मजदूरी रोजगार दर्ज है।',
+    'I can help with schemes in the current catalogue. Ask about farming, health, housing, education, or employment, or check the catalogue for available schemes.':
+      'मैं वर्तमान योजना सूची में उपलब्ध योजनाओं के बारे में सहायता कर सकता हूँ। कृषि, स्वास्थ्य, आवास, शिक्षा या रोजगार के बारे में पूछें, या उपलब्ध योजनाओं के लिए सूची देखें।',
     "I'm Yojsetu AI Sathi — I can help you find government schemes, check your eligibility, and guide your applications. Try asking me about farming, health, housing, education, or loans!":
       'मैं योजसेतु एआई साथी हूँ — मैं आपको सरकारी योजनाएं खोजने, पात्रता जांचने और आवेदन में मार्गदर्शन करने में मदद कर सकता हूँ। मुझसे खेती, स्वास्थ्य, आवास, शिक्षा या ऋण के बारे में पूछें!',
   },

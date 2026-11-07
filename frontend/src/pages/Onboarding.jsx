@@ -56,17 +56,17 @@ export default function Onboarding() {
   const [formData, setFormData] = useState(profile);
   const [age, setAge] = useState('');
 
-  // Hydrate user info from Auth
+  // Synchronize onboarding form data and step when user or profile changes
   useEffect(() => {
-    if (user) {
-      setFormData(prev => ({
-        ...prev,
-        full_name: prev.full_name || user.full_name || '',
-        phone: prev.phone || user.phone || '',
-        email: prev.email || user.email || '',
-      }));
-    }
-  }, [user]);
+    setStep(onboardingStep || 1);
+    setAge('');
+    setFormData({
+      ...profile,
+      full_name: profile.full_name || user?.full_name || '',
+      phone: profile.phone || user?.phone || '',
+      email: profile.email || user?.email || '',
+    });
+  }, [user?.id, user?.full_name, user?.phone, user?.email, profile, onboardingStep]);
 
   // Calculate age automatically from Date of Birth
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function Onboarding() {
         setFormData(prev => ({ ...prev, age: computedAge }));
       }
     }
-  }, [formData.date_of_birth]);
+  }, [formData.date_of_birth, user?.id]);
 
   const handleChange = (field, val) => {
     const updated = { ...formData, [field]: val };

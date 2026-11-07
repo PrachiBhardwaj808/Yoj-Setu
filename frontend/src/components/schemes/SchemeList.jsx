@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getAllSchemes } from "@/services/schemeService";
 import { useLanguage } from "@/context/LanguageContext";
 import SchemeCard from "./SchemeCard";
+import { filterSchemes, getSchemeRouteId } from '../../utils/schemeUtils';
 
 export default function SchemeList() {
     const { t } = useLanguage();
@@ -32,15 +33,7 @@ export default function SchemeList() {
 
     const categories = ["All", ...new Set(schemes.map(s => s.category).filter(Boolean))];
 
-    const filteredSchemes = schemes.filter((scheme) => {
-        const title = (scheme.title || scheme.name || scheme.scheme_name || "").toLowerCase();
-        const desc = (scheme.description || "").toLowerCase();
-        const search = searchText.toLowerCase().trim();
-
-        const matchesSearch = !search || title.includes(search) || desc.includes(search);
-        const matchesCategory = category === "All" || (scheme.category || "").toLowerCase() === category.toLowerCase();
-        return matchesSearch && matchesCategory;
-    });
+    const filteredSchemes = filterSchemes(schemes, searchText, category);
 
     return (
         <div className="space-y-4">
@@ -101,7 +94,7 @@ export default function SchemeList() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredSchemes.map((scheme) => (
                         <SchemeCard
-                            key={scheme.id || scheme.scheme_id || scheme.external_scheme_id}
+                            key={getSchemeRouteId(scheme)}
                             scheme={scheme}
                         />
                     ))}

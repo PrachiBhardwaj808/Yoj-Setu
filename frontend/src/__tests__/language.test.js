@@ -100,7 +100,7 @@ test('Bhashini Service - Supported codes and translation fallbacks', async () =>
 
   // Scheme response translation to Hindi
   const kisanEn =
-    'PM Kisan Samman Nidhi gives ₹6,000 per year directly to your bank account. If you are a registered farmer with land under 2 hectares, you likely qualify. Would you like me to check your eligibility?';
+    'The catalogue lists PM Kisan Samman Nidhi with ₹6,000 / year direct transfer. See the scheme details for eligibility and required documents.';
   const translatedKisan = await translateText(kisanEn, 'hi', 'en');
   assert.ok(translatedKisan.includes('पीएम किसान सम्मान निधि'));
 
@@ -134,10 +134,17 @@ test('Chat Service - Multilingual questions and responses', async () => {
   // Send message in English
   const resEn = await sendMessage('Tell me about kisan subsidy', 'en');
   assert.ok(resEn.includes('PM Kisan Samman Nidhi'));
+  assert.ok(!resEn.includes('under 2 hectares'));
 
   // Send message in Hindi
   const resHi = await sendMessage('किसान योजना', 'hi');
   assert.ok(resHi.includes('पीएम किसान सम्मान निधि'));
+
+  const employmentReply = await sendMessage('How does MGNREGA support rural employment?', 'en');
+  assert.ok(employmentReply.includes('100 days of wage employment'));
+
+  const unsupportedReply = await sendMessage('Tell me about a business loan', 'en');
+  assert.ok(unsupportedReply.includes('business-loan scheme'));
 });
 
 test('Translations Dictionary - All 10 Supported Languages have full key sets', () => {
@@ -196,4 +203,3 @@ test('Parameter Interpolation - Correctly replaces placeholders', () => {
   const templateDocs = TRANSLATIONS.en['dashboard.moreDocs'];
   assert.equal(interpolate(templateDocs, { count: 3 }), '+3 more');
 });
-

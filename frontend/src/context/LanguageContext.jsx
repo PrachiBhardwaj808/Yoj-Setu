@@ -6,11 +6,11 @@ import {
   resolveLanguage,
   isSupportedLanguage,
 } from '../translations';
+import { getCurrentUserId, getProfileStorageKey } from '../utils/storage';
 
 const LanguageContext = createContext(null);
 
 const STORAGE_KEY = 'yojsetu_language';
-const PROFILE_STORAGE_KEY = 'yojsetu_profile';
 
 /**
  * Safely retrieves initial language preference from localStorage or profile preference.
@@ -24,13 +24,17 @@ function getInitialLanguage() {
     const resolvedSaved = resolveLanguage(saved);
     if (resolvedSaved) return resolvedSaved.code;
 
-    // 2. Check profile storage for preferred_language
-    const savedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
-    if (savedProfile) {
-      const parsed = JSON.parse(savedProfile);
-      const profileLang = parsed?.profile?.preferred_language;
-      const resolvedProfileLang = resolveLanguage(profileLang);
-      if (resolvedProfileLang) return resolvedProfileLang.code;
+    // 2. Check user profile storage for preferred_language
+    const activeUserId = getCurrentUserId();
+    const userProfileKey = activeUserId ? getProfileStorageKey(activeUserId) : null;
+    if (userProfileKey) {
+      const savedProfile = localStorage.getItem(userProfileKey);
+      if (savedProfile) {
+        const parsed = JSON.parse(savedProfile);
+        const profileLang = parsed?.profile?.preferred_language;
+        const resolvedProfileLang = resolveLanguage(profileLang);
+        if (resolvedProfileLang) return resolvedProfileLang.code;
+      }
     }
 
     // 3. Fallback to default
@@ -89,12 +93,16 @@ export function LanguageProvider({ children }) {
       localStorage.setItem(STORAGE_KEY, resolved.code);
 
       // 2. Sync with profile preferred_language if profile exists
-      const savedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
-      if (savedProfile) {
-        const parsed = JSON.parse(savedProfile);
-        if (parsed?.profile) {
-          parsed.profile.preferred_language = resolved.name;
-          localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(parsed));
+      const activeUserId = getCurrentUserId();
+      const userProfileKey = activeUserId ? getProfileStorageKey(activeUserId) : null;
+      if (userProfileKey) {
+        const savedProfile = localStorage.getItem(userProfileKey);
+        if (savedProfile) {
+          const parsed = JSON.parse(savedProfile);
+          if (parsed?.profile) {
+            parsed.profile.preferred_language = resolved.name;
+            localStorage.setItem(userProfileKey, JSON.stringify(parsed));
+          }
         }
       }
     } catch {

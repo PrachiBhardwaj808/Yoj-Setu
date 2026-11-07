@@ -1,67 +1,116 @@
 /**
  * applicationService.js
  *
- * Client application management service.
- * In Phase 1, persists applications to localStorage with initial mock seeds.
- * In Phase 2, this synchronizes with backend persistent applications APIs.
+ * Client application management service with multi-user isolation.
+ * Persists applications to user-specific storage keys (yojsetu_user_applications_{userId}).
+ * Never accesses global or other users' application storage.
  */
-import api from './api';
-import { mockApplications } from '@/data/mockApplications';
+import api from './api.js';
+import {
+  getApplicationsStorageKey,
+  getCurrentUserId,
+  getStorage,
+  APPLICATIONS_UPDATED_EVENT
+} from '../utils/storage.js';
 
-const STORAGE_KEY = 'yojsetu_user_applications';
+export { APPLICATIONS_UPDATED_EVENT };
 
-function getStoredApplications() {
+function getStoredApplications(userId) {
+  const activeUserId = userId ?? getCurrentUserId();
+  if (!activeUserId) return [];
+
+  const storageKey = getApplicationsStorageKey(activeUserId);
+  if (!storageKey) return [];
+
+  const storage = getStorage();
+  if (!storage) return [];
+
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = storage.getItem(storageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
   } catch (err) {
-    console.warn('[applicationService] Failed to parse local applications cache:', err);
+    console.warn(`[applicationService] Failed to parse applications for user ${activeUserId}:`, err);
   }
-  return [...mockApplications];
+
+  return [];
 }
 
-function persistApplications(apps) {
+function persistApplications(apps, userId) {
+  const activeUserId = userId ?? getCurrentUserId();
+  if (!activeUserId) return;
+
+  const storageKey = getApplicationsStorageKey(activeUserId);
+  if (!storageKey) return;
+
+  const storage = getStorage();
+  if (!storage) return;
+
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(apps));
+    storage.setItem(storageKey, JSON.stringify(apps));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(APPLICATIONS_UPDATED_EVENT, {
+        detail: { userId: activeUserId }
+      }));
+    }
   } catch (err) {
-    console.warn('[applicationService] Failed to persist applications:', err);
+    console.warn(`[applicationService] Failed to persist applications for user ${activeUserId}:`, err);
   }
 }
 
-export async function getApplications() {
-  // Attempt backend API if available
+export async function getApplications(userId) {
+  const activeUserId = userId ?? getCurrentUserId();
+  if (!activeUserId) {
+    return [];
+  }
+
+  // 1. Attempt backend API fetch
   try {
     const response = await api.get('/applications');
     if (response.data && Array.isArray(response.data)) {
       return response.data;
     }
   } catch {
-    // Expected in Phase 1 before persistent backend table is mounted in Phase 2
+    // Expected before persistent backend applications table is mounted
   }
 
-  return getStoredApplications();
+  // 2. Read from user-specific isolated storage key
+  return getStoredApplications(activeUserId);
 }
 
-export async function getApplicationById(id) {
+export async function getApplicationById(id, userId) {
+  const activeUserId = userId ?? getCurrentUserId();
+  if (!activeUserId) return null;
+
   try {
     const response = await api.get(`/applications/${id}`);
     if (response.data) return response.data;
   } catch {
-    // Fall back to local storage
+    // Fall back to local user storage
   }
 
-  const apps = getStoredApplications();
-  return apps.find(a => a.id === id) ?? null;
+  const apps = getStoredApplications(activeUserId);
+  return apps.find((a) => a.id === id) ?? null;
 }
 
-export async function createApplication(schemeId, schemeName, benefitAmount) {
+export async function createApplication(schemeId, schemeName, benefitAmount, userId) {
+  const activeUserId = userId ?? getCurrentUserId();
+  if (!activeUserId) {
+    throw new Error('Cannot create application: No authenticated user session.');
+  }
+
+  const storageKey = getApplicationsStorageKey(activeUserId);
+  if (!storageKey) {
+    throw new Error(`Cannot create application: Invalid user ID "${activeUserId}".`);
+  }
+
   const newApp = {
     id: `app_${Date.now()}`,
+    userId: activeUserId,
     schemeId,
     schemeName,
     category: 'General',
@@ -77,11 +126,33 @@ export async function createApplication(schemeId, schemeName, benefitAmount) {
     const response = await api.post('/applications', newApp);
     if (response.data) return response.data;
   } catch {
-    // Save locally
-    const current = getStoredApplications();
+    // Save locally under user-specific storage key
+    const current = getStoredApplications(activeUserId);
     const updated = [newApp, ...current];
-    persistApplications(updated);
+    persistApplications(updated, activeUserId);
   }
 
   return newApp;
+}
+
+export async function clearUserApplications(userId) {
+  const activeUserId = userId ?? getCurrentUserId();
+  if (!activeUserId) return;
+
+  const storageKey = getApplicationsStorageKey(activeUserId);
+  if (!storageKey) return;
+
+  const storage = getStorage();
+  if (storage) {
+    try {
+      storage.removeItem(storageKey);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(APPLICATIONS_UPDATED_EVENT, {
+          detail: { userId: activeUserId }
+        }));
+      }
+    } catch (err) {
+      console.warn(`[applicationService] Failed to clear applications for user ${activeUserId}:`, err);
+    }
+  }
 }

@@ -1,14 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getApplications } from '@/services/applicationService';
+import { getAllSchemes } from '@/services/schemeService';
 import { STATUS_LABELS, STATUS_COLORS } from '@/data/mockApplications';
 import { useLanguage } from '@/context/LanguageContext';
+import { findSchemeForApplication, getSchemeRouteId } from '@/utils/schemeUtils';
 
 export default function Applications() {
   const { t } = useLanguage();
   const [applications, setApplications] = useState([]);
+  const [schemes, setSchemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    let isMounted = true;
+    getAllSchemes()
+      .then((data) => {
+        if (isMounted) setSchemes(data);
+      })
+      .catch((err) => console.error("Error loading schemes for applications:", err));
+
+    return () => { isMounted = false; };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -126,6 +140,9 @@ export default function Applications() {
           {filteredApps.map((app) => {
             const statusStyle = STATUS_COLORS[app.status] || 'bg-gray-100 text-gray-700';
             const statusLabel = STATUS_LABELS[app.status] || app.status;
+            const scheme = findSchemeForApplication(app, schemes);
+            const schemeRouteId = scheme ? getSchemeRouteId(scheme) : null;
+            const schemeName = scheme?.name || app.schemeName;
 
             return (
               <div
@@ -144,7 +161,18 @@ export default function Applications() {
                         </span>
                       )}
                     </div>
-                    <h2 className="font-bold text-base text-[#0F1B3D] mt-1">{app.schemeName}</h2>
+                    {schemeRouteId ? (
+                      <Link
+                        to={`/schemes/${schemeRouteId}`}
+                        className="font-bold text-base text-[#0F1B3D] mt-1 hover:text-blue-600"
+                      >
+                        {schemeName}
+                      </Link>
+                    ) : (
+                      <h2 className="font-bold text-base text-[#0F1B3D] mt-1">
+                        {schemeName || t('schemes.catalogTitle', 'Government Scheme')}
+                      </h2>
+                    )}
                   </div>
                   <span className={`self-start sm:self-auto text-xs font-bold px-3 py-1 rounded-full ${statusStyle}`}>
                     ● {statusLabel}

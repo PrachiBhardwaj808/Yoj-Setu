@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
+import { mockSchemes } from '@/data/mockSchemes';
+import { getAllSchemes } from '@/services/schemeService';
+import { filterSchemes, getSchemeRouteId } from '@/utils/schemeUtils';
 
 
 function CheckIcon({ className = "w-4 h-4" }) {
@@ -158,58 +161,13 @@ function CloseIcon({ className = "w-6 h-6" }) {
 // ─── Data Definitions ────────────────────────────────────────────────────────
 
 const SCHEME_CATEGORIES = ['All', 'Agriculture', 'Health', 'Education', 'Housing', 'Employment'];
-
-const SCHEMES_DATA = [
-  {
-    id: 'pm-kisan',
-    name: 'PM Kisan Samman Nidhi',
-    category: 'Agriculture',
-    description: 'Direct income support of ₹6,000 annually for small and marginal landholding farmers.',
-    benefit: '₹6,000 / year',
-    icon: SproutIcon
-  },
-  {
-    id: 'ayushman-bharat',
-    name: 'Ayushman Bharat (PM-JAY)',
-    category: 'Health',
-    description: 'Health insurance cover of ₹5 Lakhs per family per year for secondary and tertiary care hospitalization.',
-    benefit: '₹5 Lakhs health cover',
-    icon: HeartPulseIcon
-  },
-  {
-    id: 'pm-surya-ghar',
-    name: 'PM Surya Ghar: Muft Bijli Yojana',
-    category: 'Housing',
-    description: 'Subsidy up to ₹78,000 for installing rooftop solar panels to provide up to 300 units free electricity.',
-    benefit: 'Up to ₹78,000 subsidy',
-    icon: SunIcon
-  },
-  {
-    id: 'pm-pmegp',
-    name: 'PMEGP Employment Scheme',
-    category: 'Employment',
-    description: 'Credit-linked subsidy scheme generating micro-enterprise employment in rural and urban areas.',
-    benefit: 'Up to 35% subsidy',
-    icon: BriefcaseIcon
-  },
-  {
-    id: 'pm-awaya-yojana',
-    name: 'PM Awas Yojana (Urban & Rural)',
-    category: 'Housing',
-    description: 'Financial assistance for pucca house construction with basic amenities for eligible households.',
-    benefit: 'Up to ₹2.5 Lakhs assistance',
-    icon: HomeIcon
-  },
-  {
-    id: 'post-matric-scholarship',
-    name: 'Post-Matric Scholarship Scheme',
-    category: 'Education',
-    description: 'Financial assistance for students pursuing higher secondary and university education post Class 10.',
-    benefit: '100% tuition coverage',
-    icon: GradHatIcon
-  }
-];
-
+const CATEGORY_ICONS = {
+  agriculture: SproutIcon,
+  health: HeartPulseIcon,
+  education: GradHatIcon,
+  housing: HomeIcon,
+  employment: BriefcaseIcon,
+};
 
 const TESTIMONIALS = [
   {
@@ -238,10 +196,24 @@ export default function Home() {
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [schemes, setSchemes] = useState(mockSchemes);
 
-  const filteredSchemes = selectedCategory === 'All'
-    ? SCHEMES_DATA
-    : SCHEMES_DATA.filter(s => s.category === selectedCategory);
+  useEffect(() => {
+    let isMounted = true;
+    getAllSchemes()
+      .then((data) => {
+        if (isMounted) setSchemes(data);
+      })
+      .catch((err) => console.error('Error loading schemes on Home:', err));
+
+    return () => { isMounted = false; };
+  }, []);
+
+  const categories = [...new Set([
+    ...SCHEME_CATEGORIES,
+    ...schemes.map((scheme) => scheme.category).filter(Boolean),
+  ])];
+  const filteredSchemes = filterSchemes(schemes, '', selectedCategory);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 text-[#111827] dark:text-gray-100 flex flex-col font-sans selection:bg-blue-100 selection:text-[#2563EB]">
@@ -511,7 +483,7 @@ export default function Home() {
               <div className="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-gray-700 flex items-center justify-between text-xs text-[#64748B] dark:text-gray-300">
                 <span>{t('home.basedOnFilters', 'Based on profile filters')}</span>
                 <span className="font-medium text-[#2563EB] hover:underline cursor-pointer" onClick={() => navigate('/schemes')}>
-                  {t('home.viewAllSchemes', 'View all 500+ →')}
+                  {t('home.viewAllSchemes', 'View all schemes →')}
                 </span>
               </div>
 
@@ -532,7 +504,7 @@ export default function Home() {
                 <FileTextIcon className="w-4 h-4" />
               </div>
               <span className="text-sm sm:text-base font-medium text-[#111827] dark:text-gray-100">
-                {t('home.trustSchemes', '500+ schemes')}
+                {t('home.trustSchemes', 'Government schemes')}
               </span>
             </div>
 
@@ -574,7 +546,7 @@ export default function Home() {
 
         {/* Category Filters */}
         <div className="flex items-center gap-2 overflow-x-auto pt-6 pb-2 scrollbar-none">
-          {SCHEME_CATEGORIES.map(cat => {
+          {categories.map(cat => {
             const catLabel = cat === 'All' ? t('dashboard.all', 'All')
               : cat === 'Agriculture' ? t('dashboard.agriculture', 'Agriculture')
               : cat === 'Health' ? t('dashboard.health', 'Health')
@@ -600,10 +572,14 @@ export default function Home() {
         {/* Scheme Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
           {filteredSchemes.map(scheme => {
-            const IconComponent = scheme.icon;
+            const categoryName = (scheme.category || '').toLowerCase();
+            const IconComponent = scheme.icon ||
+              Object.entries(CATEGORY_ICONS).find(([category]) => categoryName.includes(category))?.[1] ||
+              SunIcon;
+            const schemeRouteId = getSchemeRouteId(scheme);
             return (
               <div
-                key={scheme.id}
+                key={schemeRouteId}
                 className="bg-white dark:bg-gray-900 border border-[#E2E8F0] dark:border-gray-700 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-all shadow-sm group"
               >
                 <div>
@@ -627,16 +603,18 @@ export default function Home() {
 
                 <div className="pt-6 mt-4 border-t border-[#E2E8F0] dark:border-gray-700 flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#0F1B3D] dark:text-white">
-                    {scheme.benefit}
+                    {scheme.benefitAmount || scheme.benefits}
                   </span>
 
-                  <button
-                    onClick={() => navigate(`/schemes/${scheme.id}`)}
-                    className="text-sm font-medium text-[#2563EB] hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <span>{t('home.viewScheme', 'View scheme')}</span>
-                    <ArrowRightIcon className="w-3.5 h-3.5" />
-                  </button>
+                  {schemeRouteId && (
+                    <button
+                      onClick={() => navigate(`/schemes/${schemeRouteId}`)}
+                      className="text-sm font-medium text-[#2563EB] hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <span>{t('home.viewScheme', 'View scheme')}</span>
+                      <ArrowRightIcon className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -689,7 +667,7 @@ export default function Home() {
                   {t('home.step2Title', 'Discover eligible schemes')}
                 </h3>
                 <p className="text-sm text-[#64748B] dark:text-gray-300 leading-relaxed mt-2">
-                  {t('home.step2Desc', 'Our matching engine instantly analyzes 500+ central and state schemes tailored to your exact profile.')}
+                  {t('home.step2Desc', 'Our matching engine checks the available schemes against your profile and shows benefits and requirements.')}
                 </p>
               </div>
               <div className="mt-8 pt-4 border-t border-[#E2E8F0] dark:border-gray-700 text-xs text-[#64748B] dark:text-gray-300">
@@ -766,11 +744,11 @@ export default function Home() {
             {/* Yojsetu message */}
             <div className="flex justify-start">
               <div className="bg-[#0F1B3D] text-white px-4 py-3 rounded-2xl rounded-tl-xs text-sm max-w-md space-y-1.5 leading-relaxed">
-                <p>{t('home.assistantReplyPreview', 'Based on your profile, here are 3 schemes you may be eligible for:')}</p>
+                <p>{t('home.assistantReplyPreview', 'Examples from the current scheme catalogue:')}</p>
                 <ul className="text-xs text-slate-300 space-y-1 pt-1 list-disc list-inside">
                   <li>PM Kisan Samman Nidhi</li>
-                  <li>Ayushman Bharat Health Cover</li>
-                  <li>PM Surya Ghar Solar Subsidy</li>
+                  <li>Ayushman Bharat (PM-JAY)</li>
+                  <li>PM Surya Ghar: Muft Bijli Yojana</li>
                 </ul>
               </div>
             </div>
