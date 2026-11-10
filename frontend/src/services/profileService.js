@@ -7,6 +7,7 @@
  * Never accesses global or other users' storage keys.
  */
 import { EMPTY_PROFILE } from '../utils/profileUtils.js';
+import api from './api.js';
 import {
   getProfileStorageKey,
   getCurrentUserId,
@@ -21,6 +22,32 @@ export const getProfile = async (userId) => {
   const activeUserId = userId ?? getCurrentUserId();
   if (!isValidUserId(activeUserId)) {
     return { ...EMPTY_PROFILE };
+  }
+
+  // Attempt backend retrieval if authenticated
+  try {
+    const storage = getStorage();
+    const token = storage?.getItem?.('yojsetu_token');
+    if (token) {
+      const response = await api.get('/profile/me');
+      if (
+        response?.data &&
+        !Array.isArray(response.data) &&
+        typeof response.data === 'object' &&
+        (response.data.full_name !== undefined || response.data.state !== undefined)
+      ) {
+        const backendProfile = { ...EMPTY_PROFILE, ...response.data };
+        const storageKey = getProfileStorageKey(activeUserId);
+        if (storage && storageKey) {
+          const saved = storage.getItem(storageKey);
+          const step = saved ? JSON.parse(saved).step ?? 1 : 1;
+          storage.setItem(storageKey, JSON.stringify({ profile: backendProfile, step }));
+        }
+        return backendProfile;
+      }
+    }
+  } catch (err) {
+    // Offline / fallback to local cache
   }
 
   const storageKey = getProfileStorageKey(activeUserId);
@@ -56,6 +83,16 @@ export const updateProfile = async (updatedData, userId) => {
   const saved = storage.getItem(storageKey);
   const step = saved ? JSON.parse(saved).step ?? 1 : 1;
   storage.setItem(storageKey, JSON.stringify({ profile: updated, step }));
+
+  // Synchronize to backend database
+  try {
+    const token = storage?.getItem?.('yojsetu_token');
+    if (token) {
+      await api.put('/profile/me', updated);
+    }
+  } catch (err) {
+    // Persistent backend sync will retry on next session
+  }
 
   if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') {
     window.dispatchEvent(new CustomEvent(PROFILE_UPDATED_EVENT, {
