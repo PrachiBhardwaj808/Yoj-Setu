@@ -105,6 +105,10 @@ class SQLiteConnectionWrapper:
     """Wrapper to give SQLite connection an API compatible with mysql-connector."""
     def __init__(self, conn):
         self.conn = conn
+        try:
+            self.conn.execute("PRAGMA foreign_keys = ON;")
+        except Exception:
+            pass
 
     def cursor(self, dictionary=True):
         self.conn.row_factory = sqlite3.Row
