@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProfile, calculateProfileCompletion } from '../context/ProfileContext';
+import { getCompletedOnboardingSections } from '../utils/profileUtils';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -49,12 +50,15 @@ export default function Onboarding() {
   const logoSrc = theme === 'dark' ? '/yojsetu-logo-dark.png' : '/yojsetu-logo-light.png';
   const navigate = useNavigate();
   const { user, markOnboardingComplete } = useAuth();
-  const { profile, updateProfile, saveStep, onboardingStep } = useProfile();
+  const { profile, saveProgress, onboardingStep } = useProfile();
   const { setLanguage } = useLanguage();
 
   const [step, setStep] = useState(onboardingStep || 1); // 1-6: Form, 7: Review, 8: Success
   const [formData, setFormData] = useState(profile);
   const [age, setAge] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState(null);
+  const saveInProgress = useRef(false);
 
   // Synchronize onboarding form data and step when user or profile changes
   useEffect(() => {
@@ -70,59 +74,111 @@ export default function Onboarding() {
 
   // Calculate age automatically from Date of Birth
   useEffect(() => {
-    if (formData.date_of_birth) {
-      const birthDate = new Date(formData.date_of_birth);
-      const today = new Date();
-      let computedAge = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        computedAge--;
-      }
-      if (computedAge >= 0 && computedAge < 120) {
-        setAge(computedAge);
-        setFormData(prev => ({ ...prev, age: computedAge }));
-      }
+    if (!formData.date_of_birth) {
+      setAge('');
+      setFormData((previous) => previous.age ? { ...previous, age: '' } : previous);
+      return;
+    }
+
+    const birthDate = new Date(`${formData.date_of_birth}T00:00:00`);
+    const today = new Date();
+    let computedAge = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      computedAge--;
+    }
+
+    if (Number.isFinite(computedAge) && computedAge >= 0 && computedAge < 120) {
+      setAge(computedAge);
+      setFormData((previous) => previous.age === computedAge
+        ? previous
+        : { ...previous, age: computedAge });
+    } else {
+      setAge('');
+      setFormData((previous) => previous.age ? { ...previous, age: '' } : previous);
     }
   }, [formData.date_of_birth, user?.id]);
 
   const handleChange = (field, val) => {
     const updated = { ...formData, [field]: val };
-    if (field === 'state' && STATE_DISTRICTS[val]) {
-      updated.district = STATE_DISTRICTS[val][0];
+    if (field === 'state') {
+      updated.district = '';
     }
     setFormData(updated);
-    updateProfile(updated);
   };
 
-  const handleNext = (e) => {
+  const persistProgress = async (targetStep, successMessage) => {
+    if (saveInProgress.current) return false;
+    saveInProgress.current = true;
+    setIsSaving(true);
+    setSaveFeedback(null);
+    try {
+      await saveProgress(formData, targetStep);
+      setSaveFeedback({ type: 'success', message: successMessage });
+      return true;
+    } catch (error) {
+      console.error('Unable to save onboarding progress:', error);
+      setSaveFeedback({
+        type: 'error',
+        message: 'We could not save your progress. Please try again.',
+      });
+      return false;
+    } finally {
+      saveInProgress.current = false;
+      setIsSaving(false);
+    }
+  };
+
+  const handleNext = async (e) => {
     if (e) e.preventDefault();
-    updateProfile(formData);
-    const nextStep = Math.min(8, step + 1);
+    const nextStep = Math.min(7, step + 1);
+    const didSave = await persistProgress(
+      nextStep,
+      'Your progress has been saved.'
+    );
+    if (!didSave) return;
     setStep(nextStep);
-    saveStep(nextStep);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     const prevStep = Math.max(1, step - 1);
+    const didSave = await persistProgress(
+      prevStep,
+      'Your progress has been saved.'
+    );
+    if (!didSave) return;
     setStep(prevStep);
-    saveStep(prevStep);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSaveLater = () => {
-    updateProfile(formData);
-    saveStep(step);
-    navigate('/dashboard');
+  const handleSaveLater = async () => {
+    await persistProgress(
+      step,
+      'Your progress is saved on this device. Return to onboarding whenever you are ready to continue.'
+    );
   };
 
   const handleCompleteProfile = async () => {
-    updateProfile(formData);
-    await markOnboardingComplete();
-    setStep(8); // Success state
+    const didSave = await persistProgress(7, 'Your profile has been saved.');
+    if (!didSave) return;
+    try {
+      await markOnboardingComplete();
+      setSaveFeedback(null);
+      setStep(8);
+    } catch (error) {
+      console.error('Unable to complete onboarding:', error);
+      setSaveFeedback({
+        type: 'error',
+        message: 'Your profile was saved, but setup could not be marked complete. Please try again.',
+      });
+    }
   };
 
   const districtsForState = STATE_DISTRICTS[formData.state] || ['Select District'];
+  const completedSections = getCompletedOnboardingSections(formData);
+  const completedSectionCount = completedSections.filter(Boolean).length;
+  const completionPercent = calculateProfileCompletion(formData);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#111827] flex flex-col font-sans">
@@ -140,13 +196,16 @@ export default function Onboarding() {
         {step <= 6 && (
           <div className="flex items-center gap-4">
             <span className="text-xs text-[#64748B] font-medium hidden sm:inline-block">
-              Step {step} of 6
+              Step {step} of 6 · {completedSectionCount} sections complete
             </span>
             <button
+              type="button"
               onClick={handleSaveLater}
-              className="text-xs font-medium text-[#64748B] hover:text-[#0F1B3D] bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+              disabled={isSaving}
+              aria-busy={isSaving}
+              className="text-xs font-medium text-[#64748B] hover:text-[#0F1B3D] disabled:opacity-60 bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer disabled:cursor-wait"
             >
-              Save & Continue Later
+              {isSaving ? 'Saving...' : 'Save & Continue Later'}
             </button>
           </div>
         )}
@@ -157,13 +216,31 @@ export default function Onboarding() {
         <div className="w-full bg-[#E2E8F0] h-1">
           <div
             className="bg-[#2563EB] h-1 transition-all duration-300"
-            style={{ width: `${(step / 6) * 100}%` }}
+            style={{ width: `${completionPercent}%` }}
+            role="progressbar"
+            aria-label="Profile completion"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={completionPercent}
           />
         </div>
       )}
 
       {/* ─── MAIN CONTENT ────────────────────────────────────────────────────── */}
       <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10">
+        {saveFeedback && (
+          <div
+            role={saveFeedback.type === 'error' ? 'alert' : 'status'}
+            aria-live={saveFeedback.type === 'error' ? 'assertive' : 'polite'}
+            className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
+              saveFeedback.type === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+            }`}
+          >
+            {saveFeedback.message}
+          </div>
+        )}
         
         {/* ─── STEP 1: PERSONAL INFORMATION ─── */}
         {step === 1 && (
@@ -270,10 +347,11 @@ export default function Onboarding() {
                 <div>
                   <label className="block text-xs font-medium text-[#111827] mb-1.5">State</label>
                   <select
-                    value={formData.state || Object.keys(STATE_DISTRICTS)[0]}
+                    value={formData.state}
                     onChange={(e) => handleChange('state', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   >
+                    <option value="">Select State</option>
                     {Object.keys(STATE_DISTRICTS).map(st => (
                       <option key={st} value={st}>{st}</option>
                     ))}
@@ -283,11 +361,13 @@ export default function Onboarding() {
                 <div>
                   <label className="block text-xs font-medium text-[#111827] mb-1.5">District</label>
                   <select
-                    value={formData.district || districtsForState[0]}
+                    value={formData.district}
                     onChange={(e) => handleChange('district', e.target.value)}
+                    disabled={!formData.state}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   >
-                    {districtsForState.map(dst => (
+                    <option value="">Select District</option>
+                    {formData.state && districtsForState.map(dst => (
                       <option key={dst} value={dst}>{dst}</option>
                     ))}
                   </select>
@@ -537,6 +617,7 @@ export default function Onboarding() {
                     onChange={(e) => handleChange('disability_status', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   >
+                    <option value="">Select status</option>
                     <option value="No">No</option>
                     <option value="Yes">Yes</option>
                     <option value="Prefer not to say">Prefer not to say</option>
@@ -565,6 +646,7 @@ export default function Onboarding() {
                     onChange={(e) => handleChange('bpl_status', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   >
+                    <option value="">Select status</option>
                     <option value="No">No</option>
                     <option value="Yes">Yes</option>
                     <option value="Not sure">Not sure</option>
@@ -579,6 +661,7 @@ export default function Onboarding() {
                     onChange={(e) => handleChange('minority_status', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   >
+                    <option value="">Select status</option>
                     <option value="No">No</option>
                     <option value="Yes">Yes</option>
                     <option value="Prefer not to say">Prefer not to say</option>
@@ -637,6 +720,7 @@ export default function Onboarding() {
                     type="number"
                     min="1"
                     value={formData.family_size}
+                    required
                     onChange={(e) => handleChange('family_size', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   />
@@ -650,6 +734,7 @@ export default function Onboarding() {
                     type="number"
                     min="0"
                     value={formData.children_count}
+                    required
                     onChange={(e) => handleChange('children_count', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   />
@@ -777,6 +862,7 @@ export default function Onboarding() {
                       onChange={(e) => handleChange('has_aadhaar', e.target.value)}
                       className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded-lg"
                     >
+                      <option value="">Select status</option>
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
                     </select>
@@ -789,6 +875,7 @@ export default function Onboarding() {
                       onChange={(e) => handleChange('has_bank_account', e.target.value)}
                       className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded-lg"
                     >
+                      <option value="">Select status</option>
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
                     </select>
@@ -801,6 +888,7 @@ export default function Onboarding() {
                       onChange={(e) => handleChange('has_ration_card', e.target.value)}
                       className="w-full px-2.5 py-1.5 bg-white border border-[#E2E8F0] rounded-lg"
                     >
+                      <option value="">Select status</option>
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
                     </select>
@@ -832,6 +920,7 @@ export default function Onboarding() {
                     }}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   >
+                    <option value="">Select language</option>
                     {INDIAN_LANGUAGES.map(lang => (
                       <option key={lang} value={lang}>{lang}</option>
                     ))}
@@ -845,6 +934,7 @@ export default function Onboarding() {
                     onChange={(e) => handleChange('notification_preferences', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
                   >
+                    <option value="">Select channel</option>
                     <option value="SMS & Email">SMS & Email</option>
                     <option value="SMS Only">SMS Only</option>
                     <option value="Email Only">Email Only</option>
@@ -883,7 +973,7 @@ export default function Onboarding() {
               <div className="text-right">
                 <span className="text-xs text-[#64748B] block">Completion</span>
                 <span className="text-sm font-semibold text-[#16A34A] bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
-                  {calculateProfileCompletion({ ...profile, ...formData })}%
+                  {completionPercent}%
                 </span>
               </div>
             </div>
@@ -908,7 +998,7 @@ export default function Onboarding() {
                 <div className="space-y-1">
                   <h4 className="text-xs font-semibold text-[#0F1B3D]">2. Location</h4>
                   <p className="text-xs text-[#64748B]">
-                    {formData.district || 'N/A'}, {formData.state || 'N/A'} · {formData.rural_urban || 'Rural'}
+                    {formData.district || 'Not provided'}, {formData.state || 'Not provided'} · {formData.rural_urban || 'Not provided'}
                   </p>
                 </div>
                 <button onClick={() => setStep(2)} className="text-xs text-[#2563EB] hover:underline flex items-center gap-1">
@@ -921,7 +1011,7 @@ export default function Onboarding() {
                 <div className="space-y-1">
                   <h4 className="text-xs font-semibold text-[#0F1B3D]">3. Work & Income</h4>
                   <p className="text-xs text-[#64748B]">
-                    Occupation: {formData.occupation || 'Farmer'} · Household Income: {formData.annual_household_income || 'Below ₹2.5L'}
+                    Occupation: {formData.occupation || 'Not provided'} · Household Income: {formData.annual_household_income || 'Not provided'}
                   </p>
                 </div>
                 <button onClick={() => setStep(3)} className="text-xs text-[#2563EB] hover:underline flex items-center gap-1">
@@ -934,7 +1024,7 @@ export default function Onboarding() {
                 <div className="space-y-1">
                   <h4 className="text-xs font-semibold text-[#0F1B3D]">4. Eligibility Profile</h4>
                   <p className="text-xs text-[#64748B]">
-                    Category: {formData.social_category || 'General'} · Disability: {formData.disability_status || 'No'} · BPL Card: {formData.bpl_status || 'No'}
+                    Category: {formData.social_category || 'Not provided'} · Disability: {formData.disability_status || 'Not provided'} · BPL Card: {formData.bpl_status || 'Not provided'}
                   </p>
                 </div>
                 <button onClick={() => setStep(4)} className="text-xs text-[#2563EB] hover:underline flex items-center gap-1">
@@ -947,7 +1037,7 @@ export default function Onboarding() {
                 <div className="space-y-1">
                   <h4 className="text-xs font-semibold text-[#0F1B3D]">5. Household</h4>
                   <p className="text-xs text-[#64748B]">
-                    Marital: {formData.marital_status || 'Married'} · Family Members: {formData.family_size || 4} · Children: {formData.children_count || 2}
+                    Marital: {formData.marital_status || 'Not provided'} · Family Members: {formData.family_size || 'Not provided'} · Children: {formData.children_count || 'Not provided'}
                   </p>
                 </div>
                 <button onClick={() => setStep(5)} className="text-xs text-[#2563EB] hover:underline flex items-center gap-1">
@@ -960,7 +1050,7 @@ export default function Onboarding() {
                 <div className="space-y-1">
                   <h4 className="text-xs font-semibold text-[#0F1B3D]">6. Preferences</h4>
                   <p className="text-xs text-[#64748B]">
-                    Language: {formData.preferred_language || 'English'} · Channel: {formData.notification_preferences || 'SMS & Email'}
+                    Language: {formData.preferred_language || 'Not provided'} · Channel: {formData.notification_preferences || 'Not provided'}
                   </p>
                 </div>
                 <button onClick={() => setStep(6)} className="text-xs text-[#2563EB] hover:underline flex items-center gap-1">

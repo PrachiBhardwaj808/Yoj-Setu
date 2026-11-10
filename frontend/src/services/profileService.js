@@ -70,19 +70,51 @@ export const updateProfile = async (updatedData, userId) => {
     throw new Error('Cannot update profile: No authenticated user session.');
   }
 
-  const storageKey = getProfileStorageKey(activeUserId);
-  if (!storageKey) {
-    throw new Error(`Cannot update profile: Invalid user ID "${activeUserId}".`);
-  }
-
   const current = await getProfile(activeUserId);
   const updated = { ...current, ...updatedData };
+  await saveProfileProgress(updated, undefined, activeUserId);
+  return updated;
+};
+
+export const saveProfileProgress = async (updatedData, step, userId) => {
+  const activeUserId = userId ?? getCurrentUserId();
+  if (!isValidUserId(activeUserId)) {
+    throw new Error('Cannot save onboarding progress: No authenticated user session.');
+  }
+
+  const storageKey = getProfileStorageKey(activeUserId);
+  if (!storageKey) {
+    throw new Error(`Cannot save onboarding progress: Invalid user ID "${activeUserId}".`);
+  }
 
   const storage = getStorage();
   if (!storage) throw new Error('Profile storage is unavailable.');
+
   const saved = storage.getItem(storageKey);
-  const step = saved ? JSON.parse(saved).step ?? 1 : 1;
-  storage.setItem(storageKey, JSON.stringify({ profile: updated, step }));
+  let savedData = {};
+  if (saved) {
+    savedData = JSON.parse(saved);
+    if (!savedData || typeof savedData !== 'object' || Array.isArray(savedData)) {
+      throw new Error(`Cannot save onboarding progress: Invalid saved data for user "${activeUserId}".`);
+    }
+    if (savedData.profile !== undefined &&
+      (!savedData.profile || typeof savedData.profile !== 'object' || Array.isArray(savedData.profile))) {
+      throw new Error(`Cannot save onboarding progress: Invalid saved profile for user "${activeUserId}".`);
+    }
+  }
+
+  const savedStep = savedData.step ?? 1;
+  const resolvedStep = step === undefined ? savedStep : step;
+  if (!Number.isInteger(resolvedStep) || resolvedStep < 1 || resolvedStep > 7) {
+    throw new Error(`Cannot save onboarding progress: Invalid step "${resolvedStep}".`);
+  }
+
+  const profile = {
+    ...EMPTY_PROFILE,
+    ...(savedData.profile || {}),
+    ...updatedData,
+  };
+  storage.setItem(storageKey, JSON.stringify({ profile, step: resolvedStep }));
 
   // Synchronize to backend database
   try {
@@ -96,11 +128,11 @@ export const updateProfile = async (updatedData, userId) => {
 
   if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') {
     window.dispatchEvent(new CustomEvent(PROFILE_UPDATED_EVENT, {
-      detail: { userId: activeUserId, profile: updated, step }
+      detail: { userId: activeUserId, profile, step: resolvedStep }
     }));
   }
 
-  return updated;
+  return { profile, step: resolvedStep };
 };
 
 export const saveProfile = updateProfile;

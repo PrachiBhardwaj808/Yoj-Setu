@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { EMPTY_PROFILE, calculateProfileCompletion } from '../utils/profileUtils';
+import { saveProfileProgress as persistProfileProgress } from '../services/profileService';
 import {
   getProfileStorageKey,
   getStorage,
@@ -183,6 +184,18 @@ export function ProfileProvider({ children }) {
     persist(profileRef.current, step);
   }, [persist]);
 
+  const saveProgress = useCallback(async (updatedProfile, step) => {
+    const activeUserId = userId;
+    const saved = await persistProfileProgress(updatedProfile, step, activeUserId);
+    const nextProfile = { ...EMPTY_PROFILE, ...saved.profile };
+    setProfile(nextProfile);
+    setOnboardingStep(saved.step);
+    setHydratedUserId(activeUserId);
+    profileRef.current = nextProfile;
+    stepRef.current = saved.step;
+    return saved;
+  }, [userId]);
+
   const clearProfile = useCallback(() => {
     const activeUserId = userIdRef.current;
     setProfile({ ...EMPTY_PROFILE });
@@ -215,6 +228,7 @@ export function ProfileProvider({ children }) {
     completionPercent,
     updateProfile,
     saveStep,
+    saveProgress,
     clearProfile,
   };
 
