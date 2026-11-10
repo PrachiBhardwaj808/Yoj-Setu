@@ -116,10 +116,12 @@ def normalize_profile(profile_dict: dict) -> dict:
         except Exception:
             age = 28
 
-    hh_income = profile_dict.get("annual_household_income", "")
+    hh_income = profile_dict.get("annual_household_income")
+    if hh_income is None or hh_income == "":
+        hh_income = profile_dict.get("annual_income", "")
     hh_income_num = parse_income_range(hh_income)
 
-    return {
+    normalized = {
         "age": age,
         "gender": str(profile_dict.get("gender", "")).strip().capitalize(),
         "state": str(profile_dict.get("state", "All India")).strip(),
@@ -127,6 +129,7 @@ def normalize_profile(profile_dict: dict) -> dict:
         "rural_urban": str(profile_dict.get("rural_urban", "Rural")).strip().capitalize(),
         "occupation": str(profile_dict.get("occupation", "")).strip(),
         "annual_household_income": hh_income_num,
+        "annual_income": hh_income_num,
         "land_ownership": str(profile_dict.get("land_ownership", "")).strip(),
         "land_holding": str(profile_dict.get("land_holding", "")).strip(),
         "social_category": str(profile_dict.get("social_category", "General")).strip(),
@@ -154,3 +157,10 @@ def normalize_profile(profile_dict: dict) -> dict:
         "has_disability_certificate": _is_doc_available(profile_dict.get("has_disability_certificate"), default_val=False),
         "has_land_document": _is_doc_available(profile_dict.get("has_land_document"), default_val=False),
     }
+
+    # Preserve any additional custom fields passed in profile_dict
+    for k, v in profile_dict.items():
+        if k not in normalized:
+            normalized[k] = v
+
+    return normalized

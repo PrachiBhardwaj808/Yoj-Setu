@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends, status, Query
 from pydantic import BaseModel
 
 from app.dao import scheme_dao
+from app.services.profile_normalizer import normalize_profile
 from app.services.scheme_ingestion_service import SchemeIngestionService
 from app.services.eligibility_engine import EligibilityEngine
 from app.services.recommendation_service import RecommendationService
@@ -98,18 +99,29 @@ def trigger_scheme_ingestion():
 def check_single_scheme_eligibility(scheme_id: int, req: EvaluateEligibilityRequest):
     """
     Deterministically check eligibility of a single user profile against a specific scheme.
+    Normalizes profile inputs to guarantee consistent numeric and categorical evaluation.
     """
+    if req.user_profile is None or not isinstance(req.user_profile, dict):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request: user_profile must be a valid dictionary."
+        )
+
     scheme = scheme_dao.get_scheme_by_id(scheme_id)
     if not scheme:
-        raise HTTPException(status_code=404, detail="Scheme not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Scheme with ID {scheme_id} not found."
+        )
     
     rules = scheme_dao.get_rules_for_scheme(scheme_id)
     docs = scheme_dao.get_documents_for_scheme(scheme_id)
     scheme["rules"] = rules
     scheme["documents"] = docs
 
+    normalized_profile = normalize_profile(req.user_profile)
     engine = EligibilityEngine()
-    result = engine.evaluate_scheme(scheme, req.user_profile, req.user_documents or [])
+    result = engine.evaluate_scheme(scheme, normalized_profile, req.user_documents or [])
     return result.to_dict()
 
 
