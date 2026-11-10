@@ -2,22 +2,32 @@
 #
 # Raw SQL functions for the `otp_verifications` table.
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db import get_connection
 
 
-def insert_otp(phone: str, otp_hash: str, purpose: str, expires_at: datetime) -> int:
+def insert_otp(
+    phone: str,
+    otp_hash: str,
+    purpose: str,
+    expires_at: datetime | str,
+    created_at: datetime | str | None = None,
+    user_id: int | None = None,
+) -> int:
     """
-    Inserts a new OTP record into otp_verifications.
+    Inserts a new OTP record into otp_verifications with explicit UTC created_at.
     """
     conn = get_connection()
     try:
         cursor = conn.cursor(dictionary=True)
+        if created_at is None:
+            created_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        
         sql = """
-            INSERT INTO otp_verifications (phone, otp_hash, purpose, expires_at, attempts, verified)
-            VALUES (%s, %s, %s, %s, 0, FALSE)
+            INSERT INTO otp_verifications (phone, otp_hash, purpose, expires_at, attempts, verified, created_at, user_id)
+            VALUES (%s, %s, %s, %s, 0, FALSE, %s, %s)
         """
-        cursor.execute(sql, (phone, otp_hash, purpose, expires_at))
+        cursor.execute(sql, (phone, otp_hash, purpose, expires_at, created_at, user_id))
         conn.commit()
         return cursor.lastrowid
     finally:

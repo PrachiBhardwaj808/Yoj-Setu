@@ -128,7 +128,7 @@ def get_connection():
     Attempts MySQL first; falls back to SQLite if MySQL is unavailable.
     """
     try:
-        return mysql.connector.connect(
+        conn = mysql.connector.connect(
             host=DB_HOST,
             port=DB_PORT,
             database=DB_NAME,
@@ -136,6 +136,13 @@ def get_connection():
             password=DB_PASSWORD,
             connect_timeout=3,
         )
+        try:
+            cur = conn.cursor()
+            cur.execute("SET time_zone = '+00:00'")
+            cur.close()
+        except Exception:
+            pass
+        return conn
     except Exception as e:
         # Fallback to local SQLite database
         sqlite_conn = sqlite3.connect(SQLITE_DB_PATH)
