@@ -155,25 +155,33 @@ SQLITE_TABLE_DDLS = [
 SQLITE_TRIGGER_DDLS = [
     """
     CREATE TRIGGER IF NOT EXISTS trg_users_updated_at AFTER UPDATE ON users
-    FOR EACH ROW BEGIN
+    FOR EACH ROW
+    WHEN NEW.updated_at = OLD.updated_at OR NEW.updated_at IS NULL
+    BEGIN
         UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
     END;
     """,
     """
-    CREATE TRIGGER IF NOT EXISTS trg_profiles_updated_at AFTER UPDATE ON citizen_profiles
-    FOR EACH ROW BEGIN
+    CREATE TRIGGER IF NOT EXISTS trg_citizen_profiles_updated_at AFTER UPDATE ON citizen_profiles
+    FOR EACH ROW
+    WHEN NEW.updated_at = OLD.updated_at OR NEW.updated_at IS NULL
+    BEGIN
         UPDATE citizen_profiles SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
     END;
     """,
     """
     CREATE TRIGGER IF NOT EXISTS trg_applications_updated_at AFTER UPDATE ON applications
-    FOR EACH ROW BEGIN
+    FOR EACH ROW
+    WHEN NEW.updated_at = OLD.updated_at OR NEW.updated_at IS NULL
+    BEGIN
         UPDATE applications SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
     END;
     """,
     """
-    CREATE TRIGGER IF NOT EXISTS trg_documents_updated_at AFTER UPDATE ON user_documents
-    FOR EACH ROW BEGIN
+    CREATE TRIGGER IF NOT EXISTS trg_user_documents_updated_at AFTER UPDATE ON user_documents
+    FOR EACH ROW
+    WHEN NEW.updated_at = OLD.updated_at OR NEW.updated_at IS NULL
+    BEGIN
         UPDATE user_documents SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
     END;
     """
@@ -333,8 +341,8 @@ MYSQL_TABLE_DDLS = [
 ]
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+def init_database():
+    """Initializes tables, triggers, and runs non-destructive schema migrations."""
     conn = get_connection()
     try:
         cursor = conn.cursor()
@@ -368,8 +376,17 @@ async def lifespan(app: FastAPI):
             
     except Exception as e:
         print(f"[startup] [WARN] Could not initialize DB tables: {e}")
+        raise
     finally:
         conn.close()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        init_database()
+    except Exception as e:
+        print(f"[startup] [WARN] Lifespan database init exception: {e}")
     yield
 
 

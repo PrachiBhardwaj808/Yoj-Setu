@@ -5,6 +5,7 @@
 
 import secrets
 import hashlib
+import math
 from datetime import datetime, timedelta, timezone
 
 from app.config import (
@@ -120,7 +121,7 @@ def generate_and_send_otp(phone: str, purpose: str = "REGISTER") -> dict:
         created_at_utc = normalize_to_utc(latest_record["created_at"])
         elapsed_seconds = (now_utc - created_at_utc).total_seconds()
         if 0 <= elapsed_seconds < OTP_RESEND_COOLDOWN_SECONDS:
-            remaining = int(OTP_RESEND_COOLDOWN_SECONDS - elapsed_seconds)
+            remaining = max(1, math.ceil(OTP_RESEND_COOLDOWN_SECONDS - elapsed_seconds))
             raise ValueError(f"Please wait {remaining} seconds before requesting a new OTP.")
 
     # Generate 6-digit cryptographically secure OTP
