@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
     is_email_verified BOOLEAN DEFAULT FALSE,
     role VARCHAR(50) DEFAULT 'citizen',
     is_active BOOLEAN DEFAULT TRUE,
+    onboarding_complete BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,6 +37,7 @@ CREATE TABLE IF NOT EXISTS users (
     is_email_verified BOOLEAN DEFAULT FALSE,
     role VARCHAR(50) DEFAULT 'citizen',
     is_active BOOLEAN DEFAULT TRUE,
+    onboarding_complete BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -120,6 +122,14 @@ async def lifespan(app: FastAPI):
             cursor.execute(SCHEME_RULES_TABLE_DDL)
             cursor.execute(SCHEME_DOCS_TABLE_DDL)
         conn.commit()
+
+        # Migrate existing users table to include onboarding_complete if not present
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN onboarding_complete BOOLEAN DEFAULT FALSE")
+            conn.commit()
+        except Exception:
+            pass  # Column already exists
+
         print("[startup] [OK] Database tables (users, otp_verifications, schemes, scheme_rules, scheme_documents) ready.")
         
         # Trigger initial scheme ingestion if database is empty

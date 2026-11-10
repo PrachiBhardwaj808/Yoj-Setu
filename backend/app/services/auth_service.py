@@ -104,6 +104,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
             "email": user.get("email"),
             "role": user.get("role", "citizen"),
             "is_phone_verified": bool(user.get("is_phone_verified")),
+            "onboarding_complete": bool(user.get("onboarding_complete", False)),
         }
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))

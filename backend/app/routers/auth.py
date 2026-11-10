@@ -106,6 +106,7 @@ def register(req: RegisterRequest):
     # Generate JWT access token
     access_token = auth_service.create_access_token({"sub": created_user["id"], "phone": created_user["phone"]})
 
+    onboarding_status = bool(created_user.get("onboarding_complete", False))
     user_resp = UserResponse(
         id=created_user["id"],
         full_name=created_user["full_name"],
@@ -113,7 +114,8 @@ def register(req: RegisterRequest):
         email=created_user.get("email"),
         role=created_user.get("role", "citizen"),
         is_phone_verified=True,
-        onboardingComplete=False,
+        onboardingComplete=onboarding_status,
+        onboarding_complete=onboarding_status,
     )
 
     return AuthResponse(access_token=access_token, token_type="bearer", user=user_resp)
@@ -141,6 +143,7 @@ def login(req: LoginRequest):
 
     access_token = auth_service.create_access_token({"sub": user["id"], "phone": user["phone"]})
 
+    onboarding_status = bool(user.get("onboarding_complete", False))
     user_resp = UserResponse(
         id=user["id"],
         full_name=user["full_name"],
@@ -148,7 +151,8 @@ def login(req: LoginRequest):
         email=user.get("email"),
         role=user.get("role", "citizen"),
         is_phone_verified=bool(user.get("is_phone_verified", True)),
-        onboardingComplete=False,
+        onboardingComplete=onboarding_status,
+        onboarding_complete=onboarding_status,
     )
 
     return AuthResponse(access_token=access_token, token_type="bearer", user=user_resp)
@@ -186,6 +190,7 @@ def verify_login_otp(req: OtpVerifyRequest):
         otp_service.verify_otp(formatted_phone, req.otp, purpose="LOGIN")
         access_token = auth_service.create_access_token({"sub": user["id"], "phone": user["phone"]})
 
+        onboarding_status = bool(user.get("onboarding_complete", False))
         user_resp = UserResponse(
             id=user["id"],
             full_name=user["full_name"],
@@ -193,7 +198,8 @@ def verify_login_otp(req: OtpVerifyRequest):
             email=user.get("email"),
             role=user.get("role", "citizen"),
             is_phone_verified=True,
-            onboardingComplete=False,
+            onboardingComplete=onboarding_status,
+            onboarding_complete=onboarding_status,
         )
 
         return AuthResponse(access_token=access_token, token_type="bearer", user=user_resp)
@@ -262,6 +268,7 @@ def get_me(current_user: dict = Depends(auth_service.get_current_user)):
     """
     Returns current authenticated user details.
     """
+    onboarding_status = bool(current_user.get("onboarding_complete", False))
     return UserResponse(
         id=current_user["id"],
         full_name=current_user["full_name"],
@@ -269,5 +276,26 @@ def get_me(current_user: dict = Depends(auth_service.get_current_user)):
         email=current_user.get("email"),
         role=current_user.get("role", "citizen"),
         is_phone_verified=current_user.get("is_phone_verified", True),
-        onboardingComplete=False,
+        onboardingComplete=onboarding_status,
+        onboarding_complete=onboarding_status,
+    )
+
+
+@router.post("/complete-onboarding", response_model=UserResponse)
+@router.post("/onboarding-complete", response_model=UserResponse)
+def mark_onboarding_completed(current_user: dict = Depends(auth_service.get_current_user)):
+    """
+    Marks onboarding as complete for the authenticated user and persists it.
+    """
+    user_dao.update_user_onboarding(current_user["id"], completed=True)
+    updated = user_dao.get_user_by_id(current_user["id"])
+    return UserResponse(
+        id=updated["id"],
+        full_name=updated["full_name"],
+        phone=updated["phone"],
+        email=updated.get("email"),
+        role=updated.get("role", "citizen"),
+        is_phone_verified=bool(updated.get("is_phone_verified", True)),
+        onboardingComplete=True,
+        onboarding_complete=True,
     )

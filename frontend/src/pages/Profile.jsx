@@ -141,7 +141,7 @@ export default function Profile() {
                 value={editForm.annual_household_income || ''}
                 onChange={(e) => handleChange('annual_household_income', e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2"
-                placeholder="e.g. 150000"
+                placeholder="e.g. 150000, 1.5 lakh, or ₹2.5-5 lakh"
               />
             </div>
             <div>

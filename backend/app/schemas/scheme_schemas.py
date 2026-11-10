@@ -94,7 +94,10 @@ class SchemeRecommendationItem(BaseModel):
     document_readiness_score: int
     passed_conditions: list[dict] = []
     failed_conditions: list[dict] = []
+    failed_mandatory_conditions: list[dict] = []
+    failed_optional_conditions: list[dict] = []
     missing_information: list[str] = []
+    missing_optional_information: list[str] = []
     documents: list[dict] = []
     source_url: Optional[str] = None
     application_url: Optional[str] = None

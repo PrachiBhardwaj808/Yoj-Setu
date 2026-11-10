@@ -25,15 +25,40 @@ def _hash_otp(phone: str, otp_code: str) -> str:
 
 
 def format_phone(phone: str) -> str:
-    """Standardizes phone number format to 10 digits or +91XXXXXXXXXX."""
-    cleaned = ''.join(c for c in phone if c.isdigit())
-    if len(cleaned) == 10:
-        return f"+91{cleaned}"
-    elif len(cleaned) == 12 and cleaned.startswith("91"):
-        return f"+{cleaned}"
-    elif len(cleaned) == 12 or len(cleaned) == 13:
-        return phone
-    return phone
+    """
+    Standardizes phone numbers into E.164 format.
+    - 10-digit Indian numbers -> +91XXXXXXXXXX
+    - 11-digit numbers starting with 0 (e.g. 09876543210) -> +91XXXXXXXXXX
+    - Numbers with country code 91 (e.g. 919876543210 or +919876543210) -> +91XXXXXXXXXX
+    - Valid international numbers with '+' (e.g. +14155552671) -> +<digits>
+    - International numbers without '+' (e.g. 14155552671) -> +<digits>
+    """
+    if not phone:
+        return ""
+    raw = phone.strip()
+    digits = ''.join(c for c in raw if c.isdigit())
+
+    # 10-digit Indian mobile number
+    if len(digits) == 10:
+        return f"+91{digits}"
+
+    # 11-digit starting with 0 (Indian STD/trunk prefix, e.g. 09876543210)
+    if len(digits) == 11 and digits.startswith("0"):
+        return f"+91{digits[1:]}"
+
+    # 12-digit Indian number starting with 91 (e.g. 919876543210 or +919876543210)
+    if len(digits) == 12 and digits.startswith("91"):
+        return f"+{digits}"
+
+    # Number was explicitly provided with '+' prefix (international E.164)
+    if raw.startswith("+") and len(digits) >= 7:
+        return f"+{digits}"
+
+    # If 11-15 digits provided, treat as international E.164
+    if 11 <= len(digits) <= 15:
+        return f"+{digits}"
+
+    return raw
 
 
 def generate_and_send_otp(phone: str, purpose: str = "REGISTER") -> dict:

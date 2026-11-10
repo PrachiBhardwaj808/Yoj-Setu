@@ -12,16 +12,20 @@ from app.services.eligibility_engine import evaluate_eligibility
 def _generate_grounded_reason(eval_result: dict, profile: dict) -> str:
     """
     Generates a natural language explanation grounded strictly in verified evaluation results.
-    Never invents requirements.
+    Never invents requirements and distinguishes between mandatory and optional criteria.
     """
     status = eval_result["status"]
     scheme_name = eval_result["scheme_name"]
     passed = eval_result["passed_conditions"]
-    failed = eval_result["failed_conditions"]
+    failed = eval_result.get("failed_mandatory_conditions") or [f for f in eval_result.get("failed_conditions", []) if f.get("is_mandatory", True)]
     missing = eval_result["missing_information"]
 
     if status == "ELIGIBLE":
         passed_fields = [p["field"].replace("_", " ") for p in passed]
+        optional_failures = eval_result.get("failed_optional_conditions", [])
+        if optional_failures:
+            opt_names = ", ".join([f["field"].replace("_", " ") for f in optional_failures])
+            return f"You meet all mandatory eligibility criteria for {scheme_name} (optional preference not met: {opt_names})."
         if passed_fields:
             reasons = ", ".join(passed_fields[:3])
             return f"You meet key criteria for {scheme_name} ({reasons}) and have required documentation."
@@ -32,7 +36,10 @@ def _generate_grounded_reason(eval_result: dict, profile: dict) -> str:
         return f"Potential match for {scheme_name}, but missing details for: {missing_fields}."
 
     else:
+        # Ground NOT_ELIGIBLE reasons strictly in mandatory criteria failures
         failed_reasons = [f["description"] for f in failed]
+        if not failed_reasons:
+            failed_reasons = [f["description"] for f in eval_result.get("failed_conditions", [])]
         reason_str = "; ".join(failed_reasons[:2])
         return f"Currently not eligible for {scheme_name}: {reason_str}."
 

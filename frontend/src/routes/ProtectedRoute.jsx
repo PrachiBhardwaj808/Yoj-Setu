@@ -14,7 +14,9 @@ export default function ProtectedRoute({ children, requireOnboarding = true }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireOnboarding && !user?.onboardingComplete && location.pathname !== '/onboarding') {
+  const isOnboardingComplete = Boolean(user?.onboardingComplete || user?.onboarding_complete);
+
+  if (requireOnboarding && !isOnboardingComplete && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
 

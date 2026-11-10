@@ -2,8 +2,8 @@
 #
 # Pydantic models for authentication endpoints.
 
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field, model_validator
+from typing import Optional, Any
 
 
 class PhoneRequest(BaseModel):
@@ -40,7 +40,17 @@ class UserResponse(BaseModel):
     email: Optional[str] = None
     role: str = "citizen"
     is_phone_verified: bool = True
+    onboarding_complete: bool = False
     onboardingComplete: bool = False
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_onboarding_status(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            status = bool(data.get("onboardingComplete", data.get("onboarding_complete", False)))
+            data["onboardingComplete"] = status
+            data["onboarding_complete"] = status
+        return data
 
 
 class AuthResponse(BaseModel):

@@ -116,9 +116,9 @@ export default function Onboarding() {
     navigate('/dashboard');
   };
 
-  const handleCompleteProfile = () => {
+  const handleCompleteProfile = async () => {
     updateProfile(formData);
-    markOnboardingComplete();
+    await markOnboardingComplete();
     setStep(8); // Success state
   };
 

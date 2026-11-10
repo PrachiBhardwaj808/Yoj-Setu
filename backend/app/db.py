@@ -77,7 +77,10 @@ class SQLiteDictCursor:
         sql_sqlite = _convert_mysql_placeholders_to_sqlite(sql)
         if params is None:
             return self.cursor.execute(sql_sqlite)
-        return self.cursor.execute(sql_sqlite, params)
+        # Convert datetime objects to ISO strings for SQLite compatibility across Python 3.12+
+        from datetime import datetime, date
+        converted = tuple(p.isoformat() if isinstance(p, (datetime, date)) else p for p in params)
+        return self.cursor.execute(sql_sqlite, converted)
 
     def fetchone(self):
         row = self.cursor.fetchone()

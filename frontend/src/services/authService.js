@@ -60,3 +60,8 @@ export const getCurrentUser = async () => {
   const response = await api.get('/auth/me');
   return response.data;
 };
+
+export const completeOnboarding = async () => {
+  const response = await api.post('/auth/complete-onboarding');
+  return response.data;
+};
