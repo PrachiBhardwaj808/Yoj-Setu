@@ -223,7 +223,7 @@ export default function Assistant() {
         <button
           type="submit"
           disabled={!inputText.trim() || isLoading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors cursor-pointer flex items-center gap-1.5"
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:text-blue-950 dark:disabled:bg-blue-800 dark:disabled:text-blue-100 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors cursor-pointer flex items-center gap-1.5"
         >
           <span>{t('assistant.send', 'Send')}</span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

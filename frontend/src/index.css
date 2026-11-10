@@ -116,6 +116,8 @@ html.dark [class~="text-black"]:not([class*="dark:text-"]) {
 
 html.dark [class~="border-gray-100"]:not([class*="dark:border-"]),
 html.dark [class~="border-gray-200"]:not([class*="dark:border-"]),
+html.dark [class~="border-gray-300"]:not([class*="dark:border-"]),
+html.dark [class~="border-slate-300"]:not([class*="dark:border-"]),
 html.dark [class~="border-slate-100"]:not([class*="dark:border-"]),
 html.dark [class~="border-slate-200"]:not([class*="dark:border-"]),
 html.dark [class~="border-[#E2E8F0]"]:not([class*="dark:border-"]),
@@ -132,6 +134,11 @@ html.dark [class~="border-red-200"]:not([class*="dark:border-"]),
 html.dark [class~="border-rose-100"]:not([class*="dark:border-"]),
 html.dark [class~="border-rose-200"]:not([class*="dark:border-"]) {
   border-color: var(--border-color);
+}
+
+html.dark [class~="border-gray-400"]:not([class*="dark:border-"]),
+html.dark [class~="border-slate-400"]:not([class*="dark:border-"]) {
+  border-color: #64748b;
 }
 
 html.dark [class~="bg-blue-50"]:not([class*="dark:bg-"]),
@@ -247,6 +254,10 @@ html.dark [class~="hover:bg-gray-100"]:not([class*="dark:hover:bg-"]):hover,
 html.dark [class~="hover:bg-slate-50"]:not([class*="dark:hover:bg-"]):hover,
 html.dark [class~="hover:bg-slate-100"]:not([class*="dark:hover:bg-"]):hover {
   background-color: var(--surface-tertiary);
+}
+
+html.dark [class~="hover:border-gray-300"]:not([class*="dark:hover:border-"]):hover {
+  border-color: #64748b;
 }
 
 html.dark input,
