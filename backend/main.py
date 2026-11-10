@@ -383,11 +383,17 @@ def init_database():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.db import init_db_engine, close_pool
     try:
+        init_db_engine()
         init_database()
     except Exception as e:
         print(f"[startup] [WARN] Lifespan database init exception: {e}")
     yield
+    try:
+        close_pool()
+    except Exception:
+        pass
 
 
 app = FastAPI(
