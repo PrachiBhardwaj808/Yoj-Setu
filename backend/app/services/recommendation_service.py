@@ -63,14 +63,19 @@ def generate_recommendations(
     # Pre-filtering: fetch schemes by category if specified
     all_schemes = scheme_dao.get_all_schemes(category=category_filter)
 
+    # Batch fetch rules and documents to eliminate N+1 queries
+    scheme_ids = [s["id"] for s in all_schemes]
+    rules_by_scheme = scheme_dao.get_rules_for_schemes(scheme_ids)
+    docs_by_scheme = scheme_dao.get_documents_for_schemes(scheme_ids)
+
     evaluated_results = []
     eligible_count = 0
     high_confidence_count = 0
 
     for scheme in all_schemes:
         scheme_id = scheme["id"]
-        rules = scheme_dao.get_scheme_rules(scheme_id)
-        documents = scheme_dao.get_scheme_documents(scheme_id)
+        rules = rules_by_scheme.get(scheme_id, [])
+        documents = docs_by_scheme.get(scheme_id, [])
 
         eval_result = evaluate_eligibility(scheme, rules, documents, normalized_profile, user_docs)
         
