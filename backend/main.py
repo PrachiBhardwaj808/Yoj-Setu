@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import ping, auth, schemes, profile, applications, documents
+from app.routers import ping, auth, schemes, profile, applications, documents, assistant
 from app.db import get_connection, SQLiteConnectionWrapper
 
 # ─── TABLE DDLS (SQLITE & MYSQL) ───────────────────────────────────────────────
@@ -417,3 +417,4 @@ app.include_router(schemes.router)
 app.include_router(profile.router)
 app.include_router(applications.router)
 app.include_router(documents.router)
+app.include_router(assistant.router)

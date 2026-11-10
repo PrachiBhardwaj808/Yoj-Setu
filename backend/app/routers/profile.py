@@ -11,6 +11,7 @@ from app.dao import citizen_profile_dao, user_dao
 router = APIRouter(prefix="/profile", tags=["Citizen Profile"])
 
 
+@router.get("")
 @router.get("/me")
 def get_my_profile(current_user: dict = Depends(auth_service.get_current_user)):
     """Fetches the citizen profile of the authenticated user."""
@@ -42,6 +43,7 @@ def get_my_profile(current_user: dict = Depends(auth_service.get_current_user)):
     return profile
 
 
+@router.put("")
 @router.put("/me")
 def update_my_profile(
     profile_data: Dict[str, Any],
@@ -56,6 +58,7 @@ def update_my_profile(
     return {"message": "Profile updated successfully", "profile": updated}
 
 
+@router.delete("")
 @router.delete("/me")
 def delete_my_profile(current_user: dict = Depends(auth_service.get_current_user)):
     """Deletes citizen profile for the current user."""

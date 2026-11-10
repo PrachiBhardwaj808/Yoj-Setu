@@ -63,13 +63,14 @@ def get_application(
     return app
 
 
+@router.put("/{application_id}")
 @router.patch("/{application_id}")
 def update_application(
     application_id: str,
     req: UpdateApplicationStatusRequest,
     current_user: dict = Depends(auth_service.get_current_user)
 ):
-    """Updates status of a tracked application owned by the user."""
+    """Updates status or details of a tracked application owned by the user."""
     updated = application_dao.update_application_status(
         application_id=application_id,
         user_id=current_user["id"],

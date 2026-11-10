@@ -3,6 +3,7 @@
  */
 import { translateText } from './bhashiniService.js';
 import { getAllSchemes } from './schemeService.js';
+import api from './api.js';
 
 const CATEGORY_TERMS = {
   agriculture: /farm|agri|kisan|किसान|ਖੇਤੀ|কৃষি|शेतकरी|விவசாயி|రైతు|ખેડૂત|ರೈತ|കർഷകൻ/i,
@@ -40,11 +41,22 @@ function formatScheme(scheme) {
  */
 export async function sendMessage(text, language = 'en') {
   const query = String(text || '').trim();
-  let rawReply;
   if (!query) {
-    rawReply = 'Enter a question about a scheme in the catalogue.';
-  } else {
-    const catalogue = await getAllSchemes();
+    return 'Enter a question about a scheme in the catalogue.';
+  }
+
+  // Attempt backend assistant endpoint first
+  try {
+    const res = await api.post('/api/assistant/chat', { message: query, language });
+    if (res?.data?.reply) {
+      return res.data.reply;
+    }
+  } catch (err) {
+    // Offline / fallback to local catalogue matching
+  }
+
+  let rawReply;
+  const catalogue = await getAllSchemes();
     const category = Object.entries(CATEGORY_TERMS)
       .find(([, pattern]) => pattern.test(query))?.[0];
     const matchingSchemes = catalogue.filter((scheme) => {
@@ -67,7 +79,6 @@ export async function sendMessage(text, language = 'en') {
     } else {
       rawReply = 'I could not find a matching scheme in the current catalogue. Browse the catalogue or search using a scheme name or category.';
     }
-  }
 
   if (language && language !== 'en') {
     return translateText(rawReply, language, 'en');
