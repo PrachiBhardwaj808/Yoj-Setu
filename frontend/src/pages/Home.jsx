@@ -223,7 +223,7 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 h-16 xl:h-24 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 xl:gap-8">
 
           {/* Left: Brand Logo & Wordmark */}
-          <Link to="/" className="flex items-center gap-2.5 group" aria-label="YojSetu Home">
+          <Link to="/" className="flex items-center gap-2.5 group" aria-label={t('home.accessibilityLogo', 'YojSetu Home')}>
             <img
               src={logoSrc}
               alt="YojSetu Logo"
@@ -255,8 +255,8 @@ export default function Home() {
             <button
               onClick={toggleTheme}
               className="flex h-10 items-center gap-2 text-sm font-medium text-[#64748B] dark:text-gray-300 hover:text-[#2563EB] border border-[#E2E8F0] dark:border-gray-700 px-4 rounded-lg transition-colors cursor-pointer"
-              aria-label="Toggle dark mode"
-              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={t('home.toggleDarkMode', 'Toggle dark mode')}
+              title={theme === 'dark' ? t('nav.switchToLightMode', 'Switch to light mode') : t('nav.switchToDarkMode', 'Switch to dark mode')}
             >
               <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
               <span>{theme === 'dark' ? t('nav.lightMode', 'Light') : t('nav.darkMode', 'Dark')}</span>
@@ -286,7 +286,7 @@ export default function Home() {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="col-start-3 xl:hidden p-2 text-[#0F1B3D] dark:text-white hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors justify-self-end cursor-pointer"
-            aria-label="Toggle Menu"
+            aria-label={t('home.toggleMenu', 'Toggle menu')}
           >
             {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -767,7 +767,7 @@ export default function Home() {
             <button
               onClick={() => navigate('/assistant')}
               className="p-2.5 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 text-[#2563EB] rounded-lg transition-colors cursor-pointer shrink-0"
-              title="Voice Input"
+              title={t('home.voiceInput', 'Voice Input')}
             >
               <MicIcon className="w-4 h-4" />
             </button>
@@ -880,7 +880,7 @@ export default function Home() {
 
             {/* Left Brand */}
             <div>
-              <Link to="/" className="flex items-center gap-2.5" aria-label="YojSetu Home">
+              <Link to="/" className="flex items-center gap-2.5" aria-label={t('home.accessibilityLogo', 'YojSetu Home')}>
                 <img
                   src={logoSrc}
                   alt="YojSetu Logo"

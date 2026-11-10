@@ -3,6 +3,8 @@
  * Supports English and 9 official Indian languages aligned with Bhashini:
  * Hindi, Punjabi, Bengali, Marathi, Tamil, Telugu, Gujarati, Kannada, Malayalam.
  */
+import { REGIONAL_TRANSLATIONS } from './regionalTranslations.js';
+import { TRANSLATION_ADDITIONS } from './translationAdditions.js';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English', bhashiniCode: 'en' },
@@ -44,7 +46,7 @@ export function isSupportedLanguage(input) {
   return Boolean(resolveLanguage(input));
 }
 
-export const TRANSLATIONS = {
+const BASE_TRANSLATIONS = {
   en: {
     // Navigation
     'nav.dashboard': 'Dashboard',
@@ -2325,3 +2327,14 @@ export const TRANSLATIONS = {
     'common.close': 'അടയ്ക്കുക',
   },
 };
+
+export const TRANSLATIONS = Object.fromEntries(
+  SUPPORTED_LANGUAGES.map(({ code }) => [
+    code,
+    {
+      ...BASE_TRANSLATIONS[code],
+      ...(code === DEFAULT_LANGUAGE ? TRANSLATION_ADDITIONS : {}),
+      ...REGIONAL_TRANSLATIONS[code],
+    },
+  ])
+);

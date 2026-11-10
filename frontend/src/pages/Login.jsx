@@ -102,7 +102,7 @@ export default function Login() {
       await login(identifier, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Invalid credentials');
+      setError(err.message || t('auth.invalidCredentials', 'Invalid credentials'));
     } finally {
       setLoading(false);
     }
@@ -122,10 +122,10 @@ export default function Login() {
       const res = await requestLoginOTP(phone);
       setOtpSent(true);
       setCooldown(res.cooldown || 60);
-      setSuccessMsg('OTP code sent successfully.');
+      setSuccessMsg(t('auth.otpSent', 'OTP code sent successfully.'));
       if (res.dev_otp) setDevOtpHint(res.dev_otp);
     } catch (err) {
-      setError(err.message || 'Failed to send OTP.');
+      setError(err.message || t('auth.loginOtpFailed', 'Failed to send OTP.'));
     } finally {
       setLoading(false);
     }
@@ -145,7 +145,7 @@ export default function Login() {
       await loginWithOTP(phone, fullOtp);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Invalid OTP code.');
+      setError(err.message || t('auth.invalidOtp', 'Invalid OTP code.'));
     } finally {
       setLoading(false);
     }
@@ -163,10 +163,10 @@ export default function Login() {
     try {
       const res = await requestForgotPasswordOTP(forgotPhone);
       setForgotStep(2);
-      setSuccessMsg('OTP sent to your mobile number.');
+      setSuccessMsg(t('auth.resetOtpSent', 'OTP sent to your mobile number.'));
       if (res.dev_otp) setDevOtpHint(res.dev_otp);
     } catch (err) {
-      setError(err.message || 'Failed to request password reset OTP.');
+      setError(err.message || t('auth.resetOtpFailed', 'Failed to request password reset OTP.'));
     } finally {
       setLoading(false);
     }
@@ -185,9 +185,9 @@ export default function Login() {
       const res = await verifyForgotPasswordOTP(forgotPhone, fullOtp);
       setForgotResetToken(res.reset_token);
       setForgotStep(3);
-      setSuccessMsg('OTP verified. Set a new password below.');
+      setSuccessMsg(t('auth.otpVerified', 'OTP verified. Set a new password below.'));
     } catch (err) {
-      setError(err.message || 'Invalid OTP code.');
+      setError(err.message || t('auth.invalidOtp', 'Invalid OTP code.'));
     } finally {
       setLoading(false);
     }
@@ -212,7 +212,7 @@ export default function Login() {
       setActiveTab('password');
       setSuccessMsg(t('auth.resetSuccess', 'Password updated successfully. Please sign in with your new password.'));
     } catch (err) {
-      setError(err.message || 'Failed to reset password.');
+      setError(err.message || t('auth.resetFailed', 'Failed to reset password.'));
     } finally {
       setLoading(false);
     }
@@ -223,7 +223,7 @@ export default function Login() {
       
       {/* Top Navbar Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-[#E2E8F0] dark:border-gray-800 px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5" aria-label="YojSetu Home">
+        <Link to="/" className="flex items-center gap-2.5" aria-label={t('home.accessibilityLogo', 'YojSetu Home')}>
           <img
             src={logoSrc}
             alt="YojSetu Logo"
@@ -282,7 +282,7 @@ export default function Login() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
               <span>{error}</span>
-              <button onClick={() => setError('')} className="font-bold text-red-500 hover:text-red-700">×</button>
+              <button onClick={() => setError('')} aria-label={t('common.close', 'Close')} className="font-bold text-red-500 hover:text-red-700">×</button>
             </div>
           )}
 

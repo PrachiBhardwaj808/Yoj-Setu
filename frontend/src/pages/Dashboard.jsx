@@ -7,7 +7,6 @@ import { getEligibilityResults } from '../services/eligibilityService';
 import { getSchemeRouteId } from '../utils/schemeUtils';
 import { getApplications } from '../services/applicationService';
 import { APPLICATIONS_UPDATED_EVENT } from '../utils/storage';
-import { STATUS_LABELS } from '../data/mockApplications';
 
 // ─── Outline Icons ────────────────────────────────────────────────────────────
 
@@ -151,7 +150,7 @@ export default function Dashboard() {
   const [trackerError, setTrackerError] = useState(false);
   const [trackerErrorOwnerId, setTrackerErrorOwnerId] = useState(user?.id);
 
-  const userName = profile?.full_name || user?.full_name || 'Rahul';
+  const userName = profile?.full_name || user?.full_name || t('profile.citizen', 'Citizen');
   const firstName = userName.split(' ')[0];
 
   const hour = new Date().getHours();
@@ -415,7 +414,7 @@ export default function Dashboard() {
                     {/* Footer Card Row */}
                     <div className="pt-4 mt-4 border-t border-[#E2E8F0] flex items-center justify-between">
                       <span className="text-xs text-[#64748B]">
-                        {t('dashboard.govtLabel', 'Govt:')} <strong className="text-[#0F1B3D]">{scheme.government_level || 'Central'}</strong>
+                        {t('dashboard.govtLabel', 'Govt:')} <strong className="text-[#0F1B3D]">{scheme.government_level || t('dashboard.centralGovernment', 'Central')}</strong>
                       </span>
                       <button
                         onClick={() => setSelectedSchemeModal(scheme)}
@@ -460,7 +459,7 @@ export default function Dashboard() {
             </div>
 
             <p className="text-[11px] text-[#64748B] pt-2 border-t border-[#E2E8F0]">
-              🔒 <strong>AI Principle Enforced:</strong> Rule evaluations are 100% deterministic code based on official scheme attributes. The AI agent only formats and ranks grounded explanations.
+              🔒 <strong>{t('dashboard.aiPrincipleTitle', 'AI principle enforced:')}</strong> {t('dashboard.aiPrincipleDescription', 'Rule evaluations are deterministic code based on official scheme attributes. The AI assistant only formats and ranks explanations based on those rules.')}
             </p>
           </div>
 
@@ -511,7 +510,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
               <h3 className="text-base font-semibold text-[#0F1B3D]">{t('applications.title', 'Your applications')}</h3>
               <Link to="/applications" className="text-xs font-medium text-[#2563EB] hover:underline">
-                View status →
+                {t('dashboard.applicationStatusLink', 'View status →')}
               </Link>
             </div>
 
@@ -542,11 +541,17 @@ export default function Dashboard() {
                     className="flex items-center justify-between gap-3 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl hover:border-blue-200"
                   >
                     <span className="text-sm font-semibold text-[#0F1B3D]">{application.schemeName}</span>
-                    <span className="text-[11px] text-gray-600">{STATUS_LABELS[application.status] || STATUS_LABELS.unverified}</span>
+                    <span className="text-[11px] text-gray-600">
+                      {application.status === 'applied_by_user'
+                        ? t('applications.reportedCount', 'Applied (self-reported)')
+                        : application.status === 'planning'
+                          ? t('applications.planningCount', 'Planning')
+                          : t('applications.statusNeedsReview', 'Status needs review')}
+                    </span>
                   </Link>
                 ))}
                 <p className="text-[11px] text-[#64748B]">
-                  {t('applications.localTrackingNotice', 'These are private, self-reported tracking notes, not government status updates.')}
+                  {t('dashboard.localTrackingNotice', 'These are private, self-reported tracking notes, not government status updates.')}
                 </p>
               </div>
             )}
@@ -554,13 +559,13 @@ export default function Dashboard() {
 
           <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">{t('applications.localTrackingTitle', 'About your tracker')}</h3>
+              <h3 className="text-base font-semibold text-[#0F1B3D]">{t('dashboard.localTrackingTitle', 'About your tracker')}</h3>
             </div>
 
             <div className="space-y-3 text-xs text-[#64748B]">
-              <p>{t('applications.localTrackingStorage', 'Tracker records are stored in this browser under your account-specific key.')}</p>
-              <p>{t('applications.localTrackingStatuses', 'You can mark a scheme as planning or applied (self-reported).')}</p>
-              <p>{t('applications.localTrackingNotice', 'Tracking does not submit an application or provide official status updates.')}</p>
+              <p>{t('dashboard.localTrackingStorage', 'Tracker records are stored in this browser under your account-specific key.')}</p>
+              <p>{t('dashboard.localTrackingStatuses', 'You can mark a scheme as planning or applied (self-reported).')}</p>
+              <p>{t('dashboard.trackingDisclaimer', 'Tracking does not submit an application or provide official status updates.')}</p>
             </div>
           </div>
         </div>
@@ -572,8 +577,8 @@ export default function Dashboard() {
               <BotIcon className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Have questions about eligibility or required documents?</h4>
-              <p className="text-xs text-slate-300">Yojsetu AI Assistant can explain rules and guide document uploads.</p>
+              <h4 className="text-sm font-semibold text-white">{t('dashboard.assistantCalloutTitle', 'Have questions about eligibility or required documents?')}</h4>
+              <p className="text-xs text-slate-300">{t('dashboard.assistantCalloutDescription', 'Yojsetu Scheme Sathi can explain rules and guide you through document preparation.')}</p>
             </div>
           </div>
 
@@ -593,7 +598,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
               <div>
                 <h3 className="text-base font-semibold text-[#0F1B3D]">{selectedSchemeModal.scheme_name}</h3>
-                <span className="text-xs text-[#64748B]">{selectedSchemeModal.department || 'Government Department'}</span>
+                <span className="text-xs text-[#64748B]">{selectedSchemeModal.department || t('dashboard.governmentDepartment', 'Government Department')}</span>
               </div>
               <button
                 onClick={() => setSelectedSchemeModal(null)}
@@ -606,12 +611,12 @@ export default function Dashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-blue-50 border border-blue-100 p-3 rounded-xl">
                 <div>
-                  <span className="text-[10px] text-[#2563EB] font-semibold uppercase tracking-wider block">Benefit</span>
+                  <span className="text-[10px] text-[#2563EB] font-semibold uppercase tracking-wider block">{t('dashboard.benefit', 'Benefit')}</span>
                   <span className="text-sm font-bold text-[#0F1B3D]">{selectedSchemeModal.benefit}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider block">Match Score</span>
-                  <span className="text-sm font-bold text-emerald-700">{selectedSchemeModal.match_score}% Match</span>
+                  <span className="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider block">{t('dashboard.matchScore', 'Match score')}</span>
+                  <span className="text-sm font-bold text-emerald-700">{selectedSchemeModal.match_score}% {t('dashboard.matchSuffix', 'Match')}</span>
                 </div>
               </div>
 
@@ -623,12 +628,12 @@ export default function Dashboard() {
               {/* Passed & Evaluated Rules */}
               {selectedSchemeModal.passed_conditions && selectedSchemeModal.passed_conditions.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs font-semibold text-[#0F1B3D] block">Passed Conditions:</span>
+                  <span className="text-xs font-semibold text-[#0F1B3D] block">{t('dashboard.passedConditions', 'Passed conditions:')}</span>
                   <div className="space-y-1.5">
                     {selectedSchemeModal.passed_conditions.map((cond, idx) => (
                       <div key={idx} className="flex items-center justify-between text-xs p-2 bg-emerald-50/60 border border-emerald-100 rounded-lg">
                         <span className="text-emerald-900 font-medium">✓ {cond.description}</span>
-                        <span className="text-[11px] text-emerald-700 font-mono">Your profile: {String(cond.user_value)}</span>
+                        <span className="text-[11px] text-emerald-700 font-mono">{t('dashboard.profileValueLabel', 'Your profile:')} {String(cond.user_value)}</span>
                       </div>
                     ))}
                   </div>
@@ -648,7 +653,9 @@ export default function Dashboard() {
                             ? 'bg-emerald-100 text-emerald-800'
                             : 'bg-amber-100 text-amber-800'
                         }`}>
-                          {doc.is_available ? '✓ Ready' : '⚠ Action Required'}
+                          {doc.is_available
+                            ? `✓ ${t('dashboard.ready', 'Ready')}`
+                            : `⚠ ${t('dashboard.actionRequired', 'Action Required')}`}
                         </span>
                       </div>
                     ))}
@@ -665,7 +672,7 @@ export default function Dashboard() {
                   rel="noopener noreferrer"
                   className="text-xs font-medium text-[#64748B] hover:text-[#0F1B3D] underline"
                 >
-                  Official Source Portal ↗
+                  {t('dashboard.officialSourcePortal', 'Official Source Portal ↗')}
                 </a>
               )}
               <div className="flex items-center gap-2 ml-auto">

@@ -2,79 +2,17 @@ import { useState } from 'react';
 import { useProfile } from '@/context/ProfileContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { Link } from 'react-router-dom';
+import { DOCUMENT_DEFINITIONS } from '@/data/documentCatalog';
 
-const DOCUMENT_DEFINITIONS = [
-  {
-    key: 'has_aadhaar',
-    title: 'Aadhaar Card',
-    category: 'Identity Proof',
-    requiredBy: [
-      'PM Kisan Samman Nidhi',
-      'Ayushman Bharat (PM-JAY)',
-      'PM Surya Ghar: Muft Bijli Yojana',
-      'Post-Matric Scholarship Scheme',
-      'MGNREGA Rural Employment Guarantee',
-      'PM Awas Yojana (PMAY-Urban/Rural)',
-    ],
-    authority: 'Unique Identification Authority of India (UIDAI)',
-    helpUrl: 'https://myaadhaar.uidai.gov.in',
-    description: '12-digit unique identity number linked with your active mobile number for DBT subsidy transfers.',
-  },
-  {
-    key: 'has_bank_account',
-    title: 'Bank Passbook / DBT Account',
-    category: 'Financial',
-    requiredBy: ['PM Kisan Samman Nidhi', 'MGNREGA Rural Employment Guarantee'],
-    authority: 'Scheduled Commercial Bank / Post Office',
-    helpUrl: 'https://pmjdy.gov.in',
-    description: 'Active bank account linked with Aadhaar NPCI mapper to receive direct benefit transfers without fail.',
-  },
-  {
-    key: 'has_ration_card',
-    title: 'Ration Card (NFSA / State)',
-    category: 'Household & Food Security',
-    requiredBy: ['Ayushman Bharat (PM-JAY)'],
-    authority: 'Department of Food & Public Distribution',
-    helpUrl: 'https://nfsa.gov.in',
-    description: 'Proof of family composition and economic tier (Antyodaya, BPL, or Priority Household).',
-  },
-  {
-    key: 'has_income_certificate',
-    title: 'Income Certificate',
-    category: 'Income Proof',
-    requiredBy: ['Post-Matric Scholarship Scheme', 'PM Awas Yojana (PMAY-Urban/Rural)'],
-    authority: 'Tehsildar / Sub-Divisional Magistrate (SDM)',
-    helpUrl: 'https://services.india.gov.in',
-    description: 'Official revenue document showing annual household income. Must be valid for current financial year.',
-  },
-  {
-    key: 'has_caste_certificate',
-    title: 'Caste / Category Certificate',
-    category: 'Social Category',
-    requiredBy: ['Post-Matric Scholarship Scheme'],
-    authority: 'Revenue Officer / District Magistrate',
-    helpUrl: 'https://socialjustice.gov.in',
-    description: 'Verification of SC, ST, OBC, or EWS community reservation status.',
-  },
-  {
-    key: 'has_land_document',
-    title: 'Land Records (RoR / 7/12 Extract)',
-    category: 'Agriculture & Property',
-    requiredBy: ['PM Kisan Samman Nidhi', 'PM Awas Yojana (PMAY-Urban/Rural)'],
-    authority: 'State Revenue Department / Bhulekh Portal',
-    helpUrl: 'https://dilrmp.gov.in',
-    description: 'Record of rights showing land ownership, survey numbers, and cultivable area under applicant name.',
-  },
-  {
-    key: 'has_disability_certificate',
-    title: 'Disability / UDID Card',
-    category: 'Special Assistance',
-    requiredBy: ['Divyangjan Welfare Schemes', 'ADIP Assistive Aids', 'Disability Pension'],
-    authority: 'Department of Empowerment of Persons with Disabilities',
-    helpUrl: 'https://www.swavlambancard.gov.in',
-    description: 'Unique Disability ID certificate specifying 40% or higher benchmark disability.',
-  },
-];
+const DOCUMENT_CATEGORY_KEYS = {
+  'Identity Proof': 'documents.identityProof',
+  Financial: 'documents.financialCategory',
+  'Household & Food Security': 'documents.householdFoodSecurity',
+  'Income Proof': 'documents.incomeProof',
+  'Social Category': 'profile.socialCategory',
+  'Agriculture & Property': 'documents.agricultureProperty',
+  'Special Assistance': 'documents.specialAssistance',
+};
 
 export default function Documents() {
   const { profile, updateProfile } = useProfile();
@@ -86,13 +24,20 @@ export default function Documents() {
 
   const handleStatusChange = (key, newStatus) => {
     updateProfile({ [key]: newStatus });
-    setToastMessage(`Updated ${key.replace('has_', '').replace('_', ' ')} status to: ${newStatus}`);
+    setToastMessage('documents.statusUpdated');
     setTimeout(() => setToastMessage(null), 3000);
   };
 
   const availableCount = DOCUMENT_DEFINITIONS.filter(d => getStatus(d.key) === 'Yes').length;
   const inProgressCount = DOCUMENT_DEFINITIONS.filter(d => getStatus(d.key) === 'In progress' || getStatus(d.key) === 'Not sure').length;
   const missingCount = DOCUMENT_DEFINITIONS.filter(d => getStatus(d.key) === 'No').length;
+  const statusLabels = {
+    Yes: t('onboarding.yes', 'Yes'),
+    'In progress': t('common.inProgress', 'In progress'),
+    'Not sure': t('common.notSure', 'Not Sure'),
+    No: t('onboarding.no', 'No'),
+    'Not applicable': t('common.notApplicable', 'Not Applicable'),
+  };
 
   const filteredDocs = DOCUMENT_DEFINITIONS.filter(doc => {
     const status = getStatus(doc.key);
@@ -129,8 +74,8 @@ export default function Documents() {
 
       {toastMessage && (
         <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm flex items-center justify-between">
-          <span>{toastMessage}</span>
-          <button onClick={() => setToastMessage(null)} className="text-emerald-600 font-bold ml-2">×</button>
+          <span>{t(toastMessage, 'Document status updated.')}</span>
+          <button onClick={() => setToastMessage(null)} aria-label={t('common.dismiss', 'Dismiss')} className="text-emerald-600 font-bold ml-2">×</button>
         </div>
       )}
 
@@ -145,7 +90,9 @@ export default function Documents() {
           <p className="text-2xl font-bold text-emerald-600 mt-1">{availableCount}</p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
-          <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">{t('dashboard.underReviewSchemes', 'In Progress / Unsure')}</span>
+          <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
+            {t('common.inProgress', 'In Progress')} / {t('common.notSure', 'Not Sure')}
+          </span>
           <p className="text-2xl font-bold text-amber-600 mt-1">{inProgressCount}</p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
@@ -159,7 +106,7 @@ export default function Documents() {
         {[
           { id: 'all', label: `${t('schemes.allCategories', 'All')} (${DOCUMENT_DEFINITIONS.length})` },
           { id: 'ready', label: `${t('documents.availableInVault', 'Ready')} (${availableCount})` },
-          { id: 'pending', label: `${t('applications.underReview', 'In Progress')} (${inProgressCount})` },
+          { id: 'pending', label: `${t('common.inProgress', 'In Progress')} (${inProgressCount})` },
           { id: 'missing', label: `${t('documents.actionRequired', 'Missing')} (${missingCount})` },
         ].map(tab => (
           <button
@@ -200,9 +147,9 @@ export default function Documents() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <span className="inline-block text-[11px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md mb-1">
-                    {doc.category}
+                    {t(DOCUMENT_CATEGORY_KEYS[doc.category], doc.category)}
                   </span>
-                  <h3 className="text-base font-bold text-gray-900">{doc.title}</h3>
+                  <h3 className="text-base font-bold text-gray-900">{t(doc.titleKey, doc.title)}</h3>
                 </div>
                 <span
                   className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
@@ -215,12 +162,12 @@ export default function Documents() {
                       : 'bg-rose-50 text-rose-700'
                   }`}
                 >
-                  {status}
+                  {statusLabels[status] || t('common.notAvailable', 'Not provided')}
                 </span>
               </div>
 
               <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                {doc.description}
+                {t(doc.descriptionKey, doc.description)}
               </p>
 
               {/* Required By */}
@@ -236,7 +183,7 @@ export default function Documents() {
               </div>
 
               {/* Status Selector & Help */}
-              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+              <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs">
                   <label htmlFor={`status-${doc.key}`} className="text-gray-500 font-medium">{t('schemes.status', 'Status:')}</label>
                   <select
@@ -246,10 +193,10 @@ export default function Documents() {
                     className="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
                     <option value="Yes">{t('documents.availableInVault', 'Ready (Available)')}</option>
-                    <option value="In progress">{t('applications.underReview', 'In Progress')}</option>
-                    <option value="Not sure">Not Sure</option>
-                    <option value="No">{t('documents.actionRequired', 'Missing')}</option>
-                    <option value="Not applicable">Not Applicable</option>
+                    <option value="In progress">{t('common.inProgress', 'In Progress')}</option>
+                    <option value="Not sure">{t('common.notSure', 'Not Sure')}</option>
+                    <option value="No">{t('onboarding.no', 'No')}</option>
+                    <option value="Not applicable">{t('common.notApplicable', 'Not Applicable')}</option>
                   </select>
                 </div>
 
@@ -276,9 +223,12 @@ export default function Documents() {
           💡
         </div>
         <div>
-          <h4 className="text-sm font-bold text-blue-900">{t('documents.digilockerConnected', 'DigiLocker Integration Recommendation')}</h4>
+          <h4 className="text-sm font-bold text-blue-900">{t('documents.digilockerGuidanceTitle', 'DigiLocker guidance')}</h4>
           <p className="text-xs text-blue-700 mt-1 leading-relaxed">
-            Citizens can fetch legally valid electronic copies of Aadhaar, Driving License, Ration Card, and Class X/XII marksheet directly via DigiLocker. Documents stored in DigiLocker are treated at par with physical originals under Rule 9A of the Information Technology (Preservation and Retention of Information by Intermediaries Providing Digital Locker Facilities) Rules, 2016.
+            {t(
+              'documents.digilockerGuidance',
+              'Citizens can fetch legally valid electronic copies of Aadhaar, Driving License, Ration Card, and Class X/XII marksheet directly via DigiLocker. Documents stored in DigiLocker are treated at par with physical originals under Rule 9A of the Information Technology (Preservation and Retention of Information by Intermediaries Providing Digital Locker Facilities) Rules, 2016.'
+            )}
           </p>
           <div className="mt-2">
             <Link to="/schemes" className="text-xs font-bold text-blue-800 hover:underline">

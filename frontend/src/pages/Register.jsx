@@ -97,7 +97,7 @@ export default function Register() {
       setCooldown(res.cooldown || 60);
       if (res.dev_otp) setDevOtpHint(res.dev_otp);
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Failed to send OTP code.');
+      setError(err.response?.data?.detail || err.message || t('auth.requestOtpFailed', 'Failed to send OTP code.'));
     } finally {
       setLoading(false);
     }
@@ -112,7 +112,7 @@ export default function Register() {
       setCooldown(res.cooldown || 60);
       if (res.dev_otp) setDevOtpHint(res.dev_otp);
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Failed to resend OTP.');
+      setError(err.response?.data?.detail || err.message || t('auth.resendOtpFailed', 'Failed to resend OTP.'));
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ export default function Register() {
 
       navigate('/onboarding');
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Verification failed. Please check the code.');
+      setError(err.response?.data?.detail || err.message || t('auth.verificationFailed', 'Verification failed. Please check the code.'));
     } finally {
       setLoading(false);
     }
@@ -154,7 +154,7 @@ export default function Register() {
       
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-[#E2E8F0] dark:border-gray-800 px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5" aria-label="YojSetu Home">
+        <Link to="/" className="flex items-center gap-2.5" aria-label={t('home.accessibilityLogo', 'YojSetu Home')}>
           <img
             src={logoSrc}
             alt="YojSetu Logo"
@@ -194,7 +194,7 @@ export default function Register() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
               <span>{error}</span>
-              <button onClick={() => setError('')} className="font-bold text-red-500 hover:text-red-700">×</button>
+              <button onClick={() => setError('')} aria-label={t('common.close', 'Close')} className="font-bold text-red-500 hover:text-red-700">×</button>
             </div>
           )}
 

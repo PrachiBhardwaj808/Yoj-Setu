@@ -8,6 +8,7 @@ import {
 import api from '../services/api.js';
 import { getProfile, saveProfileProgress } from '../services/profileService.js';
 import { getProfileStorageKey } from '../utils/storage.js';
+import { completeOnboardingFlow } from '../utils/onboardingCompletion.js';
 
 function installStorage() {
   const records = new Map();
@@ -162,4 +163,55 @@ test('Missing session and malformed saved data fail safely without shared-key wr
   await assert.rejects(saveProfileProgress({ full_name: 'Overwrite attempt' }, 2, 101));
   assert.equal(records.get(key), '{malformed');
   assert.equal(getProfileStorageKey(null), null);
+});
+
+test('Onboarding completion saves first, then marks complete and shows success', async () => {
+  const calls = [];
+  const didComplete = await completeOnboardingFlow({
+    saveProgress: async () => {
+      calls.push('save');
+      return true;
+    },
+    markOnboardingComplete: async () => {
+      calls.push('complete');
+    },
+    onComplete: () => calls.push('success'),
+  });
+
+  assert.equal(didComplete, true);
+  assert.deepEqual(calls, ['save', 'complete', 'success']);
+});
+
+test('Failed onboarding completion does not show success or hide the failure', async () => {
+  const calls = [];
+  await assert.rejects(
+    completeOnboardingFlow({
+      saveProgress: async () => {
+        calls.push('save');
+        return true;
+      },
+      markOnboardingComplete: async () => {
+        calls.push('complete');
+        throw new Error('completion request failed');
+      },
+      onComplete: () => calls.push('success'),
+    }),
+    /completion request failed/
+  );
+
+  assert.deepEqual(calls, ['save', 'complete']);
+});
+
+test('Unsuccessful profile save prevents the completion request', async () => {
+  let completionCalls = 0;
+  const didComplete = await completeOnboardingFlow({
+    saveProgress: async () => false,
+    markOnboardingComplete: async () => {
+      completionCalls++;
+    },
+    onComplete: () => assert.fail('completion must not be shown after a failed save'),
+  });
+
+  assert.equal(didComplete, false);
+  assert.equal(completionCalls, 0);
 });

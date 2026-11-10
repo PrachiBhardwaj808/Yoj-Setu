@@ -132,30 +132,26 @@ export function AuthProvider({ children }) {
 
   const markOnboardingComplete = useCallback(async () => {
     const storage = getStorage();
-    try {
-      const updatedUser = await authService.completeOnboarding();
-      const currentToken = storage ? storage.getItem(TOKEN_KEY) : null;
-      if (currentToken) {
-        saveSession(currentToken, updatedUser);
-      } else {
-        setUser(updatedUser);
-        if (storage) {
-          storage.setItem(USER_KEY, JSON.stringify(updatedUser));
-        }
+    const responseUser = await authService.completeOnboarding();
+    const updatedUser = {
+      ...(user || {}),
+      ...(responseUser && typeof responseUser === 'object' ? responseUser : {}),
+      onboardingComplete: true,
+      onboarding_complete: true,
+    };
+    const currentToken = storage ? storage.getItem(TOKEN_KEY) : null;
+
+    if (currentToken) {
+      saveSession(currentToken, updatedUser);
+    } else {
+      setUser(updatedUser);
+      if (storage) {
+        storage.setItem(USER_KEY, JSON.stringify(updatedUser));
       }
-      return updatedUser;
-    } catch (err) {
-      console.warn("Failed to persist onboarding status to backend, falling back to local state:", err);
-      setUser(prev => {
-        if (!prev) return prev;
-        const updated = { ...prev, onboardingComplete: true, onboarding_complete: true };
-        if (storage) {
-          storage.setItem(USER_KEY, JSON.stringify(updated));
-        }
-        return updated;
-      });
     }
-  }, [saveSession]);
+
+    return updatedUser;
+  }, [saveSession, user]);
 
   const refreshUser = useCallback(async () => {
     const storage = getStorage();

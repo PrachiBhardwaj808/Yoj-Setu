@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   SUPPORTED_LANGUAGES,
@@ -8,6 +11,9 @@ import {
   resolveLanguage,
   isSupportedLanguage,
 } from '../translations/index.js';
+import { getStoredLanguagePreference, saveLanguagePreference } from '../translations/languagePreferences.js';
+import { translate } from '../translations/translate.js';
+import { DOCUMENT_DEFINITIONS } from '../data/documentCatalog.js';
 
 import { translateText, isBhashiniSupported } from '../services/bhashiniService.js';
 import { sendMessage, getSuggestedQuestions } from '../services/chatService.js';
@@ -196,11 +202,17 @@ test('Translations Dictionary - All 10 Supported Languages have full key sets', 
     'common.loading',
     'common.tryAgain',
     'common.notFoundTitle',
+    'onboarding.progressSaved',
   ];
 
   for (const lang of SUPPORTED_LANGUAGES) {
     const dict = TRANSLATIONS[lang.code];
     assert.ok(dict, `Dictionary for language '${lang.code}' (${lang.name}) must be defined`);
+    assert.deepEqual(
+      Object.keys(dict).sort(),
+      Object.keys(TRANSLATIONS.en).sort(),
+      `Dictionary keys must be consistent in '${lang.code}'`
+    );
 
     for (const key of requiredCategories) {
       assert.ok(
@@ -208,23 +220,107 @@ test('Translations Dictionary - All 10 Supported Languages have full key sets', 
         `Key '${key}' must be defined and non-empty in '${lang.code}' dictionary`
       );
     }
+
+    for (const key of Object.keys(TRANSLATIONS.en)) {
+      const placeholders = (value) => [...value.matchAll(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g)]
+        .map((match) => match[1])
+        .sort();
+      assert.deepEqual(
+        placeholders(dict[key]),
+        placeholders(TRANSLATIONS.en[key]),
+        `Interpolation placeholders must match for '${key}' in '${lang.code}'`
+      );
+    }
   }
 });
 
-test('Parameter Interpolation - Correctly replaces placeholders', () => {
-  const interpolate = (template, params) => {
-    if (!params || typeof params !== 'object') return template;
-    return Object.entries(params).reduce((acc, [k, v]) => {
-      return acc.replaceAll(`{${k}}`, String(v ?? ''));
-    }, template);
+test('Document catalog titles and descriptions are translated in all supported languages', () => {
+  assert.equal(DOCUMENT_DEFINITIONS.length, 7);
+
+  for (const document of DOCUMENT_DEFINITIONS) {
+    assert.ok(document.requiredBy.length > 0, `${document.key} must retain its scheme requirements`);
+    for (const { code, name } of SUPPORTED_LANGUAGES) {
+      const dictionary = TRANSLATIONS[code];
+      assert.ok(dictionary[document.titleKey]?.trim(), `Missing ${document.titleKey} in ${name}`);
+      assert.ok(dictionary[document.descriptionKey]?.trim(), `Missing ${document.descriptionKey} in ${name}`);
+      if (code !== DEFAULT_LANGUAGE) {
+        assert.notEqual(
+          dictionary[document.descriptionKey],
+          TRANSLATIONS.en[document.descriptionKey],
+          `${document.descriptionKey} should not fall back to English in ${name}`
+        );
+      }
+    }
+  }
+
+  for (const { code, name } of SUPPORTED_LANGUAGES) {
+    assert.ok(TRANSLATIONS[code]['documents.digilockerGuidanceTitle']?.trim(), `Missing DigiLocker title in ${name}`);
+    assert.ok(TRANSLATIONS[code]['documents.digilockerGuidance']?.trim(), `Missing DigiLocker guidance in ${name}`);
+  }
+});
+
+test('All statically referenced UI translation keys exist in every language', () => {
+  const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const sourceFiles = [];
+  const collectSourceFiles = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const filePath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        collectSourceFiles(filePath);
+      } else if (/\.(jsx?|tsx?)$/.test(entry.name)) {
+        sourceFiles.push(filePath);
+      }
+    }
+  };
+  collectSourceFiles(sourceRoot);
+
+  const referencedKeys = new Set();
+  for (const filePath of sourceFiles) {
+    const source = readFileSync(filePath, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    for (const match of source.matchAll(/\bt\(\s*['"]([^'"]+)['"]/g)) {
+      referencedKeys.add(match[1]);
+    }
+  }
+
+  assert.ok(referencedKeys.size > 0, 'UI should reference translation keys');
+  const missingKeys = [];
+  for (const key of referencedKeys) {
+    for (const { code, name } of SUPPORTED_LANGUAGES) {
+      if (!TRANSLATIONS[code][key]) missingKeys.push(`${key} (${name})`);
+    }
+  }
+  assert.deepEqual(missingKeys, [], 'Every static UI translation reference must exist in every language');
+});
+
+test('Translation fallback, language switching, and interpolation', () => {
+  assert.equal(translate('unknown.key', 'hi', 'Fallback text'), 'Fallback text');
+  assert.equal(translate('unknown.key', 'hi'), 'unknown.key');
+  assert.equal(translate('nav.dashboard', 'en'), 'Dashboard');
+  assert.equal(translate('nav.dashboard', 'hi'), 'डैशबोर्ड');
+  assert.equal(translate('auth.resendOtpIn', 'en', '', { sec: 45 }), 'Resend OTP in 45s');
+  assert.equal(translate('dashboard.match', 'en', '', { score: 95 }), '95% Match');
+  assert.equal(translate('dashboard.moreDocs', 'en', '', { count: 3 }), '+3 more');
+  assert.equal(
+    translate('safetyCentre.questionProgress', 'pa', '', { current: 2, total: 6 }).includes('{'),
+    false
+  );
+  assert.equal(
+    translate('onboarding.stepProgress', 'hi', '', { step: 2, count: 1 }).includes('{'),
+    false
+  );
+});
+
+test('Language preference persists by code, English name, and native name', () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
   };
 
-  const templateSec = TRANSLATIONS.en['auth.resendOtpIn'];
-  assert.equal(interpolate(templateSec, { sec: 45 }), 'Resend OTP in 45s');
-
-  const templateMatch = TRANSLATIONS.en['dashboard.match'];
-  assert.equal(interpolate(templateMatch, { score: 95 }), '95% Match');
-
-  const templateDocs = TRANSLATIONS.en['dashboard.moreDocs'];
-  assert.equal(interpolate(templateDocs, { count: 3 }), '+3 more');
+  assert.equal(saveLanguagePreference(storage, 'বাংলা'), true);
+  assert.equal(getStoredLanguagePreference(storage), 'bn');
+  assert.equal(saveLanguagePreference(storage, 'Marathi'), true);
+  assert.equal(getStoredLanguagePreference(storage), 'mr');
+  assert.equal(saveLanguagePreference(storage, 'xx'), false);
+  assert.equal(getStoredLanguagePreference(storage), 'mr');
 });

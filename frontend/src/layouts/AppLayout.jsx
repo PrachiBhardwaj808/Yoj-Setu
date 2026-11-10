@@ -65,7 +65,7 @@ function Sidebar({ collapsed, onToggle }) {
   }
 
   const iconCls = 'w-5 h-5 flex-shrink-0';
-  const displayName = user?.full_name || user?.name || 'Citizen';
+  const displayName = user?.full_name || user?.name || t('profile.citizen', 'Citizen');
   const initial = (displayName || 'C')[0].toUpperCase();
 
   return (
@@ -73,7 +73,7 @@ function Sidebar({ collapsed, onToggle }) {
       {/* Logo row */}
       <div className="flex items-center justify-between px-3 py-4 border-b border-gray-200 dark:border-white/10">
         {!collapsed && (
-          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2 min-w-0" aria-label="YojSetu Home">
+          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2 min-w-0" aria-label={t('home.accessibilityLogo', 'YojSetu Home')}>
             <img
               src={logoSrc}
               alt="YojSetu Logo"
@@ -82,7 +82,7 @@ function Sidebar({ collapsed, onToggle }) {
           </Link>
         )}
         {collapsed && (
-          <Link to={isAuthenticated ? "/dashboard" : "/"} aria-label="YojSetu Home" className="mx-auto">
+          <Link to={isAuthenticated ? "/dashboard" : "/"} aria-label={t('home.accessibilityLogo', 'YojSetu Home')} className="mx-auto">
             <img
               src={logoSrc}
               alt="YojSetu Logo"
@@ -93,7 +93,7 @@ function Sidebar({ collapsed, onToggle }) {
         <button
           onClick={onToggle}
           className={`text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded ${collapsed ? 'mx-auto mt-1' : ''}`}
-          aria-label="Toggle sidebar"
+          aria-label={t('nav.toggleSidebar', 'Toggle sidebar')}
         >
           {collapsed
             ? <MenuIcon cls="w-4 h-4" />
@@ -142,7 +142,7 @@ function Sidebar({ collapsed, onToggle }) {
         <button
           onClick={toggleTheme}
           className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-gray-600 dark:text-blue-200/70 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all text-sm"
-          aria-label="Toggle theme"
+          aria-label={t('nav.toggleTheme', 'Toggle theme')}
         >
           <span className="text-lg">{theme === "dark" ? "☀️" : "🌙"}</span>
           {!collapsed && (
@@ -178,7 +178,7 @@ function Sidebar({ collapsed, onToggle }) {
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 transition-all text-sm cursor-pointer"
-              aria-label="Logout"
+              aria-label={t('nav.logout', 'Logout')}
             >
               <LogoutIcon cls={iconCls} />
               {!collapsed && <span className="font-medium">{t('nav.logout', 'Logout')}</span>}
@@ -226,7 +226,7 @@ function MobileHeader() {
 
   return (
     <header className="lg:hidden fixed top-0 inset-x-0 z-40 bg-white dark:bg-[#0f1c3f] text-gray-900 dark:text-white h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-white/10 shadow-md">
-      <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2" aria-label="YojSetu Home">
+      <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2" aria-label={t('home.accessibilityLogo', 'YojSetu Home')}>
         <img
           src={logoSrc}
           alt="YojSetu Logo"
@@ -238,8 +238,8 @@ function MobileHeader() {
         <button
           onClick={toggleTheme}
           className="p-1 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={theme === 'dark' ? t('nav.switchToLightMode', 'Switch to light mode') : t('nav.switchToDarkMode', 'Switch to dark mode')}
+          title={theme === 'dark' ? t('nav.switchToLightMode', 'Switch to light mode') : t('nav.switchToDarkMode', 'Switch to dark mode')}
         >
           <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
         </button>

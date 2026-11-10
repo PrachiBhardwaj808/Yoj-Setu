@@ -86,8 +86,8 @@ export default function Profile() {
             <h2 className="text-sm font-semibold text-[#0F1B3D]">{t('profile.completeness', 'Profile Completeness')}</h2>
             <p className="text-xs text-gray-500">
               {completionPercent >= 80
-                ? 'Your profile is thorough. You are matched with high confidence.'
-                : 'Complete more fields to unlock personalized state & central schemes.'}
+                ? t('profile.confidentMatch', 'Your profile is thorough. You are matched with high confidence.')
+                : t('profile.completeForRecommendations', 'Complete more fields to unlock personalized state and central schemes.')}
             </p>
           </div>
         </div>
@@ -101,7 +101,7 @@ export default function Profile() {
 
       {isEditing ? (
         <form onSubmit={handleSave} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-6">
-          <h2 className="text-base font-bold text-[#0F1B3D] border-b pb-3">Edit Key Profile Attributes</h2>
+          <h2 className="text-base font-bold text-[#0F1B3D] border-b pb-3">{t('profile.editAttributes', 'Edit key profile attributes')}</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
@@ -111,7 +111,7 @@ export default function Profile() {
                 value={editForm.state || ''}
                 onChange={(e) => handleChange('state', e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2"
-                placeholder="e.g. Punjab, Maharashtra"
+                placeholder={t('profile.statePlaceholder', 'e.g. Punjab, Maharashtra')}
               />
             </div>
             <div>
@@ -121,7 +121,7 @@ export default function Profile() {
                 value={editForm.district || ''}
                 onChange={(e) => handleChange('district', e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2"
-                placeholder="District name"
+                placeholder={t('profile.districtPlaceholder', 'District name')}
               />
             </div>
             <div>
@@ -131,7 +131,7 @@ export default function Profile() {
                 value={editForm.occupation || ''}
                 onChange={(e) => handleChange('occupation', e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2"
-                placeholder="e.g. Farmer, Student, Artisan"
+                placeholder={t('profile.occupationPlaceholder', 'e.g. Farmer, Student, Artisan')}
               />
             </div>
             <div>
@@ -141,7 +141,7 @@ export default function Profile() {
                 value={editForm.annual_household_income || ''}
                 onChange={(e) => handleChange('annual_household_income', e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2"
-                placeholder="e.g. 150000, 1.5 lakh, or ₹2.5-5 lakh"
+                placeholder={t('profile.incomePlaceholder', 'e.g. 150000, 1.5 lakh, or ₹2.5–5 lakh')}
               />
             </div>
             <div>
@@ -151,11 +151,11 @@ export default function Profile() {
                 onChange={(e) => handleChange('social_category', e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 bg-white"
               >
-                <option value="General">General</option>
-                <option value="OBC">OBC</option>
-                <option value="SC">SC</option>
-                <option value="ST">ST</option>
-                <option value="EWS">EWS</option>
+                <option value="General">{t('profile.generalCategory', 'General')}</option>
+                <option value="OBC">{t('profile.obcCategory', 'OBC')}</option>
+                <option value="SC">{t('profile.scCategory', 'SC')}</option>
+                <option value="ST">{t('profile.stCategory', 'ST')}</option>
+                <option value="EWS">{t('profile.ewsCategory', 'EWS')}</option>
               </select>
             </div>
             <div>
@@ -165,9 +165,9 @@ export default function Profile() {
                 onChange={(e) => handleChange('rural_urban', e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 bg-white"
               >
-                <option value="Rural">Rural</option>
-                <option value="Urban">Urban</option>
-                <option value="Semi-Urban">Semi-Urban</option>
+                <option value="Rural">{t('profile.rural', 'Rural')}</option>
+                <option value="Urban">{t('profile.urban', 'Urban')}</option>
+                <option value="Semi-Urban">{t('profile.semiUrban', 'Semi-Urban')}</option>
               </select>
             </div>
             <div className="sm:col-span-2">
@@ -218,7 +218,7 @@ export default function Profile() {
                 <span className="text-gray-500">{t('profile.phone', 'Phone Number')}</span>
                 <span className="font-semibold text-[#0F1B3D] flex items-center gap-1.5">
                   {displayPhone}
-                  <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">✓ Verified</span>
+                  <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">✓ {t('profile.verified', 'Verified')}</span>
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50">
@@ -227,7 +227,7 @@ export default function Profile() {
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50">
                 <span className="text-gray-500">{t('profile.portalRole', 'Portal Role')}</span>
-                <span className="font-medium text-blue-600 capitalize">{user?.role || 'Citizen'}</span>
+                <span className="font-medium text-blue-600 capitalize">{user?.role || t('profile.citizen', 'Citizen')}</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-gray-500">{t('profile.preferredLanguage', 'Preferred Language')}</span>
@@ -246,27 +246,27 @@ export default function Profile() {
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-1 border-b border-gray-50">
                 <span className="text-gray-500">{t('profile.state', 'State / Territory')}</span>
-                <span className="font-semibold text-[#0F1B3D]">{profile.state || 'Not specified'}</span>
+                <span className="font-semibold text-[#0F1B3D]">{profile.state || t('profile.notSpecified', 'Not specified')}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50">
                 <span className="text-gray-500">{t('profile.district', 'District')}</span>
-                <span className="font-semibold text-[#0F1B3D]">{profile.district || 'Not specified'}</span>
+                <span className="font-semibold text-[#0F1B3D]">{profile.district || t('profile.notSpecified', 'Not specified')}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50">
                 <span className="text-gray-500">{t('profile.occupation', 'Occupation')}</span>
-                <span className="font-semibold text-[#0F1B3D]">{profile.occupation || 'Not specified'}</span>
+                <span className="font-semibold text-[#0F1B3D]">{profile.occupation || t('profile.notSpecified', 'Not specified')}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50">
                 <span className="text-gray-500">{t('profile.householdIncome', 'Household Income')}</span>
-                <span className="font-semibold text-[#0F1B3D]">{profile.annual_household_income || 'Not specified'}</span>
+                <span className="font-semibold text-[#0F1B3D]">{profile.annual_household_income || t('profile.notSpecified', 'Not specified')}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50">
                 <span className="text-gray-500">{t('profile.socialCategory', 'Social Category')}</span>
-                <span className="font-semibold text-[#0F1B3D]">{profile.social_category || 'General'}</span>
+                <span className="font-semibold text-[#0F1B3D]">{profile.social_category || t('profile.generalCategory', 'General')}</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-gray-500">{t('profile.areaType', 'Area Type')}</span>
-                <span className="font-semibold text-[#0F1B3D]">{profile.rural_urban || 'Rural'}</span>
+                <span className="font-semibold text-[#0F1B3D]">{profile.rural_urban || t('profile.rural', 'Rural')}</span>
               </div>
             </div>
           </div>

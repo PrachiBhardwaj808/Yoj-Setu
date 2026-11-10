@@ -2,15 +2,18 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import {
   SUPPORTED_LANGUAGES,
   DEFAULT_LANGUAGE,
-  TRANSLATIONS,
   resolveLanguage,
   isSupportedLanguage,
 } from '../translations';
+import { translate } from '../translations/translate.js';
+import {
+  getStoredLanguagePreference,
+  LANGUAGE_STORAGE_KEY,
+  saveLanguagePreference,
+} from '../translations/languagePreferences.js';
 import { getCurrentUserId, getProfileStorageKey } from '../utils/storage';
 
 const LanguageContext = createContext(null);
-
-const STORAGE_KEY = 'yojsetu_language';
 
 /**
  * Safely retrieves initial language preference from localStorage or profile preference.
@@ -20,9 +23,8 @@ function getInitialLanguage() {
     if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
 
     // 1. Check direct language storage key
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const resolvedSaved = resolveLanguage(saved);
-    if (resolvedSaved) return resolvedSaved.code;
+    const saved = getStoredLanguagePreference(localStorage);
+    if (saved) return saved;
 
     // 2. Check user profile storage for preferred_language
     const activeUserId = getCurrentUserId();
@@ -61,7 +63,7 @@ export function LanguageProvider({ children }) {
   // Synchronize across browser tabs/storage events
   useEffect(() => {
     function handleStorage(e) {
-      if (e.key === STORAGE_KEY && e.newValue) {
+      if (e.key === LANGUAGE_STORAGE_KEY && e.newValue) {
         const resolved = resolveLanguage(e.newValue);
         if (resolved && resolved.code !== language) {
           setLanguageState(resolved.code);
@@ -90,7 +92,7 @@ export function LanguageProvider({ children }) {
 
     try {
       // 1. Persist direct preference
-      localStorage.setItem(STORAGE_KEY, resolved.code);
+      saveLanguagePreference(localStorage, resolved.code);
 
       // 2. Sync with profile preferred_language if profile exists
       const activeUserId = getCurrentUserId();
@@ -128,30 +130,10 @@ export function LanguageProvider({ children }) {
     (key, fallback = '', params = null) => {
       if (!key) return '';
 
-      let text = '';
-      const localizedDict = TRANSLATIONS[language];
-      if (localizedDict && typeof localizedDict[key] === 'string') {
-        text = localizedDict[key];
-      } else {
-        const defaultDict = TRANSLATIONS[DEFAULT_LANGUAGE];
-        if (defaultDict && typeof defaultDict[key] === 'string') {
-          text = defaultDict[key];
-        } else {
-          text = typeof fallback === 'string' && fallback ? fallback : key;
-        }
-      }
-
-      // Check for parameter object (either 2nd or 3rd argument)
       const interpolationData =
         typeof fallback === 'object' && fallback !== null ? fallback : params;
-
-      if (interpolationData && typeof interpolationData === 'object') {
-        Object.entries(interpolationData).forEach(([paramKey, paramVal]) => {
-          text = text.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramVal));
-        });
-      }
-
-      return text;
+      const fallbackText = typeof fallback === 'string' ? fallback : '';
+      return translate(key, language, fallbackText, interpolationData);
     },
     [language]
   );

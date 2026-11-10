@@ -7,7 +7,7 @@ export default function NotFoundPage() {
 
   return (
     <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center text-center px-4">
-      <div className="text-6xl mb-4 animate-pulse" role="img" aria-label="magnifying glass">🔍</div>
+      <div className="text-6xl mb-4 animate-pulse" role="img" aria-label={t('common.magnifyingGlass', 'magnifying glass')}>🔍</div>
       <h1 className="text-4xl font-extrabold text-slate-900 mb-2">
         {t('common.notFoundTitle', '404 — Page Not Found')}
       </h1>
