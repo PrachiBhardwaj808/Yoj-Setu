@@ -101,10 +101,10 @@ def check_single_scheme_eligibility(scheme_id: int, req: EvaluateEligibilityRequ
     Deterministically check eligibility of a single user profile against a specific scheme.
     Normalizes profile inputs to guarantee consistent numeric and categorical evaluation.
     """
-    if req.user_profile is None or not isinstance(req.user_profile, dict):
+    if not req.user_profile or not isinstance(req.user_profile, dict):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid request: user_profile must be a valid dictionary."
+            detail="Invalid request: user_profile must be a valid, non-empty dictionary."
         )
 
     scheme = scheme_dao.get_scheme_by_id(scheme_id)
