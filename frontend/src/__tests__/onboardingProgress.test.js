@@ -5,6 +5,7 @@ import {
   calculateProfileCompletion,
   getCompletedOnboardingSections,
 } from '../utils/profileUtils.js';
+import api from '../services/api.js';
 import { getProfile, saveProfileProgress } from '../services/profileService.js';
 import { getProfileStorageKey } from '../utils/storage.js';
 
@@ -112,6 +113,32 @@ test('Save Later persistence saves latest values and step under the active user 
   assert.equal(saved.onboardingComplete, undefined);
   assert.equal((await getProfile(101)).block, 'Test Block');
   assert.equal(records.has(getProfileStorageKey(102)), false);
+});
+
+test('Save Later synchronizes the merged profile to the backend for the active user', async () => {
+  const records = installStorage();
+  records.set('yojsetu_token', 'test-token');
+  const originalPut = api.put;
+  let request;
+  api.put = async (...args) => {
+    request = args;
+    return { data: {} };
+  };
+
+  try {
+    await saveProfileProgress({
+      ...EMPTY_PROFILE,
+      full_name: 'Fictional Test Citizen',
+      state: 'Rajasthan',
+      district: 'Jaipur',
+    }, 2, 101);
+
+    assert.equal(request[0], '/profile/me');
+    assert.equal(request[1].full_name, 'Fictional Test Citizen');
+    assert.equal(request[1].district, 'Jaipur');
+  } finally {
+    api.put = originalPut;
+  }
 });
 
 test('Onboarding progress survives user switching without cross-account data', async () => {

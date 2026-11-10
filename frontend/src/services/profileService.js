@@ -120,7 +120,7 @@ export const saveProfileProgress = async (updatedData, step, userId) => {
   try {
     const token = storage?.getItem?.('yojsetu_token');
     if (token) {
-      await api.put('/profile/me', updated);
+      await api.put('/profile/me', profile);
     }
   } catch (err) {
     // Persistent backend sync will retry on next session
