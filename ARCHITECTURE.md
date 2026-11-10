@@ -127,8 +127,7 @@ The backend codebase is located under `backend/` and follows a layered architect
   - `otp_dao.py`: Database tracking of OTP tokens and verification status in `otp_verifications`.
   - `scheme_dao.py`: Retrieval and storage for `schemes`, `scheme_rules`, and `scheme_documents`.
 - `backend/app/schemas/`: Pydantic data schemas for request validation and response serialization:
-  - `auth_schemas.py`: Schemas for registration, login, and user tokens.
-  - `otp_schemas.py`: Schemas for phone validation and OTP verification requests.
+  - `auth_schemas.py`: Schemas for registration, login, phone validation, OTP verification, and user tokens.
   - `scheme_schemas.py`: Schemas for scheme profiles, rules, documents, and recommendation responses.
 
 ---

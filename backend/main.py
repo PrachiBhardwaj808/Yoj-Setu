@@ -1,7 +1,7 @@
 # main.py — FastAPI application entry point
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import ping, auth, schemes, profile, applications, documents, assistant
@@ -411,6 +411,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ─── STANDARDIZED API ROUTES (/api/*) ─────────────────────────────────────────
+api_router = APIRouter(prefix="/api")
+api_router.include_router(ping.router)
+api_router.include_router(auth.router)
+api_router.include_router(schemes.router)
+api_router.include_router(profile.router)
+api_router.include_router(applications.router)
+api_router.include_router(documents.router)
+api_router.include_router(assistant.router)
+app.include_router(api_router)
+
+# ─── COMPATIBILITY ROOT ROUTES (unprefixed) ───────────────────────────────────
 app.include_router(ping.router)
 app.include_router(auth.router)
 app.include_router(schemes.router)
